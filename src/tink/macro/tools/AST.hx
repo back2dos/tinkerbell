@@ -1,5 +1,6 @@
 package tink.macro.tools;
 
+#if (macro || neko)
 /**
  * ...
  * @author back2dos
@@ -28,7 +29,7 @@ private class Builder {
 	static var NULL = EConst(CIdent('null'));
 	public function new(pos:Expr) {
 		this.temps = new Hash();
-		var varName = ExprTools.tempName();
+		var varName = MacroTools.tempName();
 		var posExpr = 
 			if (pos.getIdent().equals('null'))
 				'haxe.macro.Context.currentPos'.resolve().call();
@@ -119,7 +120,7 @@ private class Builder {
 									if (temps.exists(s)) 
 										s = temps.get(s);
 									else 
-										temps.set(s, s = ExprTools.tempName());
+										temps.set(s, s = MacroTools.tempName());
 								}
 								s.toExpr();
 						}
@@ -140,3 +141,4 @@ private class Builder {
 			}
 	}			
 }
+#end

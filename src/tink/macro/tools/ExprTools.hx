@@ -7,11 +7,6 @@ import tink.util.Outcome;
 
 using tink.macro.tools.ExprTools;
 class ExprTools {
-	static var idCounter = 0;	
-	static public inline function tempName():String {
-		return '__tinkTmp' + Std.string(idCounter++);
-	}
-
 	static public inline function getPos(pos:Position) {
 		return 
 			if (pos == null) 

@@ -6,5 +6,5 @@ package tink;
  */
 
 
-@:autoBuild(tink.macro.build.Builder.buildFields()) interface TinkClass {
+@:autoBuild(tink.macro.build.ClassBuilder.buildFields()) interface TinkClass {
 }

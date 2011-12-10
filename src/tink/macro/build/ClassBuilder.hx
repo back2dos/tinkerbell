@@ -10,7 +10,7 @@ using tink.macro.tools.ExprTools;
  * @author back2dos
  */
 
-@:macro class Builder {
+@:macro class ClassBuilder {
 	static public function buildFields():Array<haxe.macro.Expr.Field> {
 		return new Helper().build();
 	}

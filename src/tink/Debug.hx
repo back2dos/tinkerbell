@@ -2,8 +2,8 @@ package tink;
 
 #if macro
 	import haxe.macro.Expr;
-	import tink.macro.tools.ExprTools;
-	using tink.macro.tools.ExprTools;
+	import tink.macro.tools.MacroTools;
+	using tink.macro.tools.MacroTools;
 #end
 
 /**
@@ -16,11 +16,8 @@ class Debug {
 		var nop = [].toBlock();
 		#if debug
 			function fail(e:Expr) {
-				var s = 'Unsatisfied condition: ' + e.toString();
-				//switch (e.expr) {
-					//
-				//}
-				return EThrow(s.toExpr()).at(e.pos);
+				var msg = 'Unsatisfied condition ' + e.toString();
+				return EThrow(msg.toExpr()).at(e.pos);
 			}
 			var ret = [];
 			for (e in exprs) 
@@ -33,7 +30,7 @@ class Debug {
 	#if macro
 		static function logExprs(exprs:Array<Expr>) {
 			var args = [];
-			var tmpName = ExprTools.tempName();
+			var tmpName = MacroTools.tempName();
 			var tmp = tmpName.resolve();
 			for (e in exprs) 
 				args.push((e.toString() + ': ').toExpr().add('Std.string'.resolve().call([args.length == 0 ? tmp : e])));
@@ -49,7 +46,7 @@ class Debug {
 			#if debug
 				logExprs(exprs);
 			#else
-				[].toBlock();
+				exprs[0];
 			#end
 	}
 }

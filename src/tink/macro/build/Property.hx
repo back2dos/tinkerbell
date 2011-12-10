@@ -81,7 +81,7 @@ class Property {
 											else 
 												[
 													field.assign(setter), 
-													field
+													'param'.resolve()
 												].toBlock(tag.pos);
 									default:
 										tag.pos.error('too many arguments');
