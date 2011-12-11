@@ -46,6 +46,14 @@ class ExprTools {
 	static public inline function assign(target:Expr, value:Expr, ?pos:Position) {
 		return binOp(target, value, OpAssign, pos);
 	}
+	static public inline function toArg(name:String, ?t, ?opt = false, ?value = null):FunctionArg {
+		return {
+			name: name,
+			opt: opt,
+			type: t,
+			value: value
+		};
+	}
 	static public inline function func(e:Expr, ?args, ?ret, ?params, ?makeReturn = true):Function {
 		return {
 			args: args == null ? [] : args,
@@ -108,7 +116,7 @@ class ExprTools {
 				Success(Context.typeof(expr));
 			}
 			catch (e:Dynamic) {
-				failure(e, expr.pos);
+				expr.pos.makeError(e);
 			}				
 	}	
 	static public inline function cond(cond:ExprRequire<Bool>, cons:Expr, ?alt:Expr, ?pos) {
@@ -125,8 +133,8 @@ class ExprTools {
 				default: false;
 			}
 	}
-	///shorthand for creating a failure outcome
-	static function failure<A, Reason>(reason:Reason, ?pos:Position):Outcome<A, MacroError<Reason>> {
+	///used to easily construct failed outcomes
+	static public function makeError<A, Reason>(pos:Position, reason:Reason):Outcome<A, MacroError<Reason>> {
 		return Failure(new MacroError(reason, pos));
 	}	
 	///Attempts to extract a string from an expression.
@@ -136,9 +144,9 @@ class ExprTools {
 				case EConst(c):
 					switch (c) {
 						case CString(string): Success(string);
-						default: failure(NOT_A_STRING, e.pos);
+						default: e.pos.makeError(NOT_A_STRING);
 					}
-				default: failure(NOT_A_STRING, e.pos);
+				default: e.pos.makeError(NOT_A_STRING);
 			}			
 	}	
 	///Attempts to extract an identifier from an expression.
@@ -148,9 +156,9 @@ class ExprTools {
 				case EConst(c):
 					switch (c) {
 						case CIdent(id), CType(id): Success(id);
-						default: failure(NOT_AN_IDENT, e.pos);
+						default: e.pos.makeError(NOT_AN_IDENT);
 					}
-				default: failure(NOT_A_STRING, e.pos);
+				default: e.pos.makeError(NOT_A_STRING);
 			}					
 	}
 	///Attempts to extract a name (identifier or string) from an expression.
@@ -160,9 +168,9 @@ class ExprTools {
 				case EConst(c):
 					switch (c) {
 						case CString(s), CIdent(s), CType(s): Success(s);
-						default: failure(NOT_A_NAME, e.pos);
+						default: e.pos.makeError(NOT_A_NAME);
 					}
-				default: failure(NOT_A_STRING, e.pos);
+				default: e.pos.makeError(NOT_A_STRING);
 			}					
 	}
 	static inline var NOT_AN_IDENT = "identifier expected";

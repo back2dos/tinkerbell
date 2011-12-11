@@ -18,7 +18,7 @@ typedef ClassFieldFilter = ClassField->Bool;
 
 class Forward {
 	static inline var TAG = ":forward";
-	static public function process(members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
+	static public function process(_, members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
 		new Forward(hasField, addField).processMembers(members);
 	}
 	var hasField:String->Bool;

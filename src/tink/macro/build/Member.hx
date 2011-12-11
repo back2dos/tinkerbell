@@ -81,7 +81,13 @@ class Member {
 			meta : meta.array(),			
 		}
 	}
-	
+	public function getFunction() {
+		return
+			switch (kind) {
+				case FFun(f): Success(f);
+				default: pos.makeError('not a function');
+			}
+	}
 	function haxeAccess():Array<Access> {
 		var ret = [];
 		switch (isPublic) {

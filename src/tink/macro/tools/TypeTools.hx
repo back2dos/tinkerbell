@@ -25,6 +25,15 @@ class TypeTools {
 			'_'.resolve(pos)
 		].toBlock(pos).typeof();
 	}
+	static public function asTypePath(s:String, ?params, ?sub) {
+		var parts = s.split('.');
+		return TPath({
+			name: parts.pop(),
+			pack: parts,
+			params: params == null ? [] : params,
+			sub: sub
+		});
+	}
 	static public inline function reduce(type:Type) {
 		return Context.follow(type);
 	}

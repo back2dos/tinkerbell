@@ -8,7 +8,7 @@ import haxe.macro.Expr;
 using tink.macro.tools.ExprTools;
 
 class Init {
-	static public function process(members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
+	static public function process(_, members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
 		new Init(constructor).init(members);
 	}
 	var constructor:Constructor;

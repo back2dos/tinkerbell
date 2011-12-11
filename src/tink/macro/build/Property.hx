@@ -10,7 +10,7 @@ using tink.util.Outcome;
 class Property {
 	static public inline var FULL = ':prop';
 	static public inline var READ = ':read';
-	static public function process(members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
+	static public function process(_, members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
 		new Property(hasField, addField).processMembers(members);
 	}
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member) {
