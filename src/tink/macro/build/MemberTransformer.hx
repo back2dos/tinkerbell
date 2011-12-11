@@ -12,8 +12,13 @@ using tink.macro.tools.MacroTools;
  * @author back2dos
  */
 
-typedef TransformerPlugin = ClassType->Array<Member>->Constructor->(String->Bool)->(Member->Member)->Void;
-
+typedef ClassBuildContext = {
+	cls:ClassType,
+	members:Array<Member>,
+	ctor:Constructor,
+	has:String->Bool,
+	add:Member->Member
+}
 class MemberTransformer {
 	
 	var members:Hash<Member>;
@@ -24,7 +29,7 @@ class MemberTransformer {
 		localClass = Context.getLocalClass().get();
 	}
 
-	public function build(plugins:Iterable<TransformerPlugin>) {
+	public function build(plugins:Iterable<ClassBuildContext->Void>) {
 		var declared = [];
 		for (field in Context.getBuildFields()) 
 			addMember(declared, Member.ofHaxe(field));
@@ -36,8 +41,15 @@ class MemberTransformer {
 				constructor = new Constructor(null);
 		
 		var generated = [];
+		var context = {
+			cls: localClass,
+			members: declared,
+			ctor: constructor,
+			has: hasMember,
+			add: callback(addMember, generated)
+		}
 		for (plugin in plugins)
-			plugin(localClass, declared, constructor, hasMember, callback(addMember, generated));	
+			plugin(context);	
 			
 		var ret = [constructor.toHaxe()];
 		for (member in declared.concat(generated))

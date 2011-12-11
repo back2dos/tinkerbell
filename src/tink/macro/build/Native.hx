@@ -6,14 +6,13 @@ package tink.macro.build;
  */
 import haxe.macro.Expr;
 import haxe.macro.Type;
-
 using tink.macro.tools.MacroTools;
 using tink.util.Outcome;
 
 class Native {
-	static public function process(targetName:String, t:ComplexType, _, members:Array<Member>, constructor:Constructor, hasField:String->Bool, addField:Member->Member) {
+	static public function process(targetName:String, t:ComplexType, ctx:{members:Array<Member>} ) {
 		
-		for (member in members) {
+		for (member in ctx.members) {
 			switch (member.extractMeta(':native')) {
 				case Success(tag):
 					switch (member.kind) {

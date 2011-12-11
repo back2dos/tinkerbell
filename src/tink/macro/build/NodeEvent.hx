@@ -8,9 +8,9 @@ using tink.macro.tools.MacroTools;
 using tink.util.Outcome;
 import haxe.macro.Expr;
 class NodeEvent {
-	static public function process(targetName:String, t:ComplexType, _, members:Array<Member>, _, _, _) {
+	static public function process(targetName:String, t:ComplexType, ctx:{ members:Array<Member> }) {
 		var handlerName = 'handler';
-		for (member in members) 
+		for (member in ctx.members) 
 			switch (member.extractMeta(':event')) {
 				case Success(tag):
 					var f = member.getFunction().data();

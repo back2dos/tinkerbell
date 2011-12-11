@@ -21,7 +21,6 @@ using tink.macro.tools.MacroTools;
 		if (t == null) 
 			cl.pos.error('could not find type to be extended');
 		
-		
 		return new MemberTransformer().build([
 			callback(Native.process, targetName, t),
 			callback(NodeEvent.process, targetName, t)
