@@ -7,11 +7,11 @@ package tink.macro.build;
 import haxe.macro.Expr;
 using tink.macro.tools.ExprTools;
 using tink.util.Outcome;
-class Property {
+class PropBuilder {
 	static public inline var FULL = ':prop';
 	static public inline var READ = ':read';
 	static public function process(ctx) {
-		new Property(ctx.has, ctx.add).processMembers(ctx.members);
+		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members);
 	}
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member) {
 		var get = 'get_' + m.name,

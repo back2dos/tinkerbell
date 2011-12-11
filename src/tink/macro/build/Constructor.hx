@@ -26,11 +26,13 @@ class Constructor {
 		}
 		else {
 			this.args = f.args;
-			this.oldStatements = 
-				switch (f.expr.expr) {
-					case EBlock(exprs): exprs;
-					default: oldStatements = [f.expr]; 
-				}
+			this.oldStatements =
+				if (f.expr == null) [];
+				else
+					switch (f.expr.expr) {
+						case EBlock(exprs): exprs;
+						default: oldStatements = [f.expr]; 
+					}
 		}
 	}
 	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr) {

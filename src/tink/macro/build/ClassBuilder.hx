@@ -12,6 +12,6 @@ package tink.macro.build;
 	static var PLUGINS = [
 		Init.process,
 		Forward.process,
-		Property.process,
+		PropBuilder.process,
 	];	
 }

@@ -37,6 +37,7 @@ class NodeEvent {
 						EUntyped(target.field("on", pos).call([name.toExpr(), handlerName.resolve(pos)], pos)).at(pos),
 						target
 					].toBlock().func([targetName.toArg(t), handlerName.toArg(TFunction(handlerArgs, f.ret))]);
+					f.ret = t;
 					
 					member.kind = FFun(f);
 					member.isBound = member.isPublic = member.isStatic = true;

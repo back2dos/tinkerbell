@@ -36,7 +36,7 @@ class MemberTransformer {
 			
 		if (constructor == null) 
 			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null) 
-				null.error('please specify a constructor with a call to the super constructor');
+				localClass.pos.error('please specify a constructor with a call to the super constructor');
 			else
 				constructor = new Constructor(null);
 		
