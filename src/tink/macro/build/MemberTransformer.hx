@@ -15,43 +15,45 @@ using tink.macro.tools.MacroTools;
 typedef ClassBuildContext = {
 	cls:ClassType,
 	members:Array<Member>,
-	ctor:Constructor,
+	getCtor:Void->Constructor,
 	has:String->Bool,
 	add:Member->Member
 }
 class MemberTransformer {
 	
 	var members:Hash<Member>;
-	var constructor:Constructor;
+	var constructor:Null<Constructor>;
 	var localClass:ClassType;
 	public function new() { 
 		members = new Hash();
 		localClass = Context.getLocalClass().get();
 	}
-
-	public function build(plugins:Iterable<ClassBuildContext->Void>) {
-		var declared = [];
-		for (field in Context.getBuildFields()) 
-			addMember(declared, Member.ofHaxe(field));
-			
+	function getConstructor() {
 		if (constructor == null) 
 			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null) 
 				localClass.pos.error('please specify a constructor with a call to the super constructor');
 			else
 				constructor = new Constructor(null);
+		return constructor;
+	}
+	public function build(plugins:Iterable<ClassBuildContext->Void>) {
+		var declared = [];
+		for (field in Context.getBuildFields()) 
+			addMember(declared, Member.ofHaxe(field));
+			
 		
 		var generated = [];
 		var context = {
 			cls: localClass,
 			members: declared,
-			ctor: constructor,
+			getCtor: getConstructor,
 			has: hasMember,
 			add: callback(addMember, generated)
 		}
 		for (plugin in plugins)
 			plugin(context);	
 			
-		var ret = [constructor.toHaxe()];
+		var ret = (constructor == null) ? [] : [constructor.toHaxe()];
 		for (member in declared.concat(generated))
 			ret.push(member.toHaxe());
 		return ret;

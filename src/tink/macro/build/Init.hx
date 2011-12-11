@@ -9,7 +9,7 @@ using tink.macro.tools.ExprTools;
 
 class Init {
 	static public function process(ctx) {
-		new Init(ctx.ctor).init(ctx.members);
+		new Init(ctx.getCtor()).init(ctx.members);
 	}
 	var constructor:Constructor;
 	function new(constructor) {
