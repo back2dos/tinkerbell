@@ -155,7 +155,7 @@ class Forward {
 					}
 				case EUnop(op, postfix, arg): 
 					if (postfix || op != OpNot) e.reject();
-					makeFieldFilter(e).not();
+					makeFieldFilter(arg).not();
 				case EParenthesis(e): 
 					makeFieldFilter(e);
 				default: e.reject();
