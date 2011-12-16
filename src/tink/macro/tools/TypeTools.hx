@@ -8,6 +8,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 using tink.macro.tools.ExprTools;
+using tink.util.Outcome;
 
 class TypeTools {
 	static var types = new IntHash<Type>();
@@ -15,7 +16,38 @@ class TypeTools {
 	
 	@:macro static public function getType(id:Int):Type {
 		return types.get(id);
-	}		
+	}
+	static public function getID(t:Type) {
+		return
+			switch (reduce(t)) {
+				case TInst(t, _): t.toString();
+				case TEnum(t, _): t.toString();
+				default: null;
+			}
+	}
+	static public function getFields(t:Type) {
+		return
+			switch (reduce(t)) {
+				case TInst(t, _): t.get().fields.get().asSuccess();
+				case TAnonymous(anon): anon.get().fields.asSuccess();
+				default: 'type has no fields'.asFailure();
+			}
+	}
+	
+	static function isIterator(t:Type) {
+		return
+			switch (getFields(t)) {
+				case Success(fields): 
+					var count = 0;//TODO: make this stricter
+					for (field in fields)
+						switch (field.name) {
+							case 'hasNext': count++;
+							case 'next': count++;
+						}
+					count == 2;
+				default: false;
+			}
+	}
 	static public function toString(t:ComplexType) {
 		return Printer.printType('', t);
 	}

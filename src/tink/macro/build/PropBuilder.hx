@@ -18,9 +18,9 @@ class PropBuilder {
 			set = if (setter == null) 'null' else 'set_' + m.name;
 			
 		if (!hasField(get))	
-			addField(Member.method(get, getter.func(t))); 	
+			addField(Member.getter(m.name, getter, t)); 	
 		if (setter != null && !hasField(set))
-			addField(Member.method(set, setter.func([ { name:'param', opt:false, type:t, value:null } ], t)));			
+			addField(Member.setter(m.name, setter, t));
 		
 		m.kind = FProp(get, set, t, null);
 		m.isPublic = true;
@@ -76,21 +76,13 @@ class PropBuilder {
 											getter = field;
 											
 										setter = tag.params[1];
-										setter =
-											if (setter.isWildcard()) null;
-											else 
-												[
-													field.assign(setter), 
-													'param'.resolve()
-												].toBlock(tag.pos);
+										if (setter.isWildcard()) setter = null;
 									default:
 										tag.pos.error('too many arguments');
 								}
 								make(member, t, getter, setter, hasField, addField);
 							default:	
-						}						
-						
-						//member.kind = FProp(get, set, t, null);
+						}												
 					#end
 				default: //maybe do something here?
 			}		

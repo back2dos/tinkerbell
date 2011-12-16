@@ -1,10 +1,11 @@
 package tink.macro.tools;
 
+private typedef Inspect = Type;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import tink.util.Outcome;
-
+using Lambda;
 using tink.macro.tools.ExprTools;
 class ExprTools {
 	static public inline function getPos(pos:Position) {
@@ -13,6 +14,50 @@ class ExprTools {
 				Context.currentPos();
 			else
 				pos;
+	}
+	
+	static public function substitute(source:Expr, vars:Dynamic<Expr>, ?pos) {
+		return 
+			transform(source, function (e:Expr) {
+				return
+					switch (e.getIdent()) {
+						case Success(name):
+								if (Reflect.hasField(vars, name)) 
+									Reflect.field(vars, name);
+								else
+									e;
+						default: e;
+					}
+			}, pos);
+	}
+	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr {
+		return crawl(source, transformer, pos);
+	}
+	static function crawlArray(a:Array<Dynamic>, transformer:Expr->Expr, pos:Position):Dynamic {
+		var ret = [];
+		for (v in a)
+			ret.push(crawl(v, transformer, pos));
+		return ret;
+	}
+	static function crawl(target:Dynamic, transformer:Expr->Expr, pos:Position) {
+		return
+			if (Std.is(target, Array)) 
+				crawlArray(target, transformer, pos);
+			else
+				switch (Inspect.typeof(target)) {
+					case TNull, TInt, TFloat, TBool, TFunction, TUnknown, TClass(_): target;
+					case TEnum(e): 
+						Inspect.createEnumIndex(e, Inspect.enumIndex(target), crawlArray(Inspect.enumParameters(target), transformer, pos));
+					case TObject:
+						var ret:Dynamic = { };
+						for (field in Reflect.fields(target))
+							Reflect.setField(ret, field, crawl(Reflect.field(target, field), transformer, pos));
+						if (Std.is(ret.expr, ExprDef)) {
+							ret = transformer(ret);
+							if (pos != null) ret.pos = pos;
+						}
+						ret;
+				}
 	}
 	static public inline function iterate(target:Expr, body:Expr, ?loopVar:String = 'i', ?pos:Position) {
 		return EFor(EIn(loopVar.resolve(pos), target).at(pos), body).at(pos);
@@ -69,6 +114,9 @@ class ExprTools {
 	static public inline function add(e1, e2, ?pos) {
 		return binOp(e1, e2, OpAdd, pos);
 	}
+	static public inline function unOp(e, op, ?postFix = false, ?pos) {
+		return EUnop(op, postFix, e).at(pos);
+	}
 	static public inline function binOp(e1, e2, op, ?pos) {
 		return EBinop(op, e1, e2).at(pos);
 	}
@@ -87,7 +135,7 @@ class ExprTools {
 	static inline function toMBlock(exprs, ?pos) {
 		return EBlock(exprs).at(pos);
 	}
-	static public inline function toBlock(exprs, ?pos) {
+	static public inline function toBlock(exprs:Iterable<Expr>, ?pos) {
 		return toMBlock(Lambda.array(exprs), pos);
 	}
 	static inline function isUC(s:String) {

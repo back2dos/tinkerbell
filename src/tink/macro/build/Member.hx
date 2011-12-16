@@ -5,7 +5,7 @@ import tink.macro.tools.Printer;
 import tink.util.Outcome;
 
 using Lambda;
-using tink.macro.tools.ExprTools;
+using tink.macro.tools.MacroTools;
 
 class Member {
 	public var name : String;
@@ -18,6 +18,7 @@ class Member {
 	public var isStatic:Bool;
 	public var isBound:Null<Bool>;
 	public var isPublic:Null<Bool>;
+	public var excluded:Bool;
 	
 	public function new() {
 		this.isOverride = this.isStatic = false;
@@ -102,15 +103,21 @@ class Member {
 		if (isStatic) ret.push(AStatic);
 		return ret;
 	}
-	static public function prop(name:String, t:ComplexType, pos, ?readonly = false) {
+	static public function prop(name:String, t:ComplexType, pos, ?noread = false, ?nowrite = false) {
 		var ret = new Member();
 		ret.name = name;
 		ret.isPublic = true;
 		ret.pos = pos;
-		ret.kind = FProp('get_' + name, readonly ? 'null' : ('set_' + name), t);
+		ret.kind = FProp(noread ? 'null' : 'get_' + name, nowrite ? 'null' : ('set_' + name), t);
 		return ret;
 	}
-	static public function method(name:String, f:Function, ?pos, ?isPublic = true) {
+	static public function getter(field:String, ?pos, e:Expr, ?t:ComplexType) {
+		return method('get_' + field, pos, false, e.func(t));
+	}
+	static public function setter(field:String, ?param = 'param', ?pos, e:Expr, ?t:ComplexType) {
+		return method('set_' + field, pos, false, [e, param.resolve(pos)].toBlock(pos).func([param.toArg(t)], t));
+	}
+	static public function method(name:String, ?pos, ?isPublic = true, f:Function) {
 		var ret = new Member();
 		ret.name = name;
 		ret.kind = FFun(f);

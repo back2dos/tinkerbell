@@ -15,7 +15,7 @@ using tink.util.Outcome;
  */
 
 typedef ClassFieldFilter = ClassField->Bool;
-
+typedef ForwardRules = { call:Null<Expr>, get:Null<Expr>, set:Null<Expr> };
 class Forward {
 	static inline var TAG = ":forward";
 	static public function process(ctx) {
@@ -46,21 +46,60 @@ class Forward {
 						case FProp(_, _, t, _):
 							forwardTo(member, t, tag.pos, tag.params);
 						case FFun(f):
-							
+							member.excluded = true;
+							forwardWithFunction(f, tag.pos, tag.params);
 					}
 				default:
 			}		
 		
 	}
-	function forwardTo(to:Member, t:ComplexType, pos:Position, params:Array<Expr>) {
-		var fields = 
-			switch (Context.follow(t.toType(pos).data())) {
-				case TMono(t): throw 'NI';
-				case TInst(t, _): t.get().fields.get();
-				case TAnonymous(a): a.get().fields;
-				default: pos.error('cannot forward to ' + t);
+	function forwardWithFunction(f:Function, pos:Position, params:Array<Expr>) {
+		var rules = {
+			call: null,
+			get: null,
+			set: null
+		};
+		switch (f.expr.expr) {
+			case EObjectDecl(fields):
+				for (field in fields) 
+					switch (field.field) {
+						case 'get':  rules.get = field.expr;
+						case 'set':  rules.set = field.expr;
+						case 'call': rules.call = field.expr;
+					}
+			default: f.expr.reject();
+		}
+		
+		var filter = makeFilter(params);
+		for (arg in f.args) 
+			forwardWith(rules, arg.type, pos, filter);
+	}
+	function forwardWith(rules:ForwardRules, t:ComplexType, pos:Position, filter:ClassFieldFilter) {
+		var fields = t.toType(pos).data().getFields().data();
+		for (field in fields) 
+			if (field.isPublic && filter(field) && !hasField(field.name)) {
+				#if display
+					shortForward(field.name, field.type, pos);
+				#else
+					switch (field.kind) {
+						case FVar(read, write):
+							forwardVarWith(rules.get, rules.set, isAccessible(read, true), isAccessible(read, false), field.name, field.type.toComplex(), pos);
+						case FMethod(_):
+							if (rules.call != null) {
+								switch (Context.follow(field.type)) {
+									case TFun(args, ret):
+										forwardFunctionWith(rules.call, pos, field.name, args, ret, field.params);
+									default: 
+										pos.error('wtf?');
+								}								
+							}
+					}
+				#end
 			}
-		var target = ['this', to.name].drill(pos),
+	}
+	function forwardTo(to:Member, t:ComplexType, pos:Position, params:Array<Expr>) {
+		var fields = t.toType(pos).data().getFields().data(),
+			target = ['this', to.name].drill(pos),
 			included = makeFilter(params);
 			
 		for (field in fields) 
@@ -76,7 +115,6 @@ class Forward {
 								case TFun(args, ret):
 									forwardFunctionTo(target, field.name, args, ret, field.params);
 								default: 
-									trace(field.type);
 									pos.error('wtf?');
 							}
 					}
@@ -84,6 +122,36 @@ class Forward {
 			}
 	}
 	#if !display
+		function forwardFunctionWith(callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
+			//TODO: there's a lot of duplication with forwardFunctionTo here
+			var methodArgs = [],
+				callArgs = [];
+				
+			for (arg in args) {
+				callArgs.push(arg.name.resolve(pos));
+				methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
+			}
+			var methodParams = [];
+			for (param in params) 
+				methodParams.push( { name : param.name, constraints : [] } );
+				
+			var call = callExpr.substitute( { 
+				"$args": callArgs.toArray(),
+				"$name": name.toExpr()
+			});
+			addField(Member.method(name, call.func(methodArgs, methodParams)));
+		}
+		function forwardVarWith(eGet:Null<Expr>, eSet:Null<Expr>, read:Bool, write:Bool, name, t, pos) {
+			read = read && eGet != null;
+			write = write && eSet != null;
+			
+			if (!(read || write)) return;//I hate guard clauses, but I feel very lazy now
+			addField(Member.prop(name, t, pos, !read, !write));
+			if (read)
+				addField(Member.getter(name, pos, eGet.substitute( { "$name":name.toExpr() } ), t));
+			if (write)
+				addField(Member.setter(name, pos, eSet.substitute( { "$name":name.toExpr() } ), t));
+		}
 		function forwardFunctionTo(target:Expr, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
 			var methodArgs = [],
 				callArgs = [],
@@ -91,7 +159,7 @@ class Forward {
 				
 			for (arg in args) {
 				callArgs.push(arg.name.resolve(target.pos));
-				methodArgs.push( { name : arg.name, opt : arg.opt, type : null, value : null } );
+				methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
 			}
 			var methodParams = [];
 			for (param in params) 
@@ -106,13 +174,13 @@ class Forward {
 			}
 		}
 		function forwardVarTo(target:Expr, name:String, t:ComplexType, read:VarAccess, write:VarAccess) {
+			var pos = target.pos;
 			if (!isAccessible(read, true)) 
-				target.pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
-
-			addField(Member.prop(name, t, target.pos, !isAccessible(write, false)));
-			addField(Member.method('get_' + name, target.field(name, target.pos).func()));
+				pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
+			addField(Member.prop(name, t, pos, !isAccessible(write, false)));
+			addField(Member.getter(name, pos, target.field(name, pos), t));
 			if (isAccessible(write, false))
-				addField(Member.method('set_' + name, target.field(name).assign('param'.resolve(), target.pos).func([ { name:'param', opt:false, type:t, value:null } ], t)));
+				addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
 		}
 	#end
 	static function makeFilter(exprs:Array<Expr>) {

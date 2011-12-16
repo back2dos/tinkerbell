@@ -41,7 +41,6 @@ class MemberTransformer {
 		for (field in Context.getBuildFields()) 
 			addMember(declared, Member.ofHaxe(field));
 			
-		
 		var generated = [];
 		var context = {
 			cls: localClass,
@@ -50,21 +49,28 @@ class MemberTransformer {
 			has: hasMember,
 			add: callback(addMember, generated)
 		}
-		for (plugin in plugins)
+		for (plugin in plugins) {
 			plugin(context);	
+			var old = declared;
+			declared = [];
+			for (member in old)
+				if (!member.excluded)
+					declared.push(member);
+		}
 			
 		var ret = (constructor == null) ? [] : [constructor.toHaxe()];
 		for (member in declared.concat(generated))
-			ret.push(member.toHaxe());
+			if (!member.excluded) 
+				ret.push(member.toHaxe());
+			
 		return ret;
 	}
-		
 	function hasMember(name:String) {
 		return 
 			if (name == 'new')
 				constructor != null;
 			else
-				members.exists(name);
+				members.exists(name) && !members.get(name).excluded;
 	}
 	function addMember(to:Array<Member>, m:Member) {
 		if (hasMember(m.name)) 

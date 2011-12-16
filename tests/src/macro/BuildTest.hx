@@ -31,16 +31,25 @@ class BuildTest extends TestCase {
 		var f = new Forwarder(target);
 		assertTrue(Reflect.field(f, 'multiply') == null);
 		assertTrue(Reflect.field(f, 'add') != null);
+		
+		assertEquals(f.foo1(1, 2, 3), 'foo1_3');
+		assertEquals(f.bar1(1), 'bar1_1');
+		assertEquals(f.foo2(true, true), 'foo2_2');
+		assertEquals(f.bar2(), 'bar2_0');
+		
 		for (i in 0...10) {
 			var a = Std.random(100),
 				b = Std.random(100),
 				x = Std.random(100);
+				
 			assertEquals(f.add(a, b), add(a, b));
 			assertEquals(last, 'add');
 			assertEquals(f.subtract(a, b), subtract(a, b));
 			assertEquals(last, 'subtract');
 			f.x = x;
+			f.y = x;
 			assertEquals(f.x, x);
+			assertEquals(f.y, x);
 			assertEquals(target.x, x);
 		}		
 	}
@@ -77,8 +86,23 @@ typedef FwdTarget = {
 	function multiply(a:Int, b:Int):Int;
 	var x:Int;
 }
+typedef Fwd1 = {
+	var y:Float;
+	function foo1(a:Int, b:Int, c:Int):Void;
+	function bar1(x:Float):Void;
+}
+typedef Fwd2 = {
+	function foo2(f:Bool, g:Bool):Void;
+	function bar2():Void;
+}
 class Forwarder implements TinkClass {
+	var fields:Hash<Dynamic> = new Hash<Dynamic>();
 	@:forward(!multiply) var target:FwdTarget;
+	@:forward function fwd2(x:Fwd2, x:Fwd1) {
+		get: fields.get($name),
+		set: fields.set($name, param),
+		call: return $name + '_' + $args.length
+	}
 	public function new(target) {
 		this.target = target;
 	}
