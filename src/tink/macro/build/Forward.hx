@@ -72,9 +72,9 @@ class Forward {
 		
 		var filter = makeFilter(params);
 		for (arg in f.args) 
-			forwardWith(rules, arg.type, pos, filter);
+			forwardWith(arg.name, rules, arg.type, pos, filter);
 	}
-	function forwardWith(rules:ForwardRules, t:ComplexType, pos:Position, filter:ClassFieldFilter) {
+	function forwardWith(id:String, rules:ForwardRules, t:ComplexType, pos:Position, filter:ClassFieldFilter) {
 		var fields = t.toType(pos).data().getFields().data();
 		for (field in fields) 
 			if (field.isPublic && filter(field) && !hasField(field.name)) {
@@ -83,12 +83,12 @@ class Forward {
 				#else
 					switch (field.kind) {
 						case FVar(read, write):
-							forwardVarWith(rules.get, rules.set, isAccessible(read, true), isAccessible(read, false), field.name, field.type.toComplex(), pos);
+							forwardVarWith(id, rules.get, rules.set, isAccessible(read, true), isAccessible(read, false), field.name, field.type.toComplex(), pos);
 						case FMethod(_):
 							if (rules.call != null) {
 								switch (Context.follow(field.type)) {
 									case TFun(args, ret):
-										forwardFunctionWith(rules.call, pos, field.name, args, ret, field.params);
+										forwardFunctionWith(id, rules.call, pos, field.name, args, ret, field.params);
 									default: 
 										pos.error('wtf?');
 								}								
@@ -122,7 +122,7 @@ class Forward {
 			}
 	}
 	#if !display
-		function forwardFunctionWith(callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
+		function forwardFunctionWith(id:String, callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
 			//TODO: there's a lot of duplication with forwardFunctionTo here
 			var methodArgs = [],
 				callArgs = [];
@@ -137,20 +137,25 @@ class Forward {
 				
 			var call = callExpr.substitute( { 
 				"$args": callArgs.toArray(),
+				"$id": id.toExpr(),
 				"$name": name.toExpr()
 			});
 			addField(Member.method(name, call.func(methodArgs, methodParams)));
 		}
-		function forwardVarWith(eGet:Null<Expr>, eSet:Null<Expr>, read:Bool, write:Bool, name, t, pos) {
+		function forwardVarWith(id:String, eGet:Null<Expr>, eSet:Null<Expr>, read:Bool, write:Bool, name, t, pos) {
 			read = read && eGet != null;
 			write = write && eSet != null;
 			
 			if (!(read || write)) return;//I hate guard clauses, but I feel very lazy now
 			addField(Member.prop(name, t, pos, !read, !write));
+			var vars = {
+				"$name": name.toExpr(),
+				"$id": id.toExpr()
+			}
 			if (read)
-				addField(Member.getter(name, pos, eGet.substitute( { "$name":name.toExpr() } ), t));
+				addField(Member.getter(name, pos, eGet.substitute(vars), t));
 			if (write)
-				addField(Member.setter(name, pos, eSet.substitute( { "$name":name.toExpr() } ), t));
+				addField(Member.setter(name, pos, eSet.substitute(vars), t));
 		}
 		function forwardFunctionTo(target:Expr, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
 			var methodArgs = [],
