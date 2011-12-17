@@ -101,7 +101,7 @@ class Forwarder implements TinkClass {
 	@:forward function fwd2(x:Fwd2, x:Fwd1) {
 		get: fields.get($name),
 		set: fields.set($name, param),
-		call: return $name + '_' + $args.length
+		call: $name + '_' + $args.length
 	}
 	public function new(target) {
 		this.target = target;
