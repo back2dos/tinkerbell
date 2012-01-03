@@ -1,1 +1,1 @@
-This file will soon be full of important imformation.
+For documentation, please refer to http://github.com/back2dos/tinkerbell/wiki.
