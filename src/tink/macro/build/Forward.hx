@@ -8,7 +8,7 @@ using tink.macro.tools.MacroTools;
 using tink.util.FilterUtils;
 using StringTools;
 using Lambda;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 /**
  * ...
  * @author back2dos

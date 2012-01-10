@@ -7,7 +7,7 @@ package tink.macro.build;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 using tink.macro.tools.MacroTools;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 
 class Native {
 	static public function process(targetName:String, t:ComplexType, ctx:{members:Array<Member>} ) {

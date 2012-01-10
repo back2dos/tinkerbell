@@ -6,7 +6,7 @@ package tink.macro.build;
  */
 import haxe.macro.Expr;
 using tink.macro.tools.ExprTools;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 class PropBuilder {
 	static public inline var FULL = ':prop';
 	static public inline var READ = ':read';

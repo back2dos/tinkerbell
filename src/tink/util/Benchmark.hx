@@ -9,7 +9,7 @@ package tink.util;
 	import tink.macro.tools.AST;
 	import tink.macro.tools.ExprTools;
 	using tink.macro.tools.ExprTools;
-	using tink.util.Outcome;
+	using tink.core.types.Outcome;
 #end
 class Benchmark {
 	var msg:String;

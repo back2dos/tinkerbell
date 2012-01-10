@@ -2,7 +2,7 @@ package tink.macro.build;
  
 import haxe.macro.Expr;
 import tink.macro.tools.Printer;
-import tink.util.Outcome;
+import tink.core.types.Outcome;
 
 using Lambda;
 using tink.macro.tools.MacroTools;
@@ -86,7 +86,7 @@ class Member {
 		return
 			switch (kind) {
 				case FFun(f): Success(f);
-				default: pos.makeError('not a function');
+				default: pos.makeFailure('not a function');
 			}
 	}
 	function haxeAccess():Array<Access> {

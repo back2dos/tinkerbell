@@ -5,7 +5,7 @@ package tink.macro.build;
  * @author back2dos
  */
 using tink.macro.tools.MacroTools;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 import haxe.macro.Expr;
 class NodeEvent {
 	static public function process(targetName:String, t:ComplexType, ctx:{ members:Array<Member> }) {

@@ -8,7 +8,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 using tink.macro.tools.ExprTools;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 
 class TypeTools {
 	static var types = new IntHash<Type>();
@@ -34,20 +34,6 @@ class TypeTools {
 			}
 	}
 	
-	static function isIterator(t:Type) {
-		return
-			switch (getFields(t)) {
-				case Success(fields): 
-					var count = 0;//TODO: make this stricter
-					for (field in fields)
-						switch (field.name) {
-							case 'hasNext': count++;
-							case 'next': count++;
-						}
-					count == 2;
-				default: false;
-			}
-	}
 	static public function toString(t:ComplexType) {
 		return Printer.printType('', t);
 	}
@@ -66,8 +52,8 @@ class TypeTools {
 			sub: sub
 		});
 	}
-	static public inline function reduce(type:Type) {
-		return Context.follow(type);
+	static public inline function reduce(type:Type, ?once) {
+		return Context.follow(type, once);
 	}
 	static public function isVar(field:ClassField) {
 		return switch (field.kind) {

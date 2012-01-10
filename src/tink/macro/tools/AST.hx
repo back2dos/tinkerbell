@@ -8,10 +8,10 @@ package tink.macro.tools;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import tink.util.Printer;
-import tink.util.Outcome;
+import tink.core.types.Outcome;
 
 using StringTools;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 using tink.macro.tools.ExprTools;
 
 class AST {

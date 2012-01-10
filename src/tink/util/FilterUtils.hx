@@ -2,7 +2,7 @@ package tink.util;
 import haxe.macro.Expr;
 import tink.macro.tools.ExprTools;
 using tink.macro.tools.ExprTools;
-using tink.util.Outcome;
+using tink.core.types.Outcome;
 /**
  * ...
  * @author back2dos
@@ -11,6 +11,35 @@ using tink.util.Outcome;
 typedef Filter<A> = A->Bool; 
 
 class FilterUtils {
+	static public function lazyFilter<A>(target:Iterable<A>, filter:Filter<A>) {
+		return {
+			iterator: function () {
+				var it = target.iterator(),
+					cur = null;
+				function next() {
+					for (i in it)
+						if (filter(i)) return i;
+					return null;
+				}
+				
+				return {
+					hasNext: function () {
+						if (cur == null) cur = next();
+						return cur != null;
+					},
+					next: function () {
+						var ret = cur;
+						return 
+							if (ret == null) next();
+							else {
+								cur = null;
+								ret;
+							}
+					}
+				}
+			}
+		}
+	}
 	static public function eq<A>(value:A):Filter<A> {
 		return function (a:A) return a == value;
 	}

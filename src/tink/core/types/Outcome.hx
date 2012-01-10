@@ -1,4 +1,4 @@
-package tink.util;
+package tink.core.types;
 
 /**
  * ...

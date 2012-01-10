@@ -1,12 +1,16 @@
 package tink.macro.tools;
 
 private typedef Inspect = Type;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
-import tink.util.Outcome;
+import haxe.PosInfos;
+import tink.core.types.Outcome;
+
 using Lambda;
 using tink.macro.tools.ExprTools;
+
 class ExprTools {
 	static public inline function getPos(pos:Position) {
 		return 
@@ -15,7 +19,11 @@ class ExprTools {
 			else
 				pos;
 	}
-	
+	static public function annotations(e:Expr):Dynamic {
+		var ret = untyped e.body;
+		if (ret == null) untyped e.body = ret = { };
+		return ret;
+	}
 	static public function substitute(source:Expr, vars:Dynamic<Expr>, ?pos) {
 		return 
 			transform(source, function (e:Expr) {
@@ -38,6 +46,15 @@ class ExprTools {
 		for (v in a)
 			ret.push(crawl(v, transformer, pos));
 		return ret;
+	}
+	static public function isIterable(target:Expr) {
+		var e:Expr = AST.build( {
+			var tmp = null;
+			for (_ in $target)
+				tmp = _;
+			tmp;
+		});
+		return e.typeof();
 	}
 	static function crawl(target:Dynamic, transformer:Expr->Expr, pos:Position) {
 		return
@@ -68,8 +85,8 @@ class ExprTools {
 			args.push( { field:field, expr: untyped Reflect.field(object, field) } );
 		return EObjectDecl(args).at(pos);
 	}
-	static public inline function log(e:Expr):Expr {
-		trace(e.toString());
+	static public inline function log(e:Expr, ?pos:PosInfos):Expr {
+		haxe.Log.trace(e.toString(), pos);
 		return e;
 	}
 	static public inline function error(pos:Position, error:Dynamic):Dynamic {
@@ -104,7 +121,7 @@ class ExprTools {
 			args: args == null ? [] : args,
 			ret: ret,
 			params: params == null ? [] : params,
-			expr: if (makeReturn) at(EReturn(e), e.pos) else e
+			expr: [if (makeReturn) at(EReturn(e), e.pos) else e].toBlock(e.pos)
 		}		
 	}
 	///single variable declaration
@@ -164,7 +181,7 @@ class ExprTools {
 				Success(Context.typeof(expr));
 			}
 			catch (e:Dynamic) {
-				expr.pos.makeError(e);
+				expr.pos.makeFailure(e);
 			}				
 	}	
 	static public inline function cond(cond:ExprRequire<Bool>, cons:Expr, ?alt:Expr, ?pos) {
@@ -182,7 +199,7 @@ class ExprTools {
 			}
 	}
 	///used to easily construct failed outcomes
-	static public function makeError<A, Reason>(pos:Position, reason:Reason):Outcome<A, MacroError<Reason>> {
+	static public function makeFailure<A, Reason>(pos:Position, reason:Reason):Outcome<A, MacroError<Reason>> {
 		return Failure(new MacroError(reason, pos));
 	}	
 	///Attempts to extract a string from an expression.
@@ -192,9 +209,9 @@ class ExprTools {
 				case EConst(c):
 					switch (c) {
 						case CString(string): Success(string);
-						default: e.pos.makeError(NOT_A_STRING);
+						default: e.pos.makeFailure(NOT_A_STRING);
 					}
-				default: e.pos.makeError(NOT_A_STRING);
+				default: e.pos.makeFailure(NOT_A_STRING);
 			}			
 	}	
 	///Attempts to extract an identifier from an expression.
@@ -204,9 +221,9 @@ class ExprTools {
 				case EConst(c):
 					switch (c) {
 						case CIdent(id), CType(id): Success(id);
-						default: e.pos.makeError(NOT_AN_IDENT);
+						default: e.pos.makeFailure(NOT_AN_IDENT);
 					}
-				default: e.pos.makeError(NOT_A_STRING);
+				default: e.pos.makeFailure(NOT_A_STRING);
 			}					
 	}
 	///Attempts to extract a name (identifier or string) from an expression.
@@ -216,9 +233,9 @@ class ExprTools {
 				case EConst(c):
 					switch (c) {
 						case CString(s), CIdent(s), CType(s): Success(s);
-						default: e.pos.makeError(NOT_A_NAME);
+						default: e.pos.makeFailure(NOT_A_NAME);
 					}
-				default: e.pos.makeError(NOT_A_STRING);
+				default: e.pos.makeFailure(NOT_A_STRING);
 			}					
 	}
 	static inline var NOT_AN_IDENT = "identifier expected";
@@ -227,7 +244,6 @@ class ExprTools {
 	static inline var EMPTY_EXPRESSION = "expression expected";
 	
 }
-
 private class MacroError<Data> implements ThrowableFailure {
 	public var data(default, null):Data;
 	public var pos(default, null):Position;
