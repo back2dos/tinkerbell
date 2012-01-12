@@ -34,6 +34,15 @@ class OutcomeTools {
 				case Failure(failure): false;
 			}
 	}
+	static public inline function map < A, B, F > (outcome: Outcome < A, F > , transform: A->B) {
+		return 
+			switch (outcome) {
+				case Success(a): 
+					asSuccess(transform(a));
+				case Failure(f): 
+					asFailure(f);
+			}
+	}
 	static public inline function asSuccess < D, F > (data:D):Outcome < D, F > {
 		return Outcome.Success(data);
 	}
