@@ -7,7 +7,6 @@ package tink.macro.tools;
  */
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import tink.util.Printer;
 import tink.core.types.Outcome;
 
 using StringTools;
