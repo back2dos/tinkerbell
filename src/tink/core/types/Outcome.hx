@@ -27,6 +27,20 @@ class OutcomeTools {
 						throw Failure;
 			}
 	}
+	static public inline function orUse < D, F > (outcome: Outcome < D, F > , fallback: D ) {
+		return
+			switch (outcome) {
+				case Success(data): data;
+				case Failure(_): fallback;
+			}		
+	}
+	static public inline function orTry < D, F > (outcome: Outcome < D, F > , fallback: Outcome < D, F > ) {
+		return
+			switch (outcome) {
+				case Success(_): outcome;
+				case Failure(_): fallback;
+			}
+	}
 	static public inline function equals < D, F > (outcome:Outcome < D, F > , to: D):Bool {
 		return 
 			switch (outcome) {
