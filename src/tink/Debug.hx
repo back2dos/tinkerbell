@@ -2,7 +2,6 @@ package tink;
 
 #if macro
 	import haxe.macro.Expr;
-	import tink.macro.tools.MacroTools;
 	using tink.macro.tools.MacroTools;
 #end
 
@@ -30,7 +29,7 @@ class Debug {
 	#if macro
 		static function logExprs(exprs:Array<Expr>) {
 			var args = [];
-			var tmpName = MacroTools.tempName();
+			var tmpName = String.tempName();
 			var tmp = tmpName.resolve();
 			for (e in exprs) 
 				args.push((e.toString() + ': ').toExpr().add('Std.string'.resolve().call([args.length == 0 ? tmp : e])));
