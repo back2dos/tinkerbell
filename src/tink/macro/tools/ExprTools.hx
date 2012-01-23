@@ -10,6 +10,7 @@ import tink.core.types.Outcome;
 
 using Lambda;
 using tink.macro.tools.ExprTools;
+using tink.core.types.Outcome;
 
 class ExprTools {
 	static public inline function getPos(pos:Position) {
@@ -37,6 +38,11 @@ class ExprTools {
 						default: e;
 					}
 			}, pos);
+	}
+	static public inline function ifNull(e:Expr, fallback:Expr) {
+		return
+			if (e.getIdent().equals('null')) fallback;
+			else e;
 	}
 	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr {
 		return crawl(source, transformer, pos);
@@ -149,7 +155,7 @@ class ExprTools {
 	static public inline function toArray(exprs, ?pos) {
 		return EArrayDecl(exprs).at(pos);
 	}
-	static inline function toMBlock(exprs, ?pos) {
+	static public inline function toMBlock(exprs, ?pos) {
 		return EBlock(exprs).at(pos);
 	}
 	static public inline function toBlock(exprs:Iterable<Expr>, ?pos) {
