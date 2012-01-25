@@ -98,7 +98,7 @@ class ExprTools {
 	static public inline function error(pos:Position, error:Dynamic):Dynamic {
 		return Context.error(Std.string(error), pos);
 	}
-	static public inline function reject(e:Expr, ?reason:String = 'cannot handle expression') {
+	static public inline function reject(e:Expr, ?reason:String = 'cannot handle expression'):Dynamic {
 		return error(e.pos, reason);
 	}
 	///transforms an expression to readable code
