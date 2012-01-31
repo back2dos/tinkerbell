@@ -55,7 +55,7 @@ private class Builder {
 	}
 	function isEval(s:String) {
 		return
-			if (StringTools.startsWith(s, 'eval__'))
+			if (StringTools.startsWith(s.toLowerCase(), 'eval__'))
 				Outcome.Success(s.substr(6));
 			else
 				Outcome.Failure();

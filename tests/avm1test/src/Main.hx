@@ -1,7 +1,5 @@
 package ;
 
-import flash.Lib;
-
 /**
  * ...
  * @author back2dos

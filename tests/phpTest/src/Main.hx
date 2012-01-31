@@ -1,7 +1,5 @@
 package ;
 
-import php.Lib;
-
 /**
  * ...
  * @author back2dos

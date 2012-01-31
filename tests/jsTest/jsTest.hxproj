@@ -25,7 +25,7 @@
     <option flashStrict="False" />
     <option mainClass="Main" />
     <option enabledebug="False" />
-    <option additional="--no-inline" />
+    <option additional="" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

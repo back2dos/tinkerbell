@@ -7,6 +7,7 @@ package tink.macro.tools;
 #if (macro || neko)
 typedef Funcs = FunctionTools;
 typedef Exprs = ExprTools;
+typedef Bounce = Bouncer;
 typedef Types = TypeTools;
 typedef Binops = OpTools.BinopTools;
 typedef Unops = OpTools.UnopTools;
