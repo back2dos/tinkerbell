@@ -1,6 +1,7 @@
 package ;
 import macro.BuildTest;
-import markup.TagsTest;
+import markup.FastTest;
+import markup.NodesTest;
 import util.PropertyTest;
 import haxe.unit.TestRunner;
 
@@ -14,7 +15,8 @@ class TestAll {
 		var runner = new TestRunner();
 		runner.add(new BuildTest());
 		runner.add(new PropertyTest());
-		runner.add(new TagsTest());
+		runner.add(new FastTest());
+		//runner.add(new NodesTest());
 		runner.run();
 	}
 }
