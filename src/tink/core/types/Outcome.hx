@@ -24,7 +24,7 @@ class OutcomeTools {
 						failure.throwSelf();
 					}
 					else
-						throw Failure;
+						throw failure;
 			}
 	}
 	static public inline function orUse < D, F > (outcome: Outcome < D, F > , fallback: D ) {

@@ -4,13 +4,14 @@ package tink.macro.tools;
  * ...
  * @author back2dos
  */
-#if neko
+#if macro
 	import haxe.macro.Context;
 	import haxe.macro.Expr;
 	using tink.macro.tools.ExprTools;
 #end
 class Bouncer {
-	#if neko
+	//TODO: as is, a more less empty class is generated in the output. This is unneccessary.
+	#if macro
 		static var idCounter = 0;
 		static var bounceMap = new IntHash<Void->Expr>();
 		static public function bounce(f:Void->Expr, ?pos) {

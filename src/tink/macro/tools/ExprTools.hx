@@ -20,6 +20,9 @@ class ExprTools {
 			else
 				pos;
 	}
+	static public inline function is(e:Expr, c:ComplexType) {
+		return ECheckType(e, c).at(e.pos).typeof().isSuccess();
+	}
 	static public function annotations(e:Expr):Dynamic {
 		var ret = untyped e.body;
 		if (ret == null) untyped e.body = ret = { };
