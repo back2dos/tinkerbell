@@ -3,6 +3,7 @@ import haxe.unit.TestCase;
 import markup.MarkupTestBase;
 import tink.Debug;
 import tink.markup.Build;
+import tink.util.Embed;
 using DateTools;
 /**
  * ...
@@ -21,7 +22,7 @@ class NodesTest extends MarkupTestBase {
 					'Young';
 		var t = Build.xml(
 			[$content.foo.bar](
-				'The habitants of <em>${town.name}</em> are:',
+				'The habitants of ${em(town.name)} are:',
 				ul < for (user in town.users) 
 					li(age = user.age, '${user.name} ${ageGroup(user)}')
 			)

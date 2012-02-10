@@ -27,6 +27,9 @@ class Fast {
 		out = name.resolve(pos);
 		return name.define(AST.build(new StringBuf()), pos);
 	}
+	public function postprocess(e) {
+		return e;
+	}
 	public function finalize(pos:Position) {
 		return out;
 	}
@@ -66,6 +69,9 @@ class Fast {
 			else if (k1 == k2) k1;
 			else Conflict;
 	}
+	function bounceNode(atom, payload, yield, pos) {
+		return callback(buildNode, atom, payload, yield).bounce(pos);
+	}
 	function buildNode(atom:Expr, payload:Array<Expr>, yield:Expr->Expr) {
 		var name = atom.annotadedName(payload.unshift);
 		return
@@ -78,7 +84,7 @@ class Fast {
 				for (p in payload) 
 					switch (getKind(p)) {
 						case Prop: props.push(p);
-						case Child: children.push(p);
+						case Child: children = children.concat(p.interpolate());
 						case None: p.reject('expression seems not to yield an attribute or a child');
 						case Conflict: p.reject('you can only either set an attribute or a child');
 					}
@@ -87,7 +93,7 @@ class Fast {
 					ret.push(prints('<' + name));
 					for (p in props)
 						ret.push(yield(p));
-					ret.push(prints('/>', atom.pos));
+					ret.push(prints('/>'));
 				}
 				else {
 					if (props.length == 0)
@@ -129,13 +135,13 @@ class Fast {
 						default:
 							switch (e.expr) {
 								case ECall(target, params): 
-									buildNode(target, params, yield);
+									bounceNode(target, params, yield, e.pos);
 								default: 
 									switch (OpLt.get(e)) {
 										case Success(op): 
-											buildNode(op.e1, [op.e2], yield);
+											bounceNode(op.e1, [op.e2], yield, e.pos);
 										default: 
-											buildNode(e, [], yield);
+											bounceNode(e, [], yield, e.pos);
 									}
 							}
 					}

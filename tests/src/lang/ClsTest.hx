@@ -1,13 +1,13 @@
-package macro;
+package lang;
 import haxe.unit.TestCase;
-import tink.TinkClass;
+import tink.lang.Cls;
 
 /**
  * ...
  * @author back2dos
  */
 
-class BuildTest extends TestCase {
+class ClsTest extends TestCase {
 
 	public function new() {
 		super();
@@ -95,7 +95,7 @@ typedef Fwd2 = {
 	function foo2(f:Bool, g:Bool):Void;
 	function bar2():Void;
 }
-class Forwarder implements TinkClass {
+class Forwarder implements Cls {
 	var fields:Hash<Dynamic> = new Hash<Dynamic>();
 	@:forward(!multiply) var target:FwdTarget;
 	@:forward function fwd2(x:Fwd2, x:Fwd1) {
@@ -107,7 +107,7 @@ class Forwarder implements TinkClass {
 		this.target = target;
 	}
 }
-class Built implements TinkClass {
+class Built implements Cls {
 	public var a:Int = 0;
 	@:read var b:Int = 1;
 	@:read(2) var c:Int;

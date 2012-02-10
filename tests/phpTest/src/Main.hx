@@ -1,4 +1,5 @@
 package ;
+import tink.markup.Build;
 
 /**
  * ...
@@ -6,9 +7,7 @@ package ;
  */
 
 class Main {
-
 	static function main() {
 		TestAll.run();
 	}
-
 }

@@ -46,5 +46,5 @@ class Bouncer {
 	#end
 	@:macro static public function catchBounce(id:Int) {
 		return doBounce(id);
-	}	
+	}
 }

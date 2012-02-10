@@ -21,7 +21,7 @@ class FastTest extends MarkupTestBase {
 					'Young';
 		var t = Build.fast(
 			[$content.foo.bar](
-				'The habitants of <em>${town.name}</em> are:',
+				'The habitants of ${em(town.name)} are:',
 				ul < for (user in town.users) 
 					li(age = user.age, '${user.name} ${ageGroup(user)}')
 			)

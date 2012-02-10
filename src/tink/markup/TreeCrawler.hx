@@ -13,6 +13,7 @@ typedef Plugin = {
 	function init(pos:Position):Null<Expr>;
 	function finalize(pos:Position):Null<Expr>;
 	function transform(e:Expr, yield:Expr->Expr):Expr;
+	function postprocess(e:Expr):Expr;
 }
  
 class TreeCrawler {
@@ -21,11 +22,11 @@ class TreeCrawler {
 		this.plugin = plugin;
 	}
 	function transform(e:Expr) {
-		return [
+		return plugin.postprocess([
 			plugin.init(e.pos),
 			yield(e),
 			plugin.finalize(e.pos)
-		].filter(function (e) return e != null).toBlock(e.pos);
+		].filter(function (e) return e != null).toBlock(e.pos));
 	}
 	function yield(e:Expr):Expr {
 		return 
@@ -43,7 +44,7 @@ class TreeCrawler {
 					case EWhile(cond, body, normal):
 						EWhile(cond, yield(body), normal).at(e.pos);
 					default:
-						callback(plugin.transform, e, yield).bounce(e.pos);
+						plugin.transform(e, yield);
 				}
 	}
 	static public function build(e:Expr, plugin:Plugin) {
