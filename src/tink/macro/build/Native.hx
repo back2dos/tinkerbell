@@ -37,7 +37,7 @@ class Native {
 							for (arg in f.args) 
 								args.push(arg.name.resolve(pos));
 							
-							var ret = EUntyped(targetName.resolve(pos).field(native.name, pos).call(args, pos)).at(pos);
+							var ret = EUntyped(targetName.resolve(pos)).at(pos).field(native.name, pos).call(args, pos);
 							
 							if (f.ret == null) {
 								f.ret = t;

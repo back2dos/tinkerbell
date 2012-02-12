@@ -14,7 +14,7 @@ using tink.macro.tools.MacroTools;
 			cl.pos.error('cannot subclass TinkExtern implementors');
 		var t = null;
 		for (i in cl.interfaces) 
-			if (i.t.get().name == 'TinkExt') {
+			if (i.t.get().name == 'Ext') {
 				t = i.params[0].toComplex();
 				break;
 			}
