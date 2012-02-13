@@ -12,7 +12,7 @@ using tink.macro.tools.MacroTools;
 		var targetName = '_target';
 		var cl = Context.getLocalClass().get();
 		if (cl.superClass != null) 
-			cl.pos.error('cannot subclass TinkExtern implementors');
+			cl.pos.error('cannot subclass tink.lang.Ext implementors');
 		var t = null;
 		for (i in cl.interfaces) 
 			if (i.t.get().name == 'Ext') {
