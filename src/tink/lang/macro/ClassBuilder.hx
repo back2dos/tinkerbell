@@ -1,4 +1,5 @@
-package tink.macro.build;
+package tink.lang.macro;
+import tink.macro.build.MemberTransformer;
 
 /**
  * ...

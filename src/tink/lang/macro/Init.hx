@@ -1,6 +1,8 @@
-package tink.macro.build;
+package tink.lang.macro;
 
 import haxe.macro.Expr;
+import tink.macro.build.Constructor;
+import tink.macro.build.Member;
 /**
  * ...
  * @author back2dos

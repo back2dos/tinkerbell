@@ -1,10 +1,11 @@
-package tink.macro.build;
+package tink.lang.macro;
 
 /**
  * ...
  * @author back2dos
  */
 import haxe.macro.Expr;
+import tink.macro.build.Member;
 using tink.macro.tools.ExprTools;
 using tink.core.types.Outcome;
 class PropBuilder {

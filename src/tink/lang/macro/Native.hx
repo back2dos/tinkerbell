@@ -1,4 +1,4 @@
-package tink.macro.build;
+package tink.lang.macro;
 
 /**
  * ...
@@ -6,6 +6,7 @@ package tink.macro.build;
  */
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import tink.macro.build.Member;
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 

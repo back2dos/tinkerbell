@@ -1,5 +1,6 @@
-package tink.macro.build;
+package tink.lang.macro;
 import haxe.macro.Context;
+import tink.macro.build.MemberTransformer;
 using tink.macro.tools.MacroTools;
 /**
  * ...

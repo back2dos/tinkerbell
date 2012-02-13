@@ -1,7 +1,8 @@
-package tink.macro.build;
+package tink.lang.macro;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import tink.macro.build.Member;
 import tink.util.FilterUtils;
 
 using tink.macro.tools.MacroTools;
