@@ -61,13 +61,16 @@ class TypeTools {
 			default: false;
 		}
 	}
-	static public function toComplex(type:Type):ComplexType {
+	static public function register(type:Type):Int {
 		var id = idCounter++;
 		types.set(id, type);
+		return id;
+	}
+	static public function toComplex(type:Type):ComplexType {
 		return TPath({
 			pack : ['haxe','macro'],
 			name : 'MacroType',
-			params : [TPExpr('tink.macro.tools.TypeTools.getType'.resolve().call([id.toExpr()]))],
+			params : [TPExpr('tink.macro.tools.TypeTools.getType'.resolve().call([register(type).toExpr()]))],
 			sub : null,				
 		});		
 	}	

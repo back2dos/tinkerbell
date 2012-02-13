@@ -14,6 +14,7 @@ class TestAll {
 		runner.add(new util.PropertyTest());
 		runner.add(new markup.FastTest());
 		runner.add(new markup.NodesTest());
+		runner.add(new collections.MapTest());
 		runner.run();
 	}
 }
