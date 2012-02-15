@@ -26,7 +26,12 @@ class Nodes {
 		return target;
 	}
 	public function postprocess(e) {
-		return ECheckType(e, 'Xml'.asTypePath()).at(e.pos);
+		return xml(e);
+	}
+	static var XML = 'Xml'.asTypePath();
+	static var STRING = 'String'.asTypePath();
+	function xml(e:Expr):Expr {
+		return ECheckType(e, XML).at(e.pos);
 	}
 	public function transform(e:Expr, yield:Expr->Expr) {
 		return
@@ -60,20 +65,30 @@ class Nodes {
 		for (p in payload)
 			for (p in p.interpolate())
 				ret.push(yield(p));
-		ret.push(target);
+		ret.push(xml(target));
 		return addChild(ret.toBlock(node.pos));
 	}
+	function isSelfmadeNode(e:Expr) {
+		return
+			switch (e.expr) {
+				case EBlock(exprs):
+					switch (exprs[exprs.length - 1].expr) {
+						case ECheckType(_, t): Type.enumEq(t, XML);
+						default: false;
+					}
+				default: false;	
+			}		
+	}
 	function addChild(e:Expr):Expr {
-		if (e.getString().isSuccess()) 
-			e = AST.build(Std.format($e));
-		
-		return AST.build({
-			var tmp:Dynamic = $e;
-			if (Std.is(tmp, Xml)) 
-				$target.addChild(tmp);
+		return 
+			if (isSelfmadeNode(e)) 
+				AST.build($target.addChild($e), e.pos);
+			else if (e.is(XML)) {
+				throw ('found XML!!!');
+				AST.build($target.addChild(e), e.pos);
+			}
 			else 
-				$target.addChild(Xml.createPCData(tmp));
-		}, e.pos);
+				AST.build($target.addChild(Xml.createPCData($(stringifyExpr(e)))), e.pos);
 	}
 	function stringifyExpr(e:Expr) {
 		return 
