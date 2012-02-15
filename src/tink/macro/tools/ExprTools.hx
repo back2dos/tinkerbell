@@ -184,12 +184,15 @@ class ExprTools {
 		return drill(s.split('.'), pos);
 	}
 	///attempts to extract the type of an expression
-	static public function typeof(expr:Expr, ?locals) {
+	static public function typeof(expr:Expr, ?locals):Outcome<Type, MacroError<Dynamic>> {
 		return
 			try {
 				if (locals != null) 
 					expr = [EVars(locals).at(expr.pos), expr].toMBlock(expr.pos);
 				Success(Context.typeof(expr));
+			}
+			catch (e:Error) {
+				e.pos.makeFailure(e.message);
 			}
 			catch (e:Dynamic) {
 				expr.pos.makeFailure(e);
