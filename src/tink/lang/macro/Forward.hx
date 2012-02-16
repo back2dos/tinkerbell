@@ -3,10 +3,8 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import tink.macro.build.Member;
-import tink.util.FilterUtils;
 
 using tink.macro.tools.MacroTools;
-using tink.util.FilterUtils;
 using StringTools;
 using Lambda;
 using tink.core.types.Outcome;
@@ -189,12 +187,29 @@ class Forward {
 				addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
 		}
 	#end
+	static function and(a, b) {
+		return function (c) return a(c) && b(c);
+	}
+	static function or(a, b) {
+		return function (c) return a(c) || b(c);
+	}
+	static function not(a) {
+		return function (c) return !a(c);
+	}
+	static function one(filters:Iterable<ClassFieldFilter>) {
+		return function (c) {
+			for (filter in filters)
+				if (filter(c)) 
+					return true;
+			return false;
+		}		
+	}
 	static function makeFilter(exprs:Array<Expr>) {
 		return
 			if (exprs.length == 0) 
 				function (_) return true;
 			else
-				exprs.map(makeFieldFilter).one();
+				one(exprs.map(makeFieldFilter));
 	}
 	static function matchRegEx(r:String, opt:String):ClassFieldFilter {
 		var r = new EReg(r, opt);
@@ -203,7 +218,7 @@ class Forward {
 	static function makeFieldFilter(e:Expr):ClassFieldFilter {
 		return
 			switch (e.expr) {
-				case EArrayDecl(exprs): exprs.map(makeFieldFilter).one();
+				case EArrayDecl(exprs): one(exprs.map(makeFieldFilter));
 				case EConst(c): 
 					switch (c) {
 						case CIdent(s), CType(s):
@@ -223,13 +238,13 @@ class Forward {
 					}
 				case EBinop(op, e1, e2):
 					switch (op) {
-						case OpAnd, OpBoolAnd: makeFieldFilter(e1).and(makeFieldFilter(e2)); 
-						case OpOr, OpBoolOr: makeFieldFilter(e1).or(makeFieldFilter(e2));
+						case OpAnd, OpBoolAnd: and(makeFieldFilter(e1), makeFieldFilter(e2));
+						case OpOr, OpBoolOr: or(makeFieldFilter(e1), makeFieldFilter(e2));
 						default: e.reject('invalid operator');
 					}
 				case EUnop(op, postfix, arg): 
 					if (postfix || op != OpNot) e.reject();
-					makeFieldFilter(arg).not();
+					not(makeFieldFilter(arg));
 				case EParenthesis(e): 
 					makeFieldFilter(e);
 				default: e.reject();
