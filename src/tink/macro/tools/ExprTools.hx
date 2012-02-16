@@ -253,7 +253,7 @@ class ExprTools {
 			}					
 	}
 	static inline var NOT_AN_IDENT = "identifier expected";
-	static inline var NOT_A_STRING = "string expected";
+	static inline var NOT_A_STRING = "string constant expected";
 	static inline var NOT_A_NAME = "name expected";
 	static inline var EMPTY_EXPRESSION = "expression expected";
 	
