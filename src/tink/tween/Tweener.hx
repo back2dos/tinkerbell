@@ -1,4 +1,4 @@
-package tink.transitions;
+package tink.tween;
 
 /**
  * ...
