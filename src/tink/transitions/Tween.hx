@@ -16,6 +16,7 @@ class Tween<T> {
 	public var progress(default, null):Float;
 	public var duration(default, null):Float;
 	
+	var onDone:Void->Dynamic;
 	var easing:Float->Float;
 	var components:Array<Component>;
 	var properties:Array<String>;
@@ -32,6 +33,7 @@ class Tween<T> {
 	}
 	function cleanup():Void {
 		targetMap.get(target).remove(this);//yes, that's O(N) where N is the number of concurrent tweens on one object, so N <= 5 is a reasonable assumption
+		onDone();
 		this.target = null;
 		this.easing = null;
 		this.components = null;
@@ -51,16 +53,17 @@ class Tween<T> {
 	}
 	static var active = new Tweens();
 	static public function hearbeat(delta:Float) {
-		var alive = new Tweens(),
-			done = new Tweens();
-		for (t in active)
+		var old = active,
+			done = new Tweens(),
+			alive = new Tweens();
+		active = alive;
+		for (t in old)
 			if (t.update(delta))
 				done.add(t);
 			else
 				alive.add(t);
 		for (t in done)
 			t.cleanup();
-		active = alive;
 	}
 	static var targetMap = new ObjectMap<Dynamic, Array<Tween<Dynamic>>>();
 	static public function byTarget<A>(target:A):Iterable<A> {//returning Iterable here because we don't want people to screw around with this
@@ -84,7 +87,8 @@ private class RealTween<T> extends Tween<T> {
 	static public function get<A>() {
 		return new RealTween<A>();
 	}
-	public function init(target:T, properties:Array<String>, atoms:Array<Atom<T>>, exists, duration, easing) {
+	public function init(target:T, properties:Array<String>, atoms:Array<Atom<T>>, exists, duration, easing, onDone) {
+		this.onDone = onDone;
 		this.target = target;
 		this.properties = properties;
 		this.components = [];
@@ -103,13 +107,16 @@ class TweenParams<T> implements Cls {
 	var propMap = new Hash<Bool>();
 	var properties = new Array<String>();
 	var atoms = new Array<Atom<T>>();
+	public var onDone:Tween<T>->Dynamic;
 	public var duration = 1.0;
 	public var easing = Math.sqrt;
 	
-	public function new() {}
+	public function new() { }
+	static function ignore():Void { }
+	
 	public function start(target:T):Tween<T> {
 		var ret = RealTween.get();
-		ret.init(target, properties, atoms, propMap.exists, duration, easing);
+		ret.init(target, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
 		return ret;
 	}
 	public function addAtom(name:String, atom:Atom<T>) {

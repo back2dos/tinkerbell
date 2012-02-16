@@ -9,7 +9,8 @@ package tink.transitions;
 	import haxe.macro.Context;
 	import haxe.macro.Expr;
 	import tink.macro.tools.AST;
-
+	import haxe.macro.Type;
+	
 	using tink.macro.tools.MacroTools;
 	using tink.core.types.Outcome;
 #end
@@ -17,6 +18,13 @@ package tink.transitions;
 class Tweener {
 	#if macro
 		static var ITERABLE = 'Iterable'.asTypePath([TPType('Dynamic'.asTypePath())]);
+		static function makeHandler(body:Expr, targetType:Type) {
+			return 
+				body.func(
+					['tween'.toArg('tink.transitions.Tween'.asTypePath([TPType(targetType.toComplex())]))]
+					, false
+				).toExpr(body.pos);
+		}
 	#end
 	@:macro static public function tween(exprs:Array<Expr>) {
 		if (exprs.length == 0) 
@@ -35,14 +43,27 @@ class Tweener {
 		var id = targetType.register().toExpr(target.pos),
 			tmp = String.tempName();
 		
-		var ret = [tmp.define(AST.build(new tink.transitions.Tween.TweenParams()))];
+		var ret = [tmp.define(AST.build(new tink.transitions.Tween.TweenParams<haxe.macro.MacroType < (tink.macro.tools.TypeTools.getType($id)) >>()))];//just to be sure
 		
 		for (e in exprs) {
 			var op = OpAssign.get(e).data();
 			var name = op.e1.getIdent().data();
 			ret.push(
-				if (name.charAt(0) == '$') 
-					tmp.resolve(op.pos).field(name.substr(1), op.e1.pos).assign(op.e2, op.pos);
+				if (name.charAt(0) == '$') {
+					var e = 
+						if (name.substr(0,3) == '$on') 
+							switch (op.e2.typeof()) {
+								case Success(t):
+									switch (t.reduce()) {
+										case TFun(_, _): op.e2;
+										default: makeHandler(op.e2, targetType);
+									}
+								default:
+									makeHandler(op.e2, targetType);
+							}
+						else op.e2;
+					tmp.resolve(op.pos).field(name.substr(1), op.e1.pos).assign(e, op.pos);
+				}
 				else
 					AST.build(
 						eval__tmp.addAtom(
