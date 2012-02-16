@@ -73,7 +73,7 @@ class Tween<T> {
 		return cast ret;
 	}
 	static function register(tween:Tween<Dynamic>, kill:String->Bool) {
-		if (targetMap.exists(tween)) 
+		if (targetMap.exists(tween.target)) 
 			for (t in targetMap.get(tween.target))
 				t.freeProperties(kill);
 		else

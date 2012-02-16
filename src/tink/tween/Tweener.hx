@@ -21,7 +21,7 @@ class Tweener {
 		static function makeHandler(body:Expr, targetType:Type) {
 			return 
 				body.func(
-					['tween'.toArg('tink.transitions.Tween'.asTypePath([TPType(targetType.toComplex())]))]
+					['tween'.toArg('tink.tween.Tween'.asTypePath([TPType(targetType.toComplex())]))]
 					, false
 				).toExpr(body.pos);
 		}
@@ -43,7 +43,7 @@ class Tweener {
 		var id = targetType.register().toExpr(target.pos),
 			tmp = String.tempName();
 		
-		var ret = [tmp.define(AST.build(new tink.transitions.Tween.TweenParams<haxe.macro.MacroType < (tink.macro.tools.TypeTools.getType($id)) >>()))];//just to be sure
+		var ret = [tmp.define(AST.build(new tink.tween.Tween.TweenParams<haxe.macro.MacroType < (tink.macro.tools.TypeTools.getType($id)) >>()))];//just to be sure
 		
 		for (e in exprs) {
 			var op = OpAssign.get(e).data();
