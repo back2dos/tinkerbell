@@ -1,6 +1,7 @@
 package tink.tween;
 
 import haxe.FastList;
+import haxe.Timer;
 import tink.collections.ObjectMap;
 import tink.lang.Cls;
 /**
@@ -52,7 +53,14 @@ class Tween<T> {
 		this.components = cs;		
 	}
 	static var active = new Tweens();
+	static var last = Math.NaN;
 	static public function hearbeat(delta:Float) {
+		if (Math.isNaN(delta)) {
+			if (Math.isNaN(last)) 
+				last = Timer.stamp();
+			delta = Timer.stamp() - last;
+		}
+		delta *= speed;
 		var old = active,
 			done = new Tweens(),
 			alive = new Tweens();
@@ -64,6 +72,7 @@ class Tween<T> {
 				alive.add(t);
 		for (t in done)
 			t.cleanup();
+		last = Timer.stamp();
 	}
 	static var targetMap = new ObjectMap<Dynamic, Array<Tween<Dynamic>>>();
 	static public function byTarget<A>(target:A):Iterable<A> {//returning Iterable here because we don't want people to screw around with this
@@ -81,6 +90,28 @@ class Tween<T> {
 		
 		targetMap.get(tween.target).push(tween);
 	}
+	static public var speed = 1.0;
+	#if flash9
+		static public function useEnterFrame() {
+			flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, function (_) {
+				hearbeat(Math.NaN);
+			});
+			hearbeat(Math.NaN);
+		}
+	#elseif flash
+		static public function useEnterFrame() {
+			var r = flash.Lib.current;
+			r.createEmptyMovieClip('tink_tween_beacon', r.getNextHighestDepth());
+			r.onEnterFrame = callback(hearbeat, Math.NaN);
+			r.onEnterFrame();
+		}		
+	#elseif js
+		static public function setFPS(fps:Float) {
+			var t = new haxe.Timer(Math.round(1000 / fps));
+			t.run = callback(hearbeat, Math.NaN);
+			t.run();
+		}
+	#end
 }
 private class RealTween<T> extends Tween<T> {
 	function new() {}
