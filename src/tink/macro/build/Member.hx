@@ -8,7 +8,7 @@ using Lambda;
 using tink.macro.tools.MacroTools;
 
 typedef Meta = { 
-	name : String, 
+	name : String,
 	params : Array<Expr>, 
 	pos : Position 
 };
@@ -22,6 +22,7 @@ class Member {
 	
 	public var isOverride:Bool;
 	public var isStatic:Bool;
+	///indicates whether the field is inline (true) or dynamic (false) or none of both (null)
 	public var isBound:Null<Bool>;
 	public var isPublic:Null<Bool>;
 	public var excluded:Bool;
@@ -30,11 +31,7 @@ class Member {
 		this.isOverride = this.isStatic = false;
 		this.meta = new Hash();
 	}
-	public function withPos(pos:Position):Member {
-		var ret = Reflect.copy(this);
-		ret.pos = pos;
-		return ret;
-	}
+
 	public function addMeta(name, pos, ?params) {
 		meta.set(name, {
 			name: name,
@@ -78,7 +75,7 @@ class Member {
 		}
 		return ret;
 	}
-	public function toHaxe() {
+	public function toHaxe():Field {
 		return {
 			name : name,
 			doc : doc,
