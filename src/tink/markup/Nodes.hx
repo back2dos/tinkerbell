@@ -11,6 +11,7 @@ using tink.markup.Helpers;
  */
 
 class Nodes {
+	//TODO: unify with Fast as far as possible. For example transform (which does the most work anyway) is almost identical
 	var tmp:String;
 	var target:Expr;
 	var count:Int;
@@ -40,7 +41,21 @@ class Nodes {
 				case Failure(_): 
 					switch (OpAssign.get(e)) {
 						case Success(op):
-							setAttr(op.e1.getName().data(), op.e2, op.pos);
+							var ret = [];
+							switch (op.e1.getName()) {
+								case Success(name): setAttr(name, op.e2, op.pos, ret.push);
+								default:
+									switch (op.e1.expr) {
+										case EArrayDecl(exprs):
+											for (e in exprs) {
+												var name = e.getName().data();
+												setAttr(name, op.e2.field(name, e.pos), e.pos, ret.push);
+											}
+										default: 
+											op.e1.reject();
+									}
+							}							
+							return ret.toBlock(op.pos);
 						default:
 							switch (e.expr) {
 								case ECall(target, params): 
@@ -97,7 +112,7 @@ class Nodes {
 			else 
 				e.stringify();
 	}
-	function setAttr(name:String, value:Expr, pos:Position) {
-		return AST.build($target.set(Std.format("eval__name"), $(stringifyExpr(value))), pos);
+	function setAttr(name:String, value:Expr, pos:Position, yield:Expr->Dynamic) {
+		yield(AST.build($target.set(Std.format("eval__name"), $(stringifyExpr(value))), pos));
 	}
 }

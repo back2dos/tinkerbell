@@ -15,9 +15,9 @@ class MarkupTestBase extends TestCase {
 	function testHxExample() {
         var town = new Town("Paris");
 		
-        town.addUser( new User("Marcel",88) );
-        town.addUser( new User("Julie",15) );
-        town.addUser( new User("Akambo", 2) );
+        town.addUser( new User("Marcel",88, true));
+        town.addUser( new User("Julie",15, false));
+        town.addUser( new User("Akambo", 2, true));
 		
 		checkXML(printTown(town), Embed.stringFromFile('hx_example.xml'));
 	}
@@ -74,9 +74,11 @@ class MarkupTestBase extends TestCase {
 class User {
     public var name:String;
     public var age:Int;
-    public function new(name,age) {
+	public var likesChocolate:Bool;
+    public function new(name,age, likesChocolate) {
         this.name = name;
         this.age = age;    
+		this.likesChocolate = likesChocolate;
     }
 }
 

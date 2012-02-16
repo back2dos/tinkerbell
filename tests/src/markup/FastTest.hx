@@ -1,7 +1,6 @@
 package markup;
 import haxe.unit.TestCase;
 import markup.MarkupTestBase;
-import tink.Debug;
 import tink.markup.Build;
 using DateTools;
 /**
@@ -23,7 +22,7 @@ class FastTest extends MarkupTestBase {
 			[$content.foo.bar](
 				'The habitants of ${em(town.name)} are:',
 				ul < for (user in town.users) 
-					li(age = user.age, '${user.name} ${ageGroup(user)}')
+					li([age, likesChocolate] = user, '${user.name} ${ageGroup(user)}')
 			)
 		);
 		return t.toString();		

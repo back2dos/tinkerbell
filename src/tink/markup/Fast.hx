@@ -111,18 +111,15 @@ class Fast {
 				ret.toBlock();
 			}
 	}
-	function setAttr(name:String, value:Expr, pos) {
-		return
-			switch (value.getString()) {
-				case Success(s):
-					prints(' '+name + '="' + s + '"', pos);
-				default:
-					[
-						prints(' ' + name + '="', pos),
-						print(value),
-						prints('"', pos)
-					].toBlock(pos);
-			}
+	function setAttr(name:String, value:Expr, pos, yield:Expr->Dynamic) {
+		switch (value.getString()) {
+			case Success(s):
+				yield(prints(' '+name + '="' + s + '"', pos));
+			default:
+				yield(prints(' ' + name + '="', pos));
+				yield(print(value));
+				yield(prints('"', pos));
+		}
 	}
 	public function transform(e:Expr, yield:Expr->Expr) {
 		return
@@ -131,7 +128,21 @@ class Fast {
 				case Failure(_): 
 					switch (OpAssign.get(e)) {
 						case Success(op):
-							setAttr(op.e1.getName().data(), op.e2, op.pos);
+							var ret = [];
+							switch (op.e1.getName()) {
+								case Success(name): setAttr(name, op.e2, op.pos, ret.push);
+								default:
+									switch (op.e1.expr) {
+										case EArrayDecl(exprs):
+											for (e in exprs) {
+												var name = e.getName().data();
+												setAttr(name, op.e2.field(name, e.pos), e.pos, ret.push);
+											}
+										default: 
+											op.e1.reject();
+									}
+							}
+							ret.toBlock(op.pos);
 						default:
 							switch (e.expr) {
 								case ECall(target, params): 
