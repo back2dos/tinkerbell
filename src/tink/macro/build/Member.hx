@@ -7,6 +7,12 @@ import tink.core.types.Outcome;
 using Lambda;
 using tink.macro.tools.MacroTools;
 
+typedef Meta = { 
+	name : String, 
+	params : Array<Expr>, 
+	pos : Position 
+};
+
 class Member {
 	public var name : String;
 	public var doc : Null<String>;
