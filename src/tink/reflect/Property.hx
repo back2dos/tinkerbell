@@ -1,4 +1,4 @@
-package tink.util;
+package tink.reflect;
 import haxe.rtti.Meta;
 
 /**

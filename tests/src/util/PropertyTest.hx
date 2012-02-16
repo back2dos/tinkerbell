@@ -1,6 +1,6 @@
 package util;
 import haxe.unit.TestCase;
-import tink.util.Property;
+import tink.reflect.Property;
 
 /**
  * ...
