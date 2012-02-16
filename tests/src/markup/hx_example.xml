@@ -1,8 +1,8 @@
 <div id="content" class="foo bar">
 	The habitants of <em>Paris</em> are:
 	<ul>
-		<li age="88">Marcel Grown-Up</li>
-		<li age="15">Julie Young</li>
-		<li age="2">Akambo Baby</li>		
+		<li age="88" likesChocolate="true">Marcel Grown-Up</li>
+		<li age="15" likesChocolate="false">Julie Young</li>
+		<li age="2" likesChocolate="true">Akambo Baby</li>		
 	</ul>
 </div>
