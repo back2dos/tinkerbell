@@ -8,7 +8,7 @@ package tink.collections;
 
 #if flash9
 	import flash.utils.Dictionary;
-	class ObjectMap<K,V> extends Dictionary {
+	class ObjectMap < K, V > extends Dictionary {
 		public function new() {
 			super(false);
 		}
@@ -40,13 +40,7 @@ package tink.collections;
 	import tink.native.PHP;
 	class ObjectMap < K, V > extends tink.collections.abstract.StringIDMap < K, V > {
 		override function transform(key:K):String untyped {
-			if (PHP.embed('is_array($key)')) {
-				if (PHP.embed('is_callable($key)')) 
-					return transform(key[0]) + key[1];
-				else 
-					throw 'cannot handle native PHP arrays yet';
-			}
-			else return PHP.embed('spl_object_hash($key)');
+			return PHP.objHash(key);
 		}
 	}
 #else
@@ -58,10 +52,10 @@ package tink.collections;
 			#if neko
 				return $iadd(key, 0);
 			#elseif (flash || js)
-				var id = key.__id__;
+				var id = key.__getID;
 				if (id == null) {
 					var v = idCounter++;
-					key.__id__ = id = function () return v;
+					key.__getID = id = function () return v;
 				}
 				return id();
 			#elseif cpp
