@@ -6,5 +6,5 @@ package tink.lang;
  */
 
 
-@:autoBuild(tink.lang.macro.ClassBuilder.buildFields()) interface Cls {
+@:autoBuild(tink.lang.macros.ClassBuilder.buildFields()) interface Cls {
 }

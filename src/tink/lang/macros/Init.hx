@@ -1,4 +1,4 @@
-package tink.lang.macro;
+package tink.lang.macros;
 
 import haxe.macro.Expr;
 import tink.macro.build.Constructor;

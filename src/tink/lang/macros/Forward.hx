@@ -1,4 +1,4 @@
-package tink.lang.macro;
+package tink.lang.macros;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
