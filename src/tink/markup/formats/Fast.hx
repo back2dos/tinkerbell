@@ -1,4 +1,4 @@
-package tink.markup;
+package tink.markup.formats;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -7,7 +7,7 @@ import tink.macro.tools.AST;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
-using tink.markup.Helpers;
+using tink.markup.formats.Helpers;
 /**
  * ...
  * @author back2dos

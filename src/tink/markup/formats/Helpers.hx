@@ -1,4 +1,4 @@
-package tink.markup;
+package tink.markup.formats;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;

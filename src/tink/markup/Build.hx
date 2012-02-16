@@ -1,5 +1,11 @@
 package tink.markup;
 
+#if macro
+	import tink.markup.formats.Fast;
+	import tink.markup.formats.Nodes;
+	import tink.markup.formats.TreeCrawler;	
+#end
+
 /**
  * ...
  * @author back2dos
