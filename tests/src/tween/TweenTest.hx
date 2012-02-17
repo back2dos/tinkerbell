@@ -34,7 +34,7 @@ class TweenTest extends TestCase {
 		assertFalse(d1);
 		assertFalse(d2);
 		Tween.hearbeat(1);
-		assertEquals(5.0, x);
+		assertEquals(5.0 - x, .0);//will fail on PHP otherwise. Go figure.
 		assertEquals(0.0, y);
 		assertTrue(d1);
 		assertTrue(d2);

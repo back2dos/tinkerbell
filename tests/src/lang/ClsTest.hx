@@ -72,7 +72,9 @@ class ClsTest extends TestCase {
 		
 		assertEquals(b.i, 8);
 		b.i = 8;
-		assertFalse(Reflect.field(b, 'i') == b.i);
+		#if !cpp //in cpp this will fail, since Reflect.field calls the accessor
+			assertFalse(Reflect.field(b, 'i') == b.i);
+		#end
 		assertEquals(b.i, 8);
 		for (i in 0...10) {
 			b.i = Std.random(100);

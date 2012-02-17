@@ -72,7 +72,7 @@ private class X implements Dynamic {
 	public function iterator() {
 		return calls.iterator();
 	}
-	function toString() {
-		'[Just a little "X"]';
+	function toString():String {
+		return '[Just a little "X"]';
 	}
 }
