@@ -5,7 +5,7 @@ package tink.collections.abstract;
  * @author back2dos
  */
 
-class IntIDMap<K, V> {
+class IntIDMap<K, V> implements tink.collections.Map<K, V> {
 	var keyMap:IntHash<K>;
 	var valMap:IntHash<V>;
 	public function new() {
