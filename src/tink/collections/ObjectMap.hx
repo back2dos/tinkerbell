@@ -8,7 +8,7 @@ package tink.collections;
 
 #if flash9
 	import flash.utils.Dictionary;
-	class ObjectMap < K, V > extends Dictionary implements Map < K, V > {
+	class ObjectMap < K, V > extends Dictionary, implements Map < K, V > {
 		public function new() {
 			super(false);
 		}
@@ -50,7 +50,7 @@ package tink.collections;
 		#end
 		override function transform(key:K):Int untyped {			
 			#if neko
-				return $iadd(key, 0);
+				return $iadd(key, 0);//this is pure evil, but it seems to work perfectly
 			#elseif (flash || js)
 				var id = key.__getID;
 				if (id == null) {
@@ -59,7 +59,7 @@ package tink.collections;
 				}
 				return id();
 			#elseif cpp
-				#error
+				return untyped __global__.__hxcpp_obj_id (key);
 			#else
 				#error
 			#end
