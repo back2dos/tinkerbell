@@ -5,7 +5,7 @@ package tink.tween.plugins.macros;
  * @author back2dos
  */
 
-@:autoBuild(tink.tween.plugins.macros.PluginMap.register()) class PluginBase<T> {
+class PluginBase<T> implements Plugin<T> {
 	var target:T;
 	var start:Float;
 	var delta:Float;
