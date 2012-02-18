@@ -20,7 +20,12 @@ package tink.tween.plugins.macros;
 	function setValue(value:Float):Void {
 		throw 'abstract';
 	}
+	function cleanup():Void {
+		
+	}
 	@:final public function update(amplitude:Float):Void {
-		setValue(start + amplitude * delta);
+		if (amplitude < 1e30)
+			setValue(start + amplitude * delta);
+		else cleanup();
 	}
 }

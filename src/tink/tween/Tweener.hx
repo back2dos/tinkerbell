@@ -33,17 +33,20 @@ class Tweener {
 			Context.currentPos().error('at least one argument required');
 		var target = exprs.shift();
 		var targetType = target.typeof().data();
-		#if debug 
+		var isDynamic = 
 			switch (targetType) {
 				case TDynamic(_): 
-						Context.warning('Type appears to be Dynamic. Accessors will not be called while accessing properties. This warning is only issued with -debug', target.pos);
-				default:
+					#if debug 
+						Context.warning('Type appears to be Dynamic. No type checking can be performed, no plugins will work. This warning is only issued with -debug', target.pos);
+					#end
+					true;
+				default: false;
 			}
-		#end
-		var id = targetType.register().toExpr(target.pos),
+		
+		var targetCT = targetType.toComplex(),
 			tmp = String.tempName();
 		
-		var ret = [tmp.define(AST.build(new tink.tween.Tween.TweenParams<haxe.macro.MacroType < (tink.macro.tools.TypeTools.getType($id)) >>()))];//just to be sure
+		var ret = [tmp.define(AST.build(new tink.tween.Tween.TweenParams<Eval__targetCT>()))];//just to be sure
 		
 		for (e in exprs) {
 			var op = OpAssign.get(e).data();
@@ -67,20 +70,39 @@ class Tweener {
 				else {
 					var atom = 
 						switch (target.field(name).typeof()) {
-							//TODO: with the current implementation, the target value is determined when the tween starts, not at definition time. This can lead to undesired behaviour.
 							case Success(_):
-								AST.build(
-									function (tmpTarget) {
-										if (false) tmpTarget.eval__name = .0;//we need this to make the type inferrer understand, that the field provides write access, but the optimizer will throw this out for us
-										var tmpStart:Float = tmpTarget.eval__name;
-										var tmpDelta = $(op.e2) - tmpStart;
-										return
-											function (amplitude:Float) {
-												tmpTarget.eval__name = tmpStart + tmpDelta * amplitude;
-											}
-									},			
-									op.pos
-								);
+								if (isDynamic) 
+									AST.build(
+										function (tmpTarget) {
+											var tmpStart:Float = tink.reflect.Property.get(tmpTarget, "eval__name");
+											var tmpDelta = $(op.e2) - tmpStart;
+											return
+												function (amplitude:Float) {
+													if (amplitude < 1e30)
+														tink.reflect.Property.set(tmpTarget, "eval__name", tmpStart + tmpDelta * amplitude);
+													else
+														tmpTarget = null;
+												}
+										},			
+										op.pos
+									);									
+								else 
+									AST.build(
+										function (tmpTarget) {
+											if (false) 
+												tmpTarget.eval__name = .0;//we need this to make the type inferrer understand, that the field provides write access, but the optimizer will throw this out for us
+											var tmpStart:Float = tmpTarget.eval__name;
+											var tmpDelta = $(op.e2) - tmpStart;
+											return
+												function (amplitude:Float) {
+													if (amplitude < 1e30)
+														tmpTarget.eval__name = tmpStart + tmpDelta * amplitude;
+													else
+														tmpTarget = null;
+												}
+										},			
+										op.pos
+									);
 							case Failure(f):
 								var tp = PluginMap.getPluginFor(target, name);
 								if (tp == null) 

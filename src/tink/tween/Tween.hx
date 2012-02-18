@@ -16,7 +16,6 @@ class Tween<T> {
 	public var target(default, null):T;
 	public var progress(default, null):Float;
 	public var duration(default, null):Float;
-	
 	var onDone:Void->Dynamic;
 	var easing:Float->Float;
 	var components:Array<Component>;
@@ -34,17 +33,22 @@ class Tween<T> {
 		return done;
 	}
 	function cleanup():Void {
-		targetMap.get(target).remove(this);//yes, that's O(N) where N is the number of concurrent tweens on one object, so N <= 5 is a reasonable assumption
+		targetMap.get(target).remove(this);
+		for (c in components) 
+			c(Math.POSITIVE_INFINITY);
+			
 		onDone();
 		this.target = null;
 		this.easing = null;
 		this.components = null;
 		this.properties = null;
 	}
-	public function freeProperties(toFreeOrNotToFree:String->Bool):Void {
+	public function freeProperties(free:String->Bool):Void {
 		var ps = [], cs = [], i = 0;
 		for (p in properties) {
-			if (!toFreeOrNotToFree(p)) {
+			if (free(p)) 
+				components[i](Math.POSITIVE_INFINITY);
+			else {
 				ps.push(p);
 				cs.push(components[i]);
 			}
@@ -53,9 +57,17 @@ class Tween<T> {
 		this.properties = ps;
 		this.components = cs;		
 	}
+	static var after = [];
+	static var before = [];
 	static var active = new Tweens();
 	static var last = Math.NaN;
+	static public inline function beforeHeartbeat(f:Void->Void) { before.push(f); }
+	static public inline function afterHeartbeat(f:Void->Void) { after.push(f); }
 	static public function hearbeat(delta:Float) {
+		var oldBefore = before;
+		before = [];
+		for (f in oldBefore) f();
+		
 		if (Math.isNaN(delta)) {
 			if (Math.isNaN(last)) 
 				last = Timer.stamp();
@@ -74,6 +86,9 @@ class Tween<T> {
 		for (t in done)
 			t.cleanup();
 		last = Timer.stamp();
+		var oldAfter = after;
+		after = [];
+		for (f in oldAfter) f();
 	}
 	static var targetMap = new ObjectMap<Dynamic, Array<Tween<Dynamic>>>();
 	static public function byTarget<A>(target:A):Iterable<A> {//returning Iterable here because we don't want people to screw around with this
@@ -91,6 +106,7 @@ class Tween<T> {
 		
 		targetMap.get(tween.target).push(tween);
 	}
+	static public var defaultEasing = Math.sqrt;	
 	static public var speed = 1.0;
 	static var isHooked = false;
 	#if flash9
@@ -148,7 +164,7 @@ class TweenParams<T> implements Cls {
 	var atoms = new Array<Atom<T>>();
 	public var onDone:Tween<T>->Dynamic;
 	public var duration = 1.0;
-	public var easing = Math.sqrt;
+	public var easing = Tween.defaultEasing;
 	
 	public function new() { }
 	static function ignore():Void { }

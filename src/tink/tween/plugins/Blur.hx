@@ -1,6 +1,7 @@
 package tink.tween.plugins;
 import flash.display.DisplayObject;
 import flash.filters.BlurFilter;
+import flash.utils.TypedDictionary;
 import tink.collections.ObjectMap;
 import tink.tween.plugins.macros.PluginBase;
 
