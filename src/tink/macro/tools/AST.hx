@@ -105,8 +105,18 @@ private class Builder {
 						else 
 							edef.at(e.pos);
 					}
-					else 
-						transformObject(value);
+					else if (Std.is(value.access, Array)) {
+						var f:Field = value;
+						{
+							name : transform(f.name),
+							doc : transform(f.doc),
+							access : transform(f.access),
+							kind : transformEnum(f.kind),
+							pos : here,
+							meta : transform(f.meta),
+						}.toFields();
+					}
+					else transformObject(value);
 				case TClass(c):
 					if (c == String) {
 						switch (isEval(value)) {
@@ -134,9 +144,22 @@ private class Builder {
 					else
 						throw 'Cannot transform ' + Type.getClassName(c);
 				case TEnum(e):
-					transformEnum(value);
+					if (e == ComplexType) {
+						switch (cast(value, ComplexType)) {
+							case TPath(tp): 
+								if (tp.name.startsWith('Eval__'))
+									tp.name.substr(6).resolve();
+								else 
+									transformEnum(value);
+							default: 
+								transformEnum(value);
+						}
+					}
+					else transformEnum(value);
 				default:
-					throw 'Cannot transform ' + Std.string(value);
+					if (Std.string(value).startsWith('#pos')) here;
+					else 
+						throw 'Cannot transform ' + Std.string(value);
 			}
 	}			
 }
