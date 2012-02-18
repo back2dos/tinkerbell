@@ -22,6 +22,7 @@ class Tween<T> {
 	var components:Array<Component>;
 	var properties:Array<String>;
 	
+	
 	function update(delta:Float):Bool {
 		progress += delta / duration;
 		var done = progress >= 1;
@@ -91,8 +92,11 @@ class Tween<T> {
 		targetMap.get(tween.target).push(tween);
 	}
 	static public var speed = 1.0;
+	static var isHooked = false;
 	#if flash9
 		static public function useEnterFrame() {
+			if (isHooked) return;
+			isHooked = true;
 			flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, function (_) {
 				hearbeat(Math.NaN);
 			});
@@ -100,6 +104,8 @@ class Tween<T> {
 		}
 	#elseif flash
 		static public function useEnterFrame() {
+			if (isHooked) return;
+			isHooked = true;
 			var r = flash.Lib.current;
 			r.createEmptyMovieClip('tink_tween_beacon', r.getNextHighestDepth());
 			r.onEnterFrame = callback(hearbeat, Math.NaN);
@@ -107,6 +113,8 @@ class Tween<T> {
 		}		
 	#elseif js
 		static public function setFPS(fps:Float) {
+			if (isHooked) return;
+			isHooked = true;
 			var t = new haxe.Timer(Math.round(1000 / fps));
 			t.run = callback(hearbeat, Math.NaN);
 			t.run();

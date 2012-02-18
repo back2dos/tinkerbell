@@ -10,11 +10,13 @@ package tink.tween;
 	import haxe.macro.Expr;
 	import tink.macro.tools.AST;
 	import haxe.macro.Type;
+	import tink.macro.tools.TypeTools;
+	import tink.tween.plugins.macros.PluginMap;
 	
 	using tink.macro.tools.MacroTools;
 	using tink.core.types.Outcome;
+	using StringTools;
 #end
-
 class Tweener {
 	#if macro
 		static var ITERABLE = 'Iterable'.asTypePath([TPType('Dynamic'.asTypePath())]);
@@ -31,15 +33,13 @@ class Tweener {
 			Context.currentPos().error('at least one argument required');
 		var target = exprs.shift();
 		var targetType = target.typeof().data();
-		
-		#if debug
+		#if debug 
 			switch (targetType) {
 				case TDynamic(_): 
-					Context.warning('Type appears to be Dynamic. Accessors will not be called while accessing properties. This warning is only issued with -debug', target.pos);
+						Context.warning('Type appears to be Dynamic. Accessors will not be called while accessing properties. This warning is only issued with -debug', target.pos);
 				default:
 			}
 		#end
-		
 		var id = targetType.register().toExpr(target.pos),
 			tmp = String.tempName();
 		
@@ -64,21 +64,36 @@ class Tweener {
 						else op.e2;
 					tmp.resolve(op.pos).field(name.substr(1), op.e1.pos).assign(e, op.pos);
 				}
-				else
-					AST.build(
-						eval__tmp.addAtom(
-							"eval__name", 
-							function (tmpTarget:haxe.macro.MacroType < (tink.macro.tools.TypeTools.getType($id)) > ) {//type has to be added by force, otherwise haXe inference has trouble getting this right
-								var tmpStart:Float = tmpTarget.eval__name;
-								var tmpDelta = $(op.e2) - tmpStart;
-								return
-									function (p:Float) {
-										tmpTarget.eval__name = tmpStart + tmpDelta * p;
-									}
-							}			
-						), 
-						e.pos
-					)
+				else {
+					var atom = 
+						switch (target.field(name).typeof()) {
+							//TODO: with the current implementation, the target value is determined when the tween starts, not at definition time. This can lead to undesired behaviour.
+							case Success(_):
+								AST.build(
+									function (tmpTarget) {
+										if (false) tmpTarget.eval__name = .0;//we need this to make the type inferrer understand, that the field provides write access, but the optimizer will throw this out for us
+										var tmpStart:Float = tmpTarget.eval__name;
+										var tmpDelta = $(op.e2) - tmpStart;
+										return
+											function (amplitude:Float) {
+												tmpTarget.eval__name = tmpStart + tmpDelta * amplitude;
+											}
+									},			
+									op.pos
+								);
+							case Failure(f):
+								var tp = PluginMap.getPluginFor(target, name);
+								if (tp == null) 
+									f.throwSelf();
+								else {
+									var tmp = String.tempName();
+									var inst = ENew(tp, [tmp.resolve(), op.e2]).at(op.e1.pos).field('update', op.pos);
+									inst.func([tmp.toArg()]).toExpr(op.pos);
+								}
+						}
+					AST.build(eval__tmp.addAtom("eval__name", $atom), op.pos);
+						
+				}
 			);
 		}
 		ret.push(AST.build(eval__tmp.start($target)));
