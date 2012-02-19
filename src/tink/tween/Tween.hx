@@ -109,7 +109,7 @@ class Tween<T> {
 	static public var defaultEasing = Math.sqrt;	
 	static public var speed = 1.0;
 	static var isHooked = false;
-	#if flash9
+	#if (flash9 || nme)
 		static public function useEnterFrame() {
 			if (isHooked) return;
 			isHooked = true;

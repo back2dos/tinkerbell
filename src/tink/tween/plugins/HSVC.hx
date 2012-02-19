@@ -158,6 +158,8 @@ private class ColorMatrixHelper {
 		var ret = map.get(target);
 		if (ret == null)
 			map.set(target, ret = new ColorMatrixHelper(target));
+		else
+			ret.count++;
 		return ret;
 	}
 	static var map = new TypedDictionary();
