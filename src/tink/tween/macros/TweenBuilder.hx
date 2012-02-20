@@ -16,10 +16,18 @@ using StringTools;
 
 class TweenBuilder {
 	static var ITERABLE = 'Iterable'.asTypePath([TPType('Dynamic'.asTypePath())]);
-	static function handler(body:Expr, targetType:Type) {
-		return 
+	static function handler(body:Expr, targetType:Type, additional) {
+		switch (body.typeof()) {
+			case Success(t):
+				switch (t) {
+					case TFun(_): return body;
+					default:
+				}
+			default:
+		}
+		return
 			body.func(
-				['tween'.toArg('tink.tween.Tween'.asTypePath([TPType(targetType.toComplex())]))]
+				['tween'.toArg('tink.tween.Tween'.asTypePath([TPType(targetType.toComplex())]))].concat(additional)
 				, false
 			).toExpr(body.pos);
 	}
@@ -75,47 +83,51 @@ class TweenBuilder {
 		
 		var targetCT = targetType.toComplex(),
 			tmp = String.tempName();
-		
+			
 		var ret = [tmp.define(AST.build(new tink.tween.Tween.TweenParams<Eval__targetCT>()))];//just to be sure
 		
 		for (e in params) {
-			var op = OpAssign.get(e).data();
-			var name = op.e1.getIdent().data();
+			var op = e.getBinop().data();
+			
 			ret.push(
-				if (name.charAt(0) == '$') {
-					var e = 
-						if (name.substr(0,3) == '$on') 
-							switch (op.e2.typeof()) {
-								case Success(t):
-									switch (t.reduce()) {
-										case TFun(_, _): op.e2;
-										default: handler(op.e2, targetType);
-									}
-								default:
-									handler(op.e2, targetType);
-							}
-						else op.e2;
-					tmp.resolve(op.pos).field(name.substr(1), op.e1.pos).assign(e, op.pos);
-				}
-				else {
-					var atom = 
-						switch (target.field(name).typeof()) {
-							case Success(_):
-								if (isDynamic) 
-									atomDynamic(name, op);
-								else 
-									atomStatic(name, op);
-							case Failure(f):
-								var tp = PluginMap.getPluginFor(target, name);
-								if (tp == null) 
-									f.throwSelf();
-								else {
-									var tmp = String.tempName();
-									var inst = ENew(tp, [tmp.resolve(), op.e2]).at(op.e1.pos).field('update', op.pos);
-									inst.func([tmp.toArg()], 'Dynamic'.asTypePath()).toExpr(op.pos);
-								}
+				switch (op.op) {
+					case OpAssign:
+						var name = op.e1.getIdent().data();
+						if (name.charAt(0) == '$') {
+							var e = 
+								if (name.substr(0, 3) == '$on') 
+									handler(op.e2, targetType, []);
+								else op.e2;
+							tmp.resolve(op.pos).field(name.substr(1), op.e1.pos).assign(e, op.pos);
 						}
-					AST.build(eval__tmp.addAtom("eval__name", $atom), op.pos);	
+						else {
+							var atom = 
+								switch (target.field(name).typeof()) {
+									case Success(_):
+										if (isDynamic) 
+											atomDynamic(name, op);
+										else 
+											atomStatic(name, op);
+									case Failure(f):
+										var tp = PluginMap.getPluginFor(target, name);
+										if (tp == null) 
+											f.throwSelf();
+										else {
+											var tmp = String.tempName();
+											var inst = ENew(tp, [tmp.resolve(), op.e2]).at(op.e1.pos).field('update', op.pos);
+											inst.func([tmp.toArg()], 'Dynamic'.asTypePath()).toExpr(op.pos);
+										}
+								}
+							AST.build(eval__tmp.addAtom("eval__name", $atom), op.pos);	
+						}
+					case OpLt, OpLte:
+						var e = handler(op.e2, targetType, ['forward'.toArg('Bool'.asTypePath())]);
+						if (op.e1.isIterable().isSuccess())
+							AST.build(for (tmp in $(op.e1)) eval__tmp.addCuePoint(tmp, $e), op.pos);
+						else 
+							AST.build(eval__tmp.addCuePoint($(op.e1), $e), op.pos);
+					default:
+						op.pos.error('cannot handle ' + op.op);
 				}
 			);
 		}

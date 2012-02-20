@@ -22,6 +22,8 @@ class Tween<T> {
 	
 	public var paused:Bool;
 	
+	var cue:Cue<T>;
+	var cueIndex:Int;
 	var onDone:Void->Dynamic;
 	var easing:Float->Float;
 	var components:Array<TweenComponent>;
@@ -41,6 +43,17 @@ class Tween<T> {
 				var amplitude = easing(clamp(progress));
 				for (c in components) 
 					group.afterHeartbeat(c(amplitude));
+				if (cueIndex > -1) {
+					if (delta >= 0) {
+						while (cueIndex < cue.length) 
+							if (cue[cueIndex].mark < progress) {
+								cue[cueIndex].handler(this, true);
+								cueIndex++;
+							}
+							else break;
+					}
+					else throw 'not implemented';
+				}
 				(1 - progress) * delta;				
 			}
 	}
@@ -88,12 +101,20 @@ class Tween<T> {
 	}
 	static public var defaultEasing = Math.sqrt;
 }
-
+private class CuePoint<T> {
+	public var mark(default, null):Float;
+	public var handler(default, null):Tween<T>->Bool->Void;
+	public function new(mark, handler) {
+		this.mark = mark;
+		this.handler = handler;
+	}
+}
+private typedef Cue<T> = Array<CuePoint<T>>;
 class TweenParams<T> implements Cls {
 	var propMap = new Hash<Bool>();
 	var properties = new Array<String>();
 	var atoms = new Array<TweenAtom<T>>();
-	
+	var cue = new Cue<T>();
 	public var onDone:Tween<T>->Dynamic;
 	public var duration = 1.0;
 	public var easing = Tween.defaultEasing;
@@ -103,10 +124,19 @@ class TweenParams<T> implements Cls {
 	
 	public function start(group, target:T):Tween<T> {
 		var ret = RealTween.get();
-		ret.init(group, target, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
+		ret.init(group, target, cue, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
 		return ret;
 	}
-
+	public function addCuePoint(mark, handler:Tween<T>->Bool->Void) {
+		if (cue.length == 0 || cue[cue.length-1].mark <= mark)
+			this.cue.push(new CuePoint(mark, handler));	
+		else
+			for (i in 0...cue.length+1)
+				if (cue[i].mark > mark) {
+					cue.insert(i, new CuePoint(mark, handler));
+					break;
+				}
+	}
 	public function addAtom(name:String, atom:TweenAtom<T>):Void {
 		if (!this.propMap.exists(name)) {
 			this.propMap.set(name, true);
@@ -121,9 +151,11 @@ private class RealTween<T> extends Tween<T> {
 	static public function get<A>() {
 		return new RealTween<A>();
 	}
-	public function init(group:TweenGroup, target:T, properties:Array<String>, atoms:Array<TweenAtom<T>>, exists, duration, easing, onDone) {
+	public function init(group:TweenGroup, target:T, cue:Cue<T>, properties:Array<String>, atoms:Array<TweenAtom<T>>, exists, duration, easing, onDone) {
 		this.onDone = onDone;
 		this.group = group;
+		this.cue = cue;
+		this.cueIndex = cue.length > 0 ? 0 : -1;
 		this.target = target;
 		this.properties = properties;
 		this.components = [];
