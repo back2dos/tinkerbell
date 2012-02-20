@@ -1,4 +1,5 @@
-package tink.tween.plugins.macros;
+package tink.tween.plugins;
+import tink.tween.Tween;
 
 /**
  * ...
@@ -17,15 +18,17 @@ class PluginBase<T> implements Plugin<T> {
 	function init(end:Float):Float {
 		return throw 'abstract';
 	}
-	function setValue(value:Float):Void {
-		throw 'abstract';
+	function setValue(value:Float):Null<TweenCallback> {
+		return throw 'abstract';
 	}
-	function cleanup():Void {
-		
+	function cleanup():Null<TweenCallback> {
+		return null;
 	}
-	@:final public function update(amplitude:Float):Void {
-		if (amplitude < 1e30)
-			setValue(start + amplitude * delta);
-		else cleanup();
+	@:final public function update(amplitude:Float):Null<TweenCallback> {
+		return 
+			if (amplitude < 1e30)
+				setValue(start + amplitude * delta);
+			else 
+				cleanup();
 	}
 }

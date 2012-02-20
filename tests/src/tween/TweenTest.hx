@@ -1,6 +1,7 @@
 package tween;
 import haxe.unit.TestCase;
 import tink.tween.Tween;
+import tink.tween.Tweener;
 using tink.tween.Tweener;
 /**
  * ...
@@ -27,13 +28,13 @@ class TweenTest extends TestCase {
 			d2 = false;
 		assertEquals(_x, 2);
 		this.tween(x = 5, y = 6, $duration = 2, $easing = linear, $onDone = (d1 = true));
-		Tween.hearbeat(1);
+		Tweener.group.heartbeat(1);
 		this.tween(y = 0, $duration = 1, $easing = linear, $onDone = (d2 = true));
 		assertEquals(3.0, x);
 		assertEquals(4.0, y);
 		assertFalse(d1);
 		assertFalse(d2);
-		Tween.hearbeat(1);
+		Tweener.group.heartbeat(1);
 		assertEquals(5.0 - x, .0);//will fail on PHP otherwise. Go figure.
 		assertEquals(0.0, y);
 		assertTrue(d1);

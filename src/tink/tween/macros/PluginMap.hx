@@ -12,9 +12,6 @@ using tink.macro.tools.MacroTools;
 
 class PluginMap {
 	static var plugins = new Hash<PluginStack>();
-	//static public function asPlugin<A>(p:Plugin<A>) {
-		
-	//}
 	@:macro static public function register():Array<Field> {
 		var cl = Context.getLocalClass().get();
 		if (cl.isInterface) return null;
@@ -33,12 +30,7 @@ class PluginMap {
 					cl.pos.error('unable to determine plugin type');
 				current = current.superClass.t.get();				
 			}
-		}
-		
-		//if (cl.superClass.t.get().name != 'PluginBase')
-			//cl.pos.error('All plugins are final. Use composition for code reuse.');
-		
-			//cl.pos.error('No generic classes allowed as plugins. Keep it simple ;)');
+		}		
 			
 		var name = cl.name.charAt(0).toLowerCase() + cl.name.substr(1);
 		var stack = plugins.get(name);
@@ -72,7 +64,6 @@ private class PluginStack {
 		};
 		this.filters.push(cl.superClass.params[0].toComplex());
 		this.plugins.push(t);
-		//trace(ENew(t, ['null'.resolve(), 1.0.toExpr()]).at().typeof());
 	}
 	public function getPlugin(target:Expr) {
 		var i = 0;

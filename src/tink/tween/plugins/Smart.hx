@@ -1,6 +1,6 @@
 package tink.tween.plugins;
 import flash.display.DisplayObject;
-import tink.tween.plugins.macros.PluginBase;
+import tink.tween.plugins.PluginBase;
 
 /**
  * ...
@@ -22,8 +22,9 @@ class AutoAlpha extends PluginBase<DisplayObject> {
 	override function init(_):Float {
 		return target.alpha;
 	}
-	override function setValue(value:Float):Void {
+	override function setValue(value:Float) {
 		target.visible = (target.alpha = value) > 0;
+		return null;
 	}
 }
 
@@ -31,7 +32,8 @@ class ShortRotation extends PluginBase<DisplayObject> {
 	override function init(end:Float):Float {
 		return Smart.angle(target.rotation, end);
 	}
-	override function setValue(value:Float):Void {
+	override function setValue(value:Float) {
 		this.target.rotation = value;
+		return null;
 	}
 }

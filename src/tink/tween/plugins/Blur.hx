@@ -3,7 +3,8 @@ import flash.display.DisplayObject;
 import flash.filters.BlurFilter;
 import flash.utils.TypedDictionary;
 import tink.collections.ObjectMap;
-import tink.tween.plugins.macros.PluginBase;
+import tink.tween.plugins.PluginBase;
+import tink.tween.Tween;
 
 /**
  * ...
@@ -14,16 +15,18 @@ class BlurX extends PluginBase<DisplayObject> {
 	override function init(_):Float {
 		return Helper.getFilter(target).blurX;
 	}
-	override function setValue(value:Float):Void {
+	override function setValue(value:Float):Null<TweenCallback> {
 		Helper.modifyFilter(target, function (b) b.blurX = value);
+		return null;
 	}
 }
 class BlurY extends PluginBase<DisplayObject> {
 	override function init(_):Float {
 		return Helper.getFilter(target).blurY;
 	}
-	override function setValue(value:Float):Void {
+	override function setValue(value:Float):Null<TweenCallback> {
 		Helper.modifyFilter(target, function (b) b.blurY = value);
+		return null;
 	}
 }
 

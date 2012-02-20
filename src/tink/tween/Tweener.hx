@@ -10,11 +10,29 @@ package tink.tween;
 #end
 
 class Tweener {
+	#if !macro
+		static public var group(get_group, null):TweenGroup;
+		static function init() {
+			group = new TweenGroup();
+			#if (flash || nme)
+				TweenTicker.framewise(group);
+			#elseif js
+				TweenTicker.periodic(group);
+			#end
+			return group;
+		}
+		static inline function get_group() {
+			return 
+				if (group == null) init();
+				else group;
+		}
+	#end
 	@:macro static public function tween(exprs:Array<haxe.macro.Expr>) {
 		return
 			if (exprs.length == 0) 
 				haxe.macro.Context.currentPos().error('at least one argument required');
 			else 
-				tink.tween.macros.TweenBuilder.buildTween(exprs.shift(), exprs);
+				tink.tween.macros.TweenBuilder.buildTween(exprs.shift(), 'tink.tween.Tweener.group'.resolve(), exprs);
 	}
+	
 }

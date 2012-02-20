@@ -27,8 +27,8 @@ class TweenBuilder {
 		return
 			AST.build(
 				function (tmpTarget) {
-					if (false) 
-						tmpTarget.eval__name = .0;//we need this to make the type inferrer understand, that the field provides write access, but the optimizer will throw this out for us
+					if (false) tmpTarget.eval__name = .0;
+					//the above is needed to make the type inferrer understand, that the field provides write access (otherwise inference will cause an error within the scope of this function), but the optimizer will throw this out for us
 					var tmpStart:Float = tmpTarget.eval__name;
 					var tmpDelta = $(op.e2) - tmpStart;
 					return
@@ -37,6 +37,7 @@ class TweenBuilder {
 								tmpTarget.eval__name = tmpStart + tmpDelta * amplitude;
 							else
 								tmpTarget = null;
+							return null;
 						}
 				},			
 				op.pos
@@ -45,21 +46,22 @@ class TweenBuilder {
 	static function atomDynamic(name:String, op) {
 		return
 			AST.build(
-					function (tmpTarget) {
-						var tmpStart:Float = tink.reflect.Property.get(tmpTarget, "eval__name");
-						var tmpDelta = $(op.e2) - tmpStart;
-						return
-							function (amplitude:Float) {
-								if (amplitude < 1e30)
-									tink.reflect.Property.set(tmpTarget, "eval__name", tmpStart + tmpDelta * amplitude);
-								else
-									tmpTarget = null;
-							}
-					},			
-					op.pos
-				);			
+				function (tmpTarget) {
+					var tmpStart:Float = tink.reflect.Property.get(tmpTarget, "eval__name");
+					var tmpDelta = $(op.e2) - tmpStart;
+					return
+						function (amplitude:Float) {
+							if (amplitude < 1e30)
+								tink.reflect.Property.set(tmpTarget, "eval__name", tmpStart + tmpDelta * amplitude);
+							else
+								tmpTarget = null;
+							return null;
+						}
+				},			
+				op.pos
+			);			
 	}
-	static public function buildTween(target:Expr, params:Array<Expr>) {
+	static public function buildTween(target:Expr, group:Expr, params:Array<Expr>) {
 		var targetType = target.typeof().data();
 		var isDynamic = 
 			switch (targetType) {
@@ -110,14 +112,14 @@ class TweenBuilder {
 								else {
 									var tmp = String.tempName();
 									var inst = ENew(tp, [tmp.resolve(), op.e2]).at(op.e1.pos).field('update', op.pos);
-									inst.func([tmp.toArg()]).toExpr(op.pos);
+									inst.func([tmp.toArg()], 'Dynamic'.asTypePath()).toExpr(op.pos);
 								}
 						}
 					AST.build(eval__tmp.addAtom("eval__name", $atom), op.pos);	
 				}
 			);
 		}
-		ret.push(AST.build(eval__tmp.start($target)));
-		return ret.toBlock().log();			
+		ret.push(AST.build(eval__tmp.start($group, $target)));
+		return ret.toBlock();
 	}
 }

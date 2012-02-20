@@ -4,12 +4,14 @@ import haxe.FastList;
 import haxe.Timer;
 import tink.collections.ObjectMap;
 import tink.lang.Cls;
+import tink.tween.plugins.Plugin;
 /**
  * ...
  * @author back2dos
  */
-private typedef Component = Float->Dynamic;
-private typedef Atom<T> = T->Component;
+typedef TweenCallback = Void->Void;
+typedef TweenComponent = Float->Null<TweenCallback>;
+typedef TweenAtom<T> = T->TweenComponent;
 private typedef Tweens = FastList<Tween<Dynamic>>;
 
 class Tween<T> {
@@ -17,23 +19,32 @@ class Tween<T> {
 	public var progress(default, null):Float;
 	public var duration(default, null):Float;
 	public var group(default, null):TweenGroup;
+	
+	public var paused:Bool;
+	
 	var onDone:Void->Dynamic;
 	var easing:Float->Float;
-	var components:Array<Component>;
+	var components:Array<TweenComponent>;
 	var properties:Array<String>;
 	
-	
-	function update(delta:Float):Bool {
-		progress += delta / duration;
-		var done = progress >= 1;
-		if (done) 
-			progress = 1;
-		var amplitude = easing(progress);
-		for (c in components) 
-			c(amplitude);
-		return done;
+	inline function clamp(f:Float) {
+		return
+			if (f < .0) 0.0;
+			else if (f > 1.0) 1.0;
+			else f;
 	}
-	function cleanup():Void {
+	public function update(delta:Float):Float {
+		return 
+			if (paused) Math.POSITIVE_INFINITY;
+			else {
+				progress += delta / duration;
+				var amplitude = easing(clamp(progress));
+				for (c in components) 
+					group.afterHeartbeat(c(amplitude));
+				(1 - progress) * delta;				
+			}
+	}
+	public function cleanup():Void {
 		targetMap.get(target).remove(this);
 		for (c in components) 
 			c(Math.POSITIVE_INFINITY);
@@ -58,39 +69,7 @@ class Tween<T> {
 		this.properties = ps;
 		this.components = cs;		
 	}
-	static var after = [];
-	static var before = [];
-	static var active = new Tweens();
-	static var last = Math.NaN;
-	static public inline function beforeHeartbeat(f:Void->Void) { before.push(f); }
-	static public inline function afterHeartbeat(f:Void->Void) { after.push(f); }
-	static public function heartbeat(delta:Float) {
-		var oldBefore = before;
-		before = [];
-		for (f in oldBefore) f();
-		
-		if (Math.isNaN(delta)) {
-			if (Math.isNaN(last)) 
-				last = Timer.stamp();
-			delta = Timer.stamp() - last;
-		}
-		delta *= speed;
-		var old = active,
-			done = new Tweens(),
-			alive = new Tweens();
-		active = alive;
-		for (t in old)
-			if (t.update(delta))
-				done.add(t);
-			else
-				alive.add(t);
-		for (t in done)
-			t.cleanup();
-		last = Timer.stamp();
-		var oldAfter = after;
-		after = [];
-		for (f in oldAfter) f();
-	}
+
 	static var targetMap = new ObjectMap<Dynamic, Array<Tween<Dynamic>>>();
 	static public function byTarget<A>(target:A):Iterable<A> {//returning Iterable here because we don't want people to screw around with this
 		var ret = targetMap.get(target);
@@ -107,59 +86,28 @@ class Tween<T> {
 		
 		targetMap.get(tween.target).push(tween);
 	}
-	static public var defaultEasing = Math.sqrt;	
-	static public var speed = 1.0;
-	static var isHooked = false;
-	#if (flash9 || nme)
-		static public function useEnterFrame() {
-			if (isHooked) return;
-			isHooked = true;
-			flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, function (_) {
-				heartbeat(Math.NaN);
-			});
-			heartbeat(Math.NaN);
-		}
-	#elseif flash
-		static public function useEnterFrame() {
-			if (isHooked) return;
-			isHooked = true;
-			var r = flash.Lib.current;
-			r.createEmptyMovieClip('tink_tween_beacon', r.getNextHighestDepth());
-			r.onEnterFrame = callback(heartbeat, Math.NaN);
-			r.onEnterFrame();
-		}		
-	#elseif js
-		static public function setFPS(fps:Float) {
-			if (isHooked) return;
-			isHooked = true;
-			var t = new haxe.Timer(Math.round(1000 / fps));
-			t.run = callback(heartbeat, Math.NaN);
-			t.run();
-		}
-	#end
+	static public var defaultEasing = Math.sqrt;
 }
 
 class TweenParams<T> implements Cls {
 	var propMap = new Hash<Bool>();
 	var properties = new Array<String>();
-	var atoms = new Array<Atom<T>>();
+	var atoms = new Array<TweenAtom<T>>();
 	
-	public var group:TweenGroup;
 	public var onDone:Tween<T>->Dynamic;
 	public var duration = 1.0;
 	public var easing = Tween.defaultEasing;
 	
-	public function new() {
-		//this.group = group;
-	}
+	public function new() {}
 	static function ignore():Void { }
 	
-	public function start(target:T):Tween<T> {
+	public function start(group, target:T):Tween<T> {
 		var ret = RealTween.get();
-		ret.init(target, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
+		ret.init(group, target, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
 		return ret;
 	}
-	public function addAtom(name:String, atom:Atom<T>) {
+
+	public function addAtom(name:String, atom:TweenAtom<T>):Void {
 		if (!this.propMap.exists(name)) {
 			this.propMap.set(name, true);
 			this.properties.push(name);
@@ -173,8 +121,9 @@ private class RealTween<T> extends Tween<T> {
 	static public function get<A>() {
 		return new RealTween<A>();
 	}
-	public function init(target:T, properties:Array<String>, atoms:Array<Atom<T>>, exists, duration, easing, onDone) {
+	public function init(group:TweenGroup, target:T, properties:Array<String>, atoms:Array<TweenAtom<T>>, exists, duration, easing, onDone) {
 		this.onDone = onDone;
+		this.group = group;
 		this.target = target;
 		this.properties = properties;
 		this.components = [];
@@ -186,6 +135,6 @@ private class RealTween<T> extends Tween<T> {
 		this.progress = 0;
 		for (a in atoms)
 			this.components.push(a(target));
-		Tween.active.add(this);
+		group.addTween(this);
 	}
 }

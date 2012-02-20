@@ -10,9 +10,11 @@ import flash.filters.BitmapFilter;
 import flash.filters.ColorMatrixFilter;
 import flash.utils.TypedDictionary;
 import tink.devtools.Debug;
+import tink.lang.Cls;
 import tink.tween.Tween;
+import tink.tween.Tweener;
 
-import tink.tween.plugins.macros.PluginBase;
+import tink.tween.plugins.PluginBase;
 
 class Hue extends PluginBase<DisplayObject> {
 	var matrix:ColorMatrixHelper;
@@ -21,12 +23,14 @@ class Hue extends PluginBase<DisplayObject> {
 		this.matrix = ColorMatrixHelper.get(this.target);
 		return Smart.angle(this.matrix.hue, end);
 	}
-	override function setValue(v:Float) {
+	override function setValue(v:Float):Null<TweenCallback> {
 		this.matrix.hue = v;
+		return this.matrix.update;
 	}
 	override function cleanup() {
 		this.matrix.release();
 		this.matrix = null;
+		return null;
 	}
 }
 class Brightness extends PluginBase<DisplayObject> {
@@ -35,12 +39,14 @@ class Brightness extends PluginBase<DisplayObject> {
 		this.matrix = ColorMatrixHelper.get(this.target);
 		return this.matrix.brightness;
 	}
-	override function setValue(v:Float) {
+	override function setValue(v:Float):Null<TweenCallback> {
 		this.matrix.brightness = v;
+		return this.matrix.update;
 	}
 	override function cleanup() {
 		this.matrix.release();
 		this.matrix = null;
+		return null;
 	}
 }
 class Saturation extends PluginBase<DisplayObject> {
@@ -49,12 +55,14 @@ class Saturation extends PluginBase<DisplayObject> {
 		this.matrix = ColorMatrixHelper.get(this.target);
 		return this.matrix.saturation;
 	}
-	override function setValue(v:Float) {
+	override function setValue(v:Float):Null<TweenCallback> {
 		this.matrix.saturation = v;
+		return this.matrix.update;
 	}
 	override function cleanup() {
 		this.matrix.release();
 		this.matrix = null;
+		return null;
 	}
 }
 class Contrast extends PluginBase<DisplayObject> {
@@ -63,25 +71,28 @@ class Contrast extends PluginBase<DisplayObject> {
 		this.matrix = ColorMatrixHelper.get(this.target);
 		return this.matrix.contrast;
 	}
-	override function setValue(v:Float) {
+	override function setValue(v:Float):Null<TweenCallback> {
 		this.matrix.contrast = v;
+		return this.matrix.update;
 	}
 	override function cleanup() {
 		this.matrix.release();
 		this.matrix = null;
+		return null;
 	}
 }
 
-private class ColorMatrixHelper {
+private class ColorMatrixHelper implements Cls {
 	
 	var target:DisplayObject;
 	var count:Int;
 	var archiveCount:Int;
+	var valid:Bool = true;
 	
-	public var hue:Float;
-	public var brightness:Float;
-	public var contrast:Float;
-	public var saturation:Float;
+	@:prop(invalidate(param)) var hue:Float;
+	@:prop(invalidate(param)) var brightness:Float;
+	@:prop(invalidate(param)) var contrast:Float;
+	@:prop(invalidate(param)) var saturation:Float;
 	
 	function new(target) {
 		this.target = target;
@@ -104,14 +115,11 @@ private class ColorMatrixHelper {
 				if (--other.archiveCount < 1)
 					archive.remove(key);//be gone! this time for real!
 			}
-			else {
-				trace('no match for ' + key);
-				for (key in archive.keys())
-					trace('!= ' + key);
-			}
 		}
-		Debug.log(this.hue);
-		Tween.afterHeartbeat(update);
+	}
+	inline function invalidate(param) {
+		this.valid = false;
+		return param;
 	}
 	function getFilter(filters:Array<Dynamic>):ColorMatrixFilter {
 		for (f in filters)
@@ -120,7 +128,7 @@ private class ColorMatrixHelper {
 		return null;
 	}
 	public function update() {
-		if (count > 0) {
+		if (!valid && count > 0) {
 			var filters = target.filters;
 			var filter = getFilter(filters);
 			if (filter == null)
@@ -128,8 +136,6 @@ private class ColorMatrixHelper {
 				
 			filter.matrix = calcMatrix();
 			target.filters = filters;
-			
-			Tween.afterHeartbeat(update);
 		}
 	}
 	function calcMatrix() {
