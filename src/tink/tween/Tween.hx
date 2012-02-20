@@ -16,6 +16,7 @@ class Tween<T> {
 	public var target(default, null):T;
 	public var progress(default, null):Float;
 	public var duration(default, null):Float;
+	public var group(default, null):TweenGroup;
 	var onDone:Void->Dynamic;
 	var easing:Float->Float;
 	var components:Array<Component>;
@@ -63,7 +64,7 @@ class Tween<T> {
 	static var last = Math.NaN;
 	static public inline function beforeHeartbeat(f:Void->Void) { before.push(f); }
 	static public inline function afterHeartbeat(f:Void->Void) { after.push(f); }
-	static public function hearbeat(delta:Float) {
+	static public function heartbeat(delta:Float) {
 		var oldBefore = before;
 		before = [];
 		for (f in oldBefore) f();
@@ -114,9 +115,9 @@ class Tween<T> {
 			if (isHooked) return;
 			isHooked = true;
 			flash.Lib.current.addEventListener(flash.events.Event.ENTER_FRAME, function (_) {
-				hearbeat(Math.NaN);
+				heartbeat(Math.NaN);
 			});
-			hearbeat(Math.NaN);
+			heartbeat(Math.NaN);
 		}
 	#elseif flash
 		static public function useEnterFrame() {
@@ -124,7 +125,7 @@ class Tween<T> {
 			isHooked = true;
 			var r = flash.Lib.current;
 			r.createEmptyMovieClip('tink_tween_beacon', r.getNextHighestDepth());
-			r.onEnterFrame = callback(hearbeat, Math.NaN);
+			r.onEnterFrame = callback(heartbeat, Math.NaN);
 			r.onEnterFrame();
 		}		
 	#elseif js
@@ -132,11 +133,41 @@ class Tween<T> {
 			if (isHooked) return;
 			isHooked = true;
 			var t = new haxe.Timer(Math.round(1000 / fps));
-			t.run = callback(hearbeat, Math.NaN);
+			t.run = callback(heartbeat, Math.NaN);
 			t.run();
 		}
 	#end
 }
+
+class TweenParams<T> implements Cls {
+	var propMap = new Hash<Bool>();
+	var properties = new Array<String>();
+	var atoms = new Array<Atom<T>>();
+	
+	public var group:TweenGroup;
+	public var onDone:Tween<T>->Dynamic;
+	public var duration = 1.0;
+	public var easing = Tween.defaultEasing;
+	
+	public function new() {
+		//this.group = group;
+	}
+	static function ignore():Void { }
+	
+	public function start(target:T):Tween<T> {
+		var ret = RealTween.get();
+		ret.init(target, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
+		return ret;
+	}
+	public function addAtom(name:String, atom:Atom<T>) {
+		if (!this.propMap.exists(name)) {
+			this.propMap.set(name, true);
+			this.properties.push(name);
+			this.atoms.push(atom);
+		}
+	}
+}
+
 private class RealTween<T> extends Tween<T> {
 	function new() {}
 	static public function get<A>() {
@@ -156,29 +187,5 @@ private class RealTween<T> extends Tween<T> {
 		for (a in atoms)
 			this.components.push(a(target));
 		Tween.active.add(this);
-	}
-}
-class TweenParams<T> implements Cls {
-	var propMap = new Hash<Bool>();
-	var properties = new Array<String>();
-	var atoms = new Array<Atom<T>>();
-	public var onDone:Tween<T>->Dynamic;
-	public var duration = 1.0;
-	public var easing = Tween.defaultEasing;
-	
-	public function new() { }
-	static function ignore():Void { }
-	
-	public function start(target:T):Tween<T> {
-		var ret = RealTween.get();
-		ret.init(target, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
-		return ret;
-	}
-	public function addAtom(name:String, atom:Atom<T>) {
-		if (!this.propMap.exists(name)) {
-			this.propMap.set(name, true);
-			this.properties.push(name);
-			this.atoms.push(atom);
-		}
 	}
 }

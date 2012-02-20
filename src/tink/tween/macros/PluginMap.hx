@@ -1,4 +1,4 @@
-package tink.tween.plugins.macros;
+package tink.tween.macros;
 
 /**
  * ...
