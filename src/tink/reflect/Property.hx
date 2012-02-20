@@ -67,7 +67,7 @@ class Property {
 		}
 		return ret;
 	}
-	static function __init__() Store.properties()
+	static function __init__() Store.properties({})
 }
 private class Access {
 	public var read(default, null):Null<String>;
@@ -81,22 +81,20 @@ private class Access {
 #if macro
 	import haxe.macro.Context;
 	import haxe.macro.Type;
-	import tink.macro.tools.AST;
 	import haxe.macro.Expr;
-	using tink.macro.tools.MacroTools;
 #end
 private class Store {
 	#if macro
 		static function accessor(v:VarAccess, meta:MetaAccess, write:Bool, pos) {
 			return switch(v) {
 				case AccCall(m):
-					meta.add(write ? '__w' : '__r', [m.toExpr()], pos);
+					meta.add(write ? '__w' : '__r', [Context.makeExpr(m, pos)], pos);
 				default:
 			}
 		}
 		static function extract(types:Array<Type>) {
 			for (type in types) {
-				switch (type.reduce()) {
+				switch (Context.follow(type)) {
 					case TInst(cl, _):
 						for (field in cl.get().fields.get())
 							switch (field.kind) {
@@ -110,8 +108,8 @@ private class Store {
 			}		
 		}
 	#end
-	@:macro static public function properties() {
+	@:macro static public function properties(e) {
 		Context.onGenerate(extract);
-		return AST.build(new Hash<Dynamic<Access>>());
+		return e;
 	}	
 }
