@@ -25,6 +25,7 @@ class Tween<T> {
 	var cue:Cue<T>;
 	var cueIndex:Int;
 	var onDone:Void->Dynamic;
+	var onStarve:Void->Dynamic;
 	var easing:Float->Float;
 	var components:Array<TweenComponent>;
 	var properties:Array<String>;
@@ -35,9 +36,10 @@ class Tween<T> {
 			else if (f > 1.0) 1.0;
 			else f;
 	}
-	public function update(delta:Float):Float {
+	function update(delta:Float):Float {
 		return 
-			if (paused) Math.POSITIVE_INFINITY;
+			if (properties.length == 0) .0;
+			else if (paused) Math.POSITIVE_INFINITY;
 			else {
 				progress += delta / duration;
 				var amplitude = easing(clamp(progress));
@@ -57,12 +59,14 @@ class Tween<T> {
 				(1 - progress) * delta;				
 			}
 	}
-	public function cleanup():Void {
+	function cleanup():Void {
 		targetMap.get(target).remove(this);
 		for (c in components) 
 			c(Math.POSITIVE_INFINITY);
-			
-		onDone();
+		if (properties.length > 0)	
+			onDone();
+		else
+			onStarve();
 		this.target = null;
 		this.easing = null;
 		this.components = null;
@@ -80,7 +84,7 @@ class Tween<T> {
 			i++;
 		}
 		this.properties = ps;
-		this.components = cs;		
+		this.components = cs;			
 	}
 
 	static var targetMap = new ObjectMap<Dynamic, Array<Tween<Dynamic>>>();
@@ -116,6 +120,7 @@ class TweenParams<T> implements Cls {
 	var atoms = new Array<TweenAtom<T>>();
 	var cue = new Cue<T>();
 	public var onDone:Tween<T>->Dynamic;
+	public var onStarve:Tween<T>->Dynamic;
 	public var duration = 1.0;
 	public var easing = Tween.defaultEasing;
 	
@@ -124,7 +129,18 @@ class TweenParams<T> implements Cls {
 	
 	public function start(group, target:T):Tween<T> {
 		var ret = RealTween.get();
-		ret.init(group, target, cue, properties, atoms, propMap.exists, duration, easing, onDone == null ? ignore : callback(onDone, ret));
+		ret.init(
+			group, 
+			target, 
+			cue, 
+			properties, 
+			atoms, 
+			propMap.exists, 
+			duration, 
+			easing, 
+			onDone == null ? ignore : callback(onDone, ret),
+			onStarve == null ? ignore : callback(onStarve, ret)
+		);
 		return ret;
 	}
 	public function addCuePoint(mark, handler:Tween<T>->Bool->Void) {
@@ -151,8 +167,9 @@ private class RealTween<T> extends Tween<T> {
 	static public function get<A>() {
 		return new RealTween<A>();
 	}
-	public function init(group:TweenGroup, target:T, cue:Cue<T>, properties:Array<String>, atoms:Array<TweenAtom<T>>, exists, duration, easing, onDone) {
+	public function init(group:TweenGroup, target:T, cue:Cue<T>, properties:Array<String>, atoms:Array<TweenAtom<T>>, exists, duration, easing, onDone, onStarve) {
 		this.onDone = onDone;
+		this.onStarve = onStarve;
 		this.group = group;
 		this.cue = cue;
 		this.cueIndex = cue.length > 0 ? 0 : -1;

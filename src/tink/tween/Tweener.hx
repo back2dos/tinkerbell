@@ -13,13 +13,14 @@ class Tweener {
 	#if !macro
 		static public var group(get_group, null):TweenGroup;
 		static function init() {
-			group = new TweenGroup();
+			var ret = new TweenGroup();
+			group = ret;
 			#if (flash || nme)
 				TweenTicker.framewise(group);
 			#elseif js
 				TweenTicker.periodic(group);
 			#end
-			return group;
+			return ret;
 		}
 		static inline function get_group() {
 			return 

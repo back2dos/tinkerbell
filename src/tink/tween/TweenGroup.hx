@@ -72,7 +72,7 @@ class TweenGroup implements Cls {
 		active = alive;
 		
 		for (t in old) {
-			left = t.update(delta);
+			left = update(t, delta);
 			if (left > 0) {
 				alive.add(t);
 				if (left < leftMin) 
@@ -82,10 +82,20 @@ class TweenGroup implements Cls {
 		}
 						
 		for (t in done)
-			t.cleanup();
+			cleanup(t);
 			
 		handleAfter();
 		
 		return leftMin;
 	}
+	inline function update(t:TweenInternal, delta:Float) {
+		return t.update(delta);
+	}
+	inline function cleanup(t:TweenInternal) {
+		t.cleanup();
+	}
+}
+private typedef TweenInternal = {
+	private function update(delta:Float):Float;
+	private function cleanup():Void;
 }

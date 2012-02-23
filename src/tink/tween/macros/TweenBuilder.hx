@@ -86,13 +86,23 @@ class TweenBuilder {
 			
 		var ret = [tmp.define(AST.build(new tink.tween.Tween.TweenParams<Eval__targetCT>()))];//just to be sure
 		
-		for (e in params) {
+		while (params.length > 0) {
+			var e = params.pop();
 			var op = e.getBinop().data();
 			
 			ret.push(
 				switch (op.op) {
 					case OpAssign:
-						var name = op.e1.getIdent().data();
+						var name = 
+							switch (op.e1.expr) {
+								case EArrayDecl(exprs):
+									var name = exprs.pop().getIdent().data();
+									for (e in exprs)
+										params.push(e.assign(op.e2, op.pos));
+									name;
+								default: 
+									op.e1.getIdent().data();
+							}
 						if (name.charAt(0) == '$') {
 							var e = 
 								if (name.substr(0, 3) == '$on') 
