@@ -154,4 +154,15 @@ class Member {
 			
 		return ret;
 	}
+	
+	static public function plain(name:String, type:ComplexType, pos:Position) {
+		return ofHaxe( {
+			name: name, 
+			doc: null,
+			access: [],
+			kind: FVar(type),
+			pos: pos,
+			meta: []
+		});
+	}
 }

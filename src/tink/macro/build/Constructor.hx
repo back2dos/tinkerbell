@@ -35,13 +35,17 @@ class Constructor {
 					}
 		}
 	}
-	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr) {
+	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?first:Bool) {
 		if (e == null) {
 			e = name.resolve(pos);
 			args.push( { name : name, opt : def != null, type : null, value : def } );
 			if (isPublic == null) isPublic = true;
 		}
-		this.nuStatements.push(['this', name].drill(pos).assign(e, pos));
+		var s = ['this', name].drill(pos).assign(e, pos);
+		if (first)
+			this.nuStatements.unshift(s);
+		else
+			this.nuStatements.push(s);
 	}
 	public function toBlock() {
 		return nuStatements.concat(oldStatements).toBlock(pos);
