@@ -88,7 +88,9 @@ private class Store {
 		static function accessor(v:VarAccess, meta:MetaAccess, write:Bool, pos) {
 			return switch(v) {
 				case AccCall(m):
-					meta.add(write ? '__w' : '__r', [Context.makeExpr(m, pos)], pos);
+					var name = write ? '__w' : '__r';
+					if (!meta.has(name))
+						meta.add(name, [Context.makeExpr(m, pos)], pos);
 				default:
 			}
 		}
@@ -96,13 +98,15 @@ private class Store {
 			for (type in types) {
 				switch (Context.follow(type)) {
 					case TInst(cl, _):
-						for (field in cl.get().fields.get())
-							switch (field.kind) {
-								case FVar(read, write):
-									accessor(read, field.meta, false, field.pos);
-									accessor(write, field.meta, true, field.pos);
-								default:
-							}
+						var cl = cl.get();
+						if (!cl.isInterface)
+							for (field in cl.fields.get())
+								switch (field.kind) {
+									case FVar(read, write):
+										accessor(read, field.meta, false, field.pos);
+										accessor(write, field.meta, true, field.pos);
+									default:
+								}
 					default:
 				}
 			}		
