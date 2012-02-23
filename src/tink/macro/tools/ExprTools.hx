@@ -13,6 +13,13 @@ using tink.macro.tools.ExprTools;
 using tink.core.types.Outcome;
 
 class ExprTools {
+	static public function getOutcome < D, F > (pos:Position, outcome:Outcome < D, F > ) {
+		return 
+			switch (outcome) {
+				case Success(d): d;
+				case Failure(f): pos.error(f);
+			}
+	}
 	static public inline function getPos(pos:Position) {
 		return 
 			if (pos == null) 
@@ -23,10 +30,18 @@ class ExprTools {
 	static public inline function is(e:Expr, c:ComplexType) {
 		return ECheckType(e, c).at(e.pos).typeof().isSuccess();
 	}
-	static public function annotations(e:Expr):Dynamic {
-		var ret = untyped e.body;
-		if (ret == null) untyped e.body = ret = { };
-		return ret;
+	static var annotCounter = 0;
+	static var annotations = new IntHash<Dynamic>();
+	static public function tag<D>(e:Expr, data:D) {
+		annotations.set(annotCounter, data);
+		return [(annotCounter++).toExpr(e.pos), e].toBlock(e.pos);
+	}
+	static public function untag(e:Expr) {
+		return
+			switch (e.expr) {
+				case EBlock(exprs): { e: exprs[1], data: annotations.get(exprs[0].getInt().data()) };
+				default: e.reject();
+			}
 	}
 	static public function substitute(source:Expr, vars:Dynamic<Expr>, ?pos) {
 		return 
@@ -228,6 +243,18 @@ class ExprTools {
 				default: e.pos.makeFailure(NOT_A_STRING);
 			}			
 	}	
+	///Attempts to extract an integer constant from an expression.
+	static public function getInt(e:Expr) {
+		return 
+			switch (e.expr) {
+				case EConst(c):
+					switch (c) {
+						case CInt(id): Success(Std.parseInt(id));
+						default: e.pos.makeFailure(NOT_AN_INT);
+					}
+				default: e.pos.makeFailure(NOT_AN_INT);
+			}							
+	}
 	///Attempts to extract an identifier from an expression.
 	static public function getIdent(e:Expr) {
 		return 
@@ -237,7 +264,7 @@ class ExprTools {
 						case CIdent(id), CType(id): Success(id);
 						default: e.pos.makeFailure(NOT_AN_IDENT);
 					}
-				default: e.pos.makeFailure(NOT_A_STRING);
+				default: e.pos.makeFailure(NOT_AN_IDENT);
 			}					
 	}
 	///Attempts to extract a name (identifier or string) from an expression.
@@ -249,9 +276,10 @@ class ExprTools {
 						case CString(s), CIdent(s), CType(s): Success(s);
 						default: e.pos.makeFailure(NOT_A_NAME);
 					}
-				default: e.pos.makeFailure(NOT_A_STRING);
+				default: e.pos.makeFailure(NOT_A_NAME);
 			}					
 	}
+	static inline var NOT_AN_INT = "integer constant expected";
 	static inline var NOT_AN_IDENT = "identifier expected";
 	static inline var NOT_A_STRING = "string constant expected";
 	static inline var NOT_A_NAME = "name expected";
