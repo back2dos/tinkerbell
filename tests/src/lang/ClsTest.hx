@@ -1,5 +1,6 @@
 package lang;
 import haxe.unit.TestCase;
+import tink.lang.binding.Binding;
 import tink.lang.Cls;
 
 /**
@@ -81,6 +82,48 @@ class ClsTest extends TestCase {
 			assertEquals(b.h+1, b.i);
 		}
 	}
+	function testBindings() {
+		var bs = [];
+		for (i in 0...3)
+			bs.push(new Bindable());
+		var sum = new Binding(function () {
+			var ret = 0;
+			for (b in bs)
+				ret += b.summand;
+			return ret;
+		});
+		var product = new Binding(function () {
+			var ret = 1;
+			for (b in bs)
+				ret *= b.factor;
+			return ret;			
+		});
+		var difference = new Binding(function () return product.getValue() - sum.getValue());
+		
+		assertFalse(sum.valid);
+		assertFalse(product.valid);
+		assertFalse(difference.valid);
+		
+		assertEquals(1, difference.getValue());
+		assertEquals(0, sum.getValue());
+		assertEquals(1, product.getValue());
+		
+		assertTrue(sum.valid);
+		assertTrue(product.valid);
+		assertTrue(difference.valid);
+		
+		bs[2].summand += 6;
+		
+		assertFalse(sum.valid);
+		assertTrue(product.valid);
+		assertFalse(difference.valid);
+		
+		assertEquals(6, sum.getValue());
+
+		assertTrue(sum.valid);
+		assertTrue(product.valid);
+		assertFalse(difference.valid);
+	}
 }
 typedef FwdTarget = {
 	function add(a:Int, b:Int):Int;
@@ -119,7 +162,11 @@ class Built implements Cls {
 	@:prop(param << 1) var g:Int = 3;
 	@:prop(h >>> 1, h = param << 1) var h:Int = 7;
 	@:prop(h+1, h = param-1) var i:Int;
-	public function new() {
-		
-	}
+	public function new() {}
+}
+
+class Bindable implements Cls {
+	@:bindable @:prop var summand:Int = 0;
+	@:bindable @:prop var factor:Int = 1;
+	public function new() {}
 }
