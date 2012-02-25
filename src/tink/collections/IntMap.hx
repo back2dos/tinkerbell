@@ -6,7 +6,7 @@ import tink.lang.Cls;
  * @author back2dos
  */
 
-class IntMap<T> implements Cls, Map < Int, T > {
+class IntMap<T> implements Cls, implements Map < Int, T > {
 	@:forward var h:IntHash<T>;
 	public function new() {
 		this.h = new IntHash();
