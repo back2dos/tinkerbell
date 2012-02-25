@@ -37,6 +37,10 @@ class TypeTools {
 	static public function toString(t:ComplexType) {
 		return Printer.printType('', t);
 	}
+	static public function isSubTypeOf(t:Type, of:Type, pos) {
+		return 
+			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof();
+	}
 	static public function toType(t:ComplexType, ?pos) {	
 		return [
 			'_'.define(t, pos),
