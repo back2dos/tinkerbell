@@ -16,9 +16,9 @@ class Tweener {
 			var ret = new TweenGroup();
 			group = ret;
 			#if (flash || nme)
-				TweenTicker.framewise(group);
+				TweenTicker.framewise(ret);
 			#elseif js
-				TweenTicker.periodic(group);
+				TweenTicker.periodic(ret);
 			#end
 			return ret;
 		}
