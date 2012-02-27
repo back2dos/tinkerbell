@@ -22,7 +22,7 @@ class Printer {
 			}			
 	}
 	static public function binop(?indent:String = '', b:Binop, e1:Expr, e2:Expr):String {
-		return rec(e1) + ' ' + binoperator(b) + ' ' + rec(e2);
+		return '(' + rec(e1) + ' ' + binoperator(b) + ' ' + rec(e2) +')';
 	}
 	static public function printExprList(indent:String, list:Iterable<Expr>, ?sep, ?border:Array<String>):String {
 		return printList(list.map(callback(printExpr, indent)), sep, border);

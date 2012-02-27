@@ -43,6 +43,9 @@ class ExprTools {
 				default: e.reject();
 			}
 	}
+	static public function partial<D>(c:ComplexType, data:D, ?pos) {
+		return ECheckType('null'.resolve(), c).at(pos).tag(data);
+	}
 	static public function substitute(source:Expr, vars:Dynamic<Expr>, ?pos) {
 		return 
 			transform(source, function (e:Expr) {
@@ -145,7 +148,7 @@ class ExprTools {
 			args: args == null ? [] : args,
 			ret: ret,
 			params: params == null ? [] : params,
-			expr: [if (makeReturn) at(EReturn(e), e.pos) else e].toBlock(e.pos)
+			expr: if (makeReturn) at(EReturn(e), e.pos) else e
 		}		
 	}
 	///single variable declaration
