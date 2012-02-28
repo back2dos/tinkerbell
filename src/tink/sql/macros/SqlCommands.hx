@@ -1,9 +1,10 @@
 package tink.sql.macros;
 
+import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import tink.macro.tools.AST;
-import tink.sql.macros.SqlBuilder;
+import tink.sql.macros.SqlData;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
@@ -15,25 +16,61 @@ using tink.sql.macros.SqlBuilder;
  */
 
 typedef SqlSelect = {
-	from:Expr,
-	join:Array<Array<Expr>>,
+	from:{ expr:Expr, desc:SqlTableDesc },
+	join:Array<SqlJoin>,
 	?values:Array<Expr>,
 	?where:Array<Expr>,
-	?options:Array<Expr>,
+	?order:Array<Expr>,
+	?range:{ count:Int, offset:Null<Int> }
+}
+
+typedef SqlJoin = {
+	
 }
 
 class SqlCommands {
-	static public function select(cmd:SqlSelect):Expr {
+	static function getType(s:SqlExpr, table:SqlTableDesc):Type {
+		return
+			switch (s.expr) {
+				case SqlField(name, tName):
+					if (tName != null) s.pos.error('not implemented');
+					if (table.hasField(name)) 
+						table.field(name).type;
+					else s.pos.error('unknown field ' + name);
+					
+				case SqlParam(e): 
+					e.typeof().sure();
+				case SqlIn(_, _): 
+					s.pos.error('not implemented');
+				case SqlBin(op, e1, e2):
+					s.pos.error('not implemented');
+			}	
+	}
+	static function getName(s:SqlExpr, table:SqlTableDesc) {
+		return
+			switch (s.expr) {
+				case SqlField(name, _): name;
+				default: s.pos.error('only plain fields can be selected for now');
+			}
+	}
+	static function getTypeAndName(s:SqlExpr, table:SqlTableDesc) {
+		return {
+			type: getType(s, table),
+			name: getName(s, table)
+		};
+	}
+	static public function select(cmd:SqlSelect, maker:Expr->Expr->ComplexType->Expr):Expr {
 		if (cmd.join.length > 0)
 			cmd.join[0][0].pos.error('joins not implemented yet');
 		
-		var info = cmd.from.describeTable();
-		
+		var desc = cmd.from.desc,
+			joiners = new Hash();//TODO: cleanup
+			
 		var cnx = String.tempName(),
 			buf = String.tempName();
 		
 		var ret = [
-			cnx.define(AST.build($(cmd.from).database.cnx)),
+			cnx.define(AST.build($(cmd.from.expr).database.cnx)),
 			buf.define(AST.build(new StringBuf())),
 		];
 		
@@ -44,40 +81,46 @@ class SqlCommands {
 			ret.push(buf.field('add').call([s.toExpr()]));
 		
 		out('SELECT ');
-		if (cmd.values == null) out('*') 
-		else {
-			var first = true;
-			for (v in cmd.values) {
-				if (first) first = false;
-				else out(', ');
-				var sql = v.toSqlExpr();
-				//TODO: type check!
-				ret.push(sql.toSqlString(cnx, buf));
+		var retType = 
+			if (cmd.values == null || cmd.values.length == 0) {
+				out('*');
+				desc.cType;
 			}
-		}
-		out(' FROM '+info.tableName);	
-		out(' WHERE ');
-		ret.push(cmd.where.whereClause().toSqlString(cnx, buf));
-		ret.push(AST.build($buf.toString()));
+			else {
+				var first = true;
+				var fields = [];
+				for (v in cmd.values) {
+					if (first) first = false;
+					else out(', ');
+					var sql = v.toSqlExpr(desc, joiners);
+					var field = getTypeAndName(sql, desc);
+					fields.push( { name: field.name, doc:null, access:[], kind:FVar(field.type.toComplex()), pos: v.pos, meta: [] } );
+					ret.push(sql.toSqlString(cnx, buf));
+				}
+				ComplexType.TAnonymous(fields);
+			}
 			
+		out(' FROM ' + desc.name);	
+		out(' WHERE ');
+		ret.push(cmd.where.whereClause(desc).toSqlString(cnx, buf));
+		
+		ret.push(maker(cnx, AST.build($buf.toString()), retType));
 		return ret.toBlock();
 	}
 	static public function insert(table:Expr, params:Expr):Expr {
-		var pType = params.typeof().data(),
-			info = table.describeTable();
-		var given = pType.fieldMap(),
-			known = info.tableType.fieldMap(),
-			tName = info.tableName;
+		var info = SqlTableDesc.fromExpr(table);
+			
+		var given = params.typeof().sure().getFields().sure();
 		
 		var fieldList = [],
 			valueList = [],
 			src = String.tempName().resolve();
 		
 		for (g in given) {
-			if (!known.exists(g.name))
-				params.pos.error('table ' + tName + ' has no field ' + g.name);
+			if (!info.hasField(g.name))
+				params.pos.error('table ' + info.name + ' has no field ' + g.name);
 			else {
-				var k = known.get(g.name);
+				var k = info.field(g.name);
 				switch (g.type.isSubTypeOf(k.type, params.pos)) {
 					case Success(_):
 						var name = g.name;
@@ -92,8 +135,12 @@ class SqlCommands {
 			valueList = EArrayDecl(valueList).at();
 			
 		return [
-			src.getIdent().data().define(params),
+			src.getIdent().sure().define(params),
 			AST.build($table.database.insert('eval__tName', $fieldList, $valueList)) 
 		].toBlock();
+	}
+	
+	static public function update(table:Expr, params:Expr) {
+		
 	}
 }

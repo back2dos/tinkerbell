@@ -1,12 +1,14 @@
 package tink.sql.macros;
 
-typedef Enums = Type;
+private typedef Enums = Type;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.rtti.Meta;
 import tink.macro.tools.AST;
+
+import tink.sql.macros.SqlData;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
@@ -16,31 +18,7 @@ using Lambda;
  * @author back2dos
  */
 
-enum SqlBinop {
-	@translate('=', 'OpEq') SqlEq;
-	@translate('<>', 'OpNotEq') SqlNeq;
-	@translate('+', 'OpAdd') SqlAdd;
-	@translate('-', 'OpSub') SqlSub;
-	@translate('*', 'OpMult') SqlMult;
-	@translate('/', 'OpDiv') SqlDiv;
-	@translate('<', 'OpLt') SqlLt;
-	@translate('<=', 'OpLte') SqlLte;
-	@translate('>', 'OpGt') SqlGt;
-	@translate('>=', 'OpGte') SqlGte;
-	@translate('AND', 'OpAnd') SqlAnd;
-	@translate('OR', 'OpOr') SqlOr;
-}
-typedef SqlExpr = {
-	pos:Position,
-	expr:SqlEDef
-}
 
-enum SqlEDef {
-	SqlField(name:String, ?table:String);
-	SqlParam(e:Expr);
-	SqlIn(e:SqlExpr, options:Array<SqlExpr>);
-	SqlBin(op:SqlBinop, e1:SqlExpr, e2:SqlExpr);
-} 
 
 class SqlBuilder {
 	static var hx2sql:Hash<SqlBinop>; 
@@ -55,58 +33,110 @@ class SqlBuilder {
 			sql2string.set(f, a[0]);
 		}
 	}
-	static public function fieldMap(t:Type) {
-		return t.getFields().data().fold(function (f, h:Hash<ClassField>) { h.set(f.name, f); return h; }, new Hash());
-	}
-	static public function describeTable(table:Expr) {
-		return 
-			switch (table.typeof().data()) {
-				case TInst(_, params): 
-					var t = params[1].getFields().data()[0];
-					{ db: params[0], tableName: t.name, tableType: t.type };
-				default: 
-					table.reject();
-			}
-	}
-	static public function whereClause(exprs:Array<Expr>):SqlExpr { 
+
+	static function buildWhereClause(exprs:Array<Expr>, table):SqlExpr {
 		return
-			if (exprs == null || exprs.length == 0) { expr: SqlParam(1.toExpr()), pos:Context.currentPos() };
+			if (exprs == null || exprs.length == 0) { expr: SqlParam(1.toExpr()), pos:Context.currentPos(), type: true.toExpr().typeof().sure() };
 			else {
 				var ret = exprs.shift();
 				for (e in exprs)
 					ret = ret.binOp(e, OpAnd, e.pos);
-				toSqlExpr(ret);
-			}
+				toSqlExpr(ret, table, null);
+			}		
 	}
-	static public function toSqlExpr(e:Expr):SqlExpr {
-		var ret = 
-			if (e.typeof().isSuccess()) SqlParam(e);
-			else 
-				switch (e.getIdent()) {
-					case Success(s): SqlField(s);
-					default: 
-						switch (e.expr) {
-							case EBinop(op, e1, e2):
-								var name = Enums.enumConstructor(op);
-								if (hx2sql.exists(name)) 
-									SqlBin(hx2sql.get(name), toSqlExpr(e1), toSqlExpr(e2));
+	//static function checkClause(clause:SqlExpr, table:Hash<ClassField>) {
+		//return
+			//switch (clause.expr) {
+				//case SqlField(name, tName):
+					//if (tName != null) clause.pos.error('not supported');
+					//if (table.exists(name)) 
+						//table.get(name).type;
+					//else
+						//clause.pos.error('unknown field ' + name);
+				//case SqlParam(e):
+					//e.typeof().sure();
+				//case SqlBin(op, e1, e2):
+					//var t1 = checkClause(e1, table),
+						//t2 = checkClause(e2, table);
+					//Type.TDynamic(null);
+				//default: 
+					//clause.pos.error('not supported');
+			//}
+	//}
+	static public function whereClause(exprs:Array<Expr>, table:SqlTableDesc):SqlExpr { 
+		var clause = buildWhereClause(exprs, table);
+		//checkClause(clause, table);
+		return clause;
+	}
+	static public function toSqlExpr(e:Expr, table:SqlTableDesc, tables:Hash<SqlTableDesc>):SqlExpr {
+		function rec(x) 
+			return toSqlExpr(x, table, tables);
+		function make(x, t):SqlExpr
+			return { expr: x, type:t, pos: e.pos };
+			
+		return
+			if (e == null) null;
+			switch (e.typeof()) {
+				case Success(t): make(SqlParam(e), t);
+				case Failure(f):
+					switch (e.getIdent()) {
+						case Success(s): 
+							if (s.charAt(0) == '$') {
+								var name = s.substr(1);
+								if (table.hasField(name))
+									make(SqlField(name), table.field(name).type);
 								else
-									e.reject('no sql counter-part for ' + op);
-							case EIn(e1, e2):
-								switch (e2.expr) {
-									case EArrayDecl(values):
-										var es = [];
-										for (v in values)
-											es.push(toSqlExpr(v));
-										SqlIn(toSqlExpr(e1), es);
-									default: 
-										//TODO: lift this constraint. In fact the argument only needs to be iterable
-										e2.reject('second argument to `in`-clause must be an array literal');
-								}
-							default: e.reject();
-						}
-				}
-		return { expr: ret, pos:e.pos };
+									e.reject('unknown field ' + name);
+							}
+							else 
+								f.throwSelf();
+						default: 
+							switch (e.expr) {
+								case EBinop(op, e1, e2):
+									var name = Enums.enumConstructor(op);
+									if (hx2sql.exists(name)) {
+										var e1 = rec(e1),
+											e2 = rec(e2);
+										make(SqlBin(hx2sql.get(name), e1, e2), null);
+									}
+									else
+										e.reject('no sql counter-part for ' + op);
+								case EIn(e1, e2):
+									switch (e2.expr) {
+										case EArrayDecl(values):
+											var es = [];
+											for (v in values)
+												es.push(rec(v));
+											make(SqlIn(rec(e1), es), null);
+										default: 
+											//TODO: lift this constraint. In fact the argument only needs to be iterable
+											e2.reject('second argument to `in`-clause must be an array literal');
+									}
+								case EField(owner, field), EType(owner, field):
+									switch (owner.getIdent()) {
+										case Success(s):
+											if (s.charAt(0) == '$') {
+												var tName = s.substr(1);
+												if (tables.exists(tName)) {
+													var table = tables.get(tName);
+													if (table.hasField(field))
+														make(SqlField(field, tName), table.field(field).type);
+													else
+														e.reject('table ' + tName + ' has no field ' + field);
+												}
+												else
+													owner.reject('unknown table ' + tName);
+											}
+											else
+												f.throwSelf();
+										default: 
+											f.throwSelf();
+									}
+								default: 
+									e.reject();
+							}
+					}
+			}
 	}
 	static public function toSqlString(e:SqlExpr, cnx:Expr, buf:Expr):Expr {
 		var ret = [];

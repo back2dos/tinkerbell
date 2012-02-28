@@ -1,7 +1,6 @@
 package tink.sql;
 
 import sys.db.Connection;
-import sys.db.ResultSet;
 
 /**
  * ...
@@ -13,10 +12,6 @@ import sys.db.ResultSet;
 	function new(cnx) {
 		this.cnx = cnx;
 	}
-	//public function select(table:String, expr:String):ResultSet {
-		//var qry = Std.format(
-		//return cnx.request();
-	//}
 	public function insert(table:String, fields:Array<String>, values:Array<Dynamic>) {
 		var s = new StringBuf();
 		s.add(Std.format('INSERT INTO ${table} (${fields.join(", ")}) VALUES ('));
