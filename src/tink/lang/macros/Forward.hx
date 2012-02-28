@@ -74,7 +74,7 @@ class Forward {
 			forwardWith(arg.name, rules, arg.type, pos, filter);
 	}
 	function forwardWith(id:String, rules:ForwardRules, t:ComplexType, pos:Position, filter:ClassFieldFilter) {
-		var fields = t.toType(pos).data().getFields().data();
+		var fields = t.toType(pos).sure().getFields().sure();
 		for (field in fields) 
 			if (field.isPublic && filter(field) && !hasField(field.name)) {
 				#if display
@@ -97,7 +97,7 @@ class Forward {
 			}
 	}
 	function forwardTo(to:Member, t:ComplexType, pos:Position, params:Array<Expr>) {
-		var fields = t.toType(pos).data().getFields().data(),
+		var fields = t.toType(pos).sure().getFields().sure(),
 			target = ['this', to.name].drill(pos),
 			included = makeFilter(params);
 			

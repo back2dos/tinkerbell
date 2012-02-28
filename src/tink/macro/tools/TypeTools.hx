@@ -70,12 +70,36 @@ class TypeTools {
 		types.set(id, type);
 		return id;
 	}
-	static public function toComplex(type:Type):ComplexType {
-		return TPath({
-			pack : ['haxe','macro'],
-			name : 'MacroType',
-			params : [TPExpr('tink.macro.tools.TypeTools.getType'.resolve().call([register(type).toExpr()]))],
-			sub : null,				
-		});		
+	static function paramsToComplex(params:Array<Type>):Array<TypeParam> {
+		var ret = [];
+		for (p in params) 
+			ret.push(TPType(toComplex(p, true)));
+		return ret;
+	}
+	static function baseToComplex(t:BaseType, params:Array<Type>) {
+		return asTypePath(t.module, paramsToComplex(params), t.name);
+	}
+	static public function toComplex(type:Type, ?pretty = false):ComplexType {
+		return 
+			if (pretty) {
+				switch (type) {
+					case TEnum(t, params):
+						baseToComplex(t.get(), params);
+					case TInst(t, params):	
+						baseToComplex(t.get(), params);
+					case TType(t, params):
+						baseToComplex(t.get(), params);
+					case TLazy(f):
+						toComplex(f(), true);
+					default: toComplex(type, false);
+				}
+			}
+			else
+				TPath({
+					pack : ['haxe','macro'],
+					name : 'MacroType',
+					params : [TPExpr('tink.macro.tools.TypeTools.getType'.resolve().call([register(type).toExpr()]))],
+					sub : null,				
+				});		
 	}	
 }

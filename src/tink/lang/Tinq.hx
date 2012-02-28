@@ -65,7 +65,7 @@ class TinQry {
 		}
 		static function getVName(f:Expr):String {
 			return
-				switch (f.typeof().data()) {
+				switch (f.typeof().sure()) {
 					case TFun(args, _):
 						var name = args[0].name;
 						if (name.resolve().typeof().isSuccess())
@@ -83,7 +83,7 @@ class TinQry {
 						switch (OpAssign.get(bodyOrInit)) {
 							case Success(op):
 								bodyOrInit = op.e2;
-								op.e1.getIdent().data();
+								op.e1.getIdent().sure();
 							default: 'ret';
 						}
 					[

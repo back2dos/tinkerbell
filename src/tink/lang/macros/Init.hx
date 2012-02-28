@@ -21,7 +21,7 @@ class Init {
 	function getType(t:Null<ComplexType>, inferFrom:Expr) {
 		return
 			if (t == null) 
-				inferFrom.typeof().data().toComplex();
+				inferFrom.typeof().sure().toComplex();
 			else 
 				t;
 	}

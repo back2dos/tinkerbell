@@ -1,6 +1,6 @@
 package tink.macro.build;
 
-typedef Enums = Type;
+private typedef Enums = Type;
 
 import haxe.macro.Context;
 import haxe.macro.Type;

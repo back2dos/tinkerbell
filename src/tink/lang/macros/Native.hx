@@ -25,7 +25,7 @@ class Native {
 										pos: member.pos
 									}
 									case 1: {
-										name: tag.params[0].getName().data(),
+										name: tag.params[0].getName().sure(),
 										pos: tag.params[0].pos
 									}
 									default: tag.pos.error('too many arguments');

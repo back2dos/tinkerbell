@@ -70,7 +70,7 @@ class TweenBuilder {
 			);			
 	}
 	static public function buildTween(target:Expr, group:Expr, params:Array<Expr>) {
-		var targetType = target.typeof().data();
+		var targetType = target.typeof().sure();
 		var isDynamic = 
 			switch (targetType) {
 				case TDynamic(_): 
@@ -88,7 +88,7 @@ class TweenBuilder {
 		
 		while (params.length > 0) {
 			var e = params.pop();
-			var op = e.getBinop().data();
+			var op = e.getBinop().sure();
 			
 			ret.push(
 				switch (op.op) {
@@ -96,12 +96,12 @@ class TweenBuilder {
 						var name = 
 							switch (op.e1.expr) {
 								case EArrayDecl(exprs):
-									var name = exprs.pop().getIdent().data();
+									var name = exprs.pop().getIdent().sure();
 									for (e in exprs)
 										params.push(e.assign(op.e2, op.pos));
 									name;
 								default: 
-									op.e1.getIdent().data();
+									op.e1.getIdent().sure();
 							}
 						if (name.charAt(0) == '$') {
 							var e = 

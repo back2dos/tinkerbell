@@ -13,7 +13,7 @@ interface ThrowableFailure {
 	function throwSelf():Dynamic;
 }
 class OutcomeTools {
-	static public function data < D, F > (outcome:Outcome < D, F > ):D {
+	static public function sure < D, F > (outcome:Outcome < D, F > ):D {
 		return
 			switch (outcome) {
 				case Success(data): 

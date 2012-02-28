@@ -117,7 +117,7 @@ class PropBuilder {
 								var name = 
 									switch (tag.params.length) {
 										case 0: member.name;
-										case 1: tag.params[0].getName().data();
+										case 1: tag.params[0].getName().sure();
 										default: tag.pos.error('too many arguments');
 									}
 								makeBindable(tag.pos);

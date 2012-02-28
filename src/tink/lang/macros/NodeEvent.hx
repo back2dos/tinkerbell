@@ -14,7 +14,7 @@ class NodeEvent {
 		for (member in ctx.members) 
 			switch (member.extractMeta(':event')) {
 				case Success(tag):
-					var f = member.getFunction().data();
+					var f = member.getFunction().sure();
 					if (f.expr != null) 
 						f.expr.reject();
 					if (f.ret == null) 
@@ -24,7 +24,7 @@ class NodeEvent {
 						name = 
 							switch (tag.params.length) {
 								case 0: member.name;
-								case 1: tag.params[0].getName().data();
+								case 1: tag.params[0].getName().sure();
 								default: tag.pos.error('too many parameters');
 							}
 						

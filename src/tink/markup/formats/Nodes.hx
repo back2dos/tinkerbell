@@ -49,7 +49,7 @@ class Nodes {
 									switch (op.e1.expr) {
 										case EArrayDecl(exprs):
 											for (e in exprs) {
-												var name = e.getName().data();
+												var name = e.getName().sure();
 												setAttr(name, op.e2.field(name, e.pos), e.pos, ret.push);
 											}
 										default: 

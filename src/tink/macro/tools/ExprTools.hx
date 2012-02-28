@@ -39,7 +39,7 @@ class ExprTools {
 	static public function untag(e:Expr) {
 		return
 			switch (e.expr) {
-				case EBlock(exprs): { e: exprs[1], data: annotations.get(exprs[0].getInt().data()) };
+				case EBlock(exprs): { e: exprs[1], data: annotations.get(exprs[0].getInt().sure()) };
 				default: e.reject();
 			}
 	}

@@ -24,9 +24,9 @@ class Helpers {
 					'div';
 				case EArray(e1, e2):
 					getAnnotations(e2, yield);
-					e1.getIdent().data();
+					e1.getIdent().sure();
 				default:
-					atom.getIdent().data();
+					atom.getIdent().sure();
 			}
 		
 	}
@@ -65,7 +65,7 @@ class Helpers {
 		var id = e.getIdent();
 		return
 			if (id.map(isLiteral).equals(true)) 
-				id.data().toExpr(e.pos);
+				id.sure().toExpr(e.pos);
 			else switch (e.expr) {
 				case EConst(c):
 					switch (c) {
