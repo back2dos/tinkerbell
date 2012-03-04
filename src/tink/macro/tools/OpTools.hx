@@ -31,6 +31,9 @@ class BinopTools {
 					e.pos.makeFailure('expected binary operation but found ' + Type.enumConstructor(e.expr));					
 			}
 	}
+	static public inline function make(op:Binop, e1:Expr, e2:Expr, ?pos) {
+		return ExprTools.binOp(e1, e2, op, pos);
+	}
 }
 
 class UnopTools {
