@@ -43,18 +43,29 @@ class Property {
 			}
 	}
 	
-	static var cache = new Hash();
+	static var cache = 
+		#if flash9
+			new flash.utils.TypedDictionary();
+		#elseif (neko || js || flash)
+			null;
+		#else
+			new Hash();
+		#end
 	static inline function getForClass(cl:Class<Dynamic>) {
 		return 
-			#if (neko || js)
-				untyped cl.__p;
+			#if flash9
+				cache.get(cl);
+			#elseif (neko || js || flash)
+				untyped cl.__propCache__;
 			#else
 				cache.get(Type.getClassName(cl));
 			#end
 	}
 	static inline function cacheForClass(cl:Class<Dynamic>, info:Dynamic<Access>) {
-		#if (neko || js)
-			untyped cl.__p = info;
+		#if flash9
+			cache.set(cl, info);
+		#elseif (neko || js || flash9)
+			untyped cl.__propCache__ = info;
 		#else
 			cache.set(Type.getClassName(cl), info);
 		#end
@@ -74,6 +85,7 @@ class Property {
 	}
 	static function __init__() Store.properties({})
 }
+
 private class Access {
 	public var read(default, null):Null<String>;
 	public var write(default, null):Null<String>;
