@@ -1,5 +1,6 @@
 package tink.reflect;
 import haxe.rtti.Meta;
+import tink.devtools.Benchmark;
 
 /**
  * ...
@@ -16,6 +17,8 @@ class Property {
 			if (access != null && access.read != null) 
 				#if (js || flash)
 					untyped owner[access.read]();
+				#elseif neko
+					untyped $objcall(owner, $hash(access.read.__s), $array());
 				#else
 					call(owner, access.read, []);
 				#end
@@ -29,6 +32,8 @@ class Property {
 			if (access != null && access.write != null) 
 				#if (js || flash)
 					untyped owner[access.write](value);
+				#elseif neko
+					untyped $objcall(owner, $hash(access.write.__s), $array(value));
 				#else
 					call(owner, access.write, [value]);
 				#end
@@ -95,6 +100,7 @@ private class Store {
 			}
 		}
 		static function extract(types:Array<Type>) {
+			var b = new Benchmark('store types');
 			for (type in types) {
 				switch (Context.follow(type)) {
 					case TInst(cl, _):
@@ -110,6 +116,7 @@ private class Store {
 					default:
 				}
 			}		
+			b.next();
 		}
 	#end
 	@:macro static public function properties(e) {
