@@ -27,6 +27,22 @@ class OutcomeTools {
 						throw failure;
 			}
 	}
+	static public function toOption < D, F > (outcome:Outcome < D, F > ) {
+		return 
+			switch (outcome) {
+				case Success(data): Option.Some(data);
+				case Failure(_): Option.None;
+			}
+	}
+	static public function toOutcome<D>(option:Option<D>, ?pos:haxe.PosInfos) {
+		return
+			switch (option) {
+				case Some(value): 
+					Success(value);
+				case None: 
+					Failure('Some value expected but none found in ' + pos.fileName + '@line ' + pos.lineNumber);
+			}
+	}
 	static public inline function orUse < D, F > (outcome: Outcome < D, F > , fallback: D ) {
 		return
 			switch (outcome) {
