@@ -112,7 +112,6 @@ private class Store {
 			}
 		}
 		static function extract(types:Array<Type>) {
-			var b = new Benchmark('store types');
 			for (type in types) {
 				switch (Context.follow(type)) {
 					case TInst(cl, _):
@@ -128,7 +127,6 @@ private class Store {
 					default:
 				}
 			}		
-			b.next();
 		}
 	#end
 	@:macro static public function properties(e) {
