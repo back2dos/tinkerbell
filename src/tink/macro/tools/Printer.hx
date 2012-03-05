@@ -74,7 +74,7 @@ class Printer {
 		var a = [];
 		for (field in fields)
 			a.push(printField('\t' + indent, field));
-		if (a.length > 1)
+		if (a.length > 0)
 			ret += '\n\t' + indent + a.join(';\n\t' + indent) + ';\n' + indent;
 		return ret +'}';
 	}
