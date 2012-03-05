@@ -4,10 +4,14 @@ package tink.devtools;
  * ...
  * @author back2dos
  */
+
+import haxe.Log;
+import haxe.PosInfos;
+
 #if macro
 	import haxe.macro.Expr;
 	import tink.macro.tools.AST;
-	import tink.macro.tools.ExprTools;
+	
 	using tink.macro.tools.ExprTools;
 	using tink.core.types.Outcome;
 #end
@@ -25,16 +29,16 @@ class Benchmark {
 				haxe.Timer.stamp();
 			#end
 	}
-	public function next(?msg:String) {
+	public function next(?msg:String, ?pos:PosInfos) {
 		var now = stamp();
 		if (this.msg != null) {
-			trace(this.msg + ' took ' + (now - last));
+			Log.trace(this.msg + ' took ' + (now - last), pos);
 		}
 		this.last = now;
 		this.msg = msg;
 	}
-	public function finish<T>(?value:T) {
-		next();
+	public function finish<T>(?value:T, ?pos:PosInfos) {
+		next(pos);
 		return value;
 	}
 	@:macro static public function measure(msg:String, e:Expr, ?times:Expr):Expr {
