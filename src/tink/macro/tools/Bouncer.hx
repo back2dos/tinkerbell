@@ -7,6 +7,7 @@ package tink.macro.tools;
 #if macro
 	import haxe.macro.Context;
 	import haxe.macro.Expr;
+	using tink.macro.tools.PosTools;
 	using tink.macro.tools.ExprTools;
 #end
 class Bouncer {
