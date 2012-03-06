@@ -39,7 +39,7 @@ class TypeTools {
 	}
 	static public function isSubTypeOf(t:Type, of:Type, ?pos) {
 		return 
-			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof();
+			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof().isSuccess();
 	}
 	static public function toType(t:ComplexType, ?pos) {	
 		return [
