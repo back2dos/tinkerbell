@@ -13,6 +13,12 @@ interface ThrowableFailure {
 	function throwSelf():Dynamic;
 }
 class OutcomeTools {
+	static public function verySure< D, F > (outcomes:Iterable<Outcome<D, F>>):Array<D> {
+		var ret = [];
+		for (i in outcomes)
+			ret.push(sure(i));
+		return ret;
+	}
 	static public function sure < D, F > (outcome:Outcome < D, F > ):D {
 		return
 			switch (outcome) {

@@ -282,6 +282,30 @@ class ExprTools {
 				default: e.pos.makeFailure(NOT_A_NAME);
 			}					
 	}
+	static public function getStrings(e:Iterable<Expr>)	{
+		var ret = [];
+		for (expr in e)
+			ret.push(expr.getString());
+		return ret;
+	}	
+	static public function getInts(e:Iterable<Expr>) {
+		var ret = [];
+		for (expr in e)
+			ret.push(expr.getInt());
+		return ret;
+	}	
+	static public function getIdents(e:Iterable<Expr>) {
+		var ret = [];
+		for (expr in e)
+			ret.push(expr.getIdent());
+		return ret;
+	}
+	static public function getNames(e:Iterable<Expr>) {
+		var ret = [];
+		for (expr in e)
+			ret.push(expr.getName());
+		return ret;
+	}
 	static inline var NOT_AN_INT = "integer constant expected";
 	static inline var NOT_AN_IDENT = "identifier expected";
 	static inline var NOT_A_STRING = "string constant expected";
