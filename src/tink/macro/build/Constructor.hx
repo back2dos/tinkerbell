@@ -7,7 +7,7 @@ import tink.macro.tools.ExprTools;
  * ...
  * @author back2dos
  */
-using tink.macro.tools.ExprTools;
+using tink.macro.tools.MacroTools;
 
 class Constructor {
 	var oldStatements:Array<Expr>;

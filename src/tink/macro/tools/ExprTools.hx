@@ -9,24 +9,12 @@ import haxe.PosInfos;
 import tink.core.types.Outcome;
 
 using Lambda;
+using tink.macro.tools.PosTools;
 using tink.macro.tools.ExprTools;
 using tink.core.types.Outcome;
 
 class ExprTools {
-	static public function getOutcome < D, F > (pos:Position, outcome:Outcome < D, F > ) {
-		return 
-			switch (outcome) {
-				case Success(d): d;
-				case Failure(f): pos.error(f);
-			}
-	}
-	static public inline function getPos(pos:Position) {
-		return 
-			if (pos == null) 
-				Context.currentPos();
-			else
-				pos;
-	}
+
 	static public inline function is(e:Expr, c:ComplexType) {
 		return ECheckType(e, c).at(e.pos).typeof().isSuccess();
 	}
@@ -36,7 +24,7 @@ class ExprTools {
 		annotations.set(annotCounter, data);
 		return [(annotCounter++).toExpr(e.pos), e].toBlock(e.pos);
 	}
-	static public function untag(e:Expr) {
+	static public function untag<D>(e:Expr):{data:D, e:Expr } {
 		return
 			switch (e.expr) {
 				case EBlock(exprs): { e: exprs[1], data: annotations.get(exprs[0].getInt().sure()) };
@@ -112,15 +100,13 @@ class ExprTools {
 			args.push( { field:field, expr: untyped Reflect.field(object, field) } );
 		return EObjectDecl(args).at(pos);
 	}
+
 	static public inline function log(e:Expr, ?pos:PosInfos):Expr {
 		haxe.Log.trace(e.toString(), pos);
 		return e;
 	}
-	static public inline function error(pos:Position, error:Dynamic):Dynamic {
-		return Context.error(Std.string(error), pos);
-	}
 	static public inline function reject(e:Expr, ?reason:String = 'cannot handle expression'):Dynamic {
-		return error(e.pos, reason);
+		return e.pos.error(reason);
 	}
 	///transforms an expression to readable code
 	static public inline function toString(e:Expr):String {
@@ -129,27 +115,11 @@ class ExprTools {
 	static public inline function at(e:ExprDef, ?pos:Position) {
 		return {
 			expr: e,
-			pos: getPos(pos)
+			pos: pos.getPos()
 		}
 	}
 	static public inline function assign(target:Expr, value:Expr, ?pos:Position) {
 		return binOp(target, value, OpAssign, pos);
-	}
-	static public inline function toArg(name:String, ?t, ?opt = false, ?value = null):FunctionArg {
-		return {
-			name: name,
-			opt: opt,
-			type: t,
-			value: value
-		};
-	}
-	static public inline function func(e:Expr, ?args, ?ret, ?params, ?makeReturn = true):Function {
-		return {
-			args: args == null ? [] : args,
-			ret: ret,
-			params: params == null ? [] : params,
-			expr: if (makeReturn) at(EReturn(e), e.pos) else e
-		}		
 	}
 	///single variable declaration
 	static public inline function define(name:String, ?init:Expr, ?typ:ComplexType, ?pos:Position) {
@@ -171,10 +141,10 @@ class ExprTools {
 		return ECall(e, params == null ? [] : params).at(pos);
 	}
 	static public inline function toExpr(v:Dynamic, ?pos:Position) {
-		return Context.makeExpr(v, getPos(pos));
+		return Context.makeExpr(v, pos.getPos());
 	}
-	static public inline function toArray(exprs, ?pos) {
-		return EArrayDecl(exprs).at(pos);
+	static public inline function toArray(exprs:Iterable<Expr>, ?pos) {
+		return EArrayDecl(exprs.array()).at(pos);
 	}
 	static public inline function toMBlock(exprs, ?pos) {
 		return EBlock(exprs).at(pos);
@@ -202,7 +172,7 @@ class ExprTools {
 		return drill(s.split('.'), pos);
 	}
 	///attempts to extract the type of an expression
-	static public function typeof(expr:Expr, ?locals):Outcome<Type, MacroError<Dynamic>> {
+	static public function typeof(expr:Expr, ?locals) {
 		return
 			try {
 				if (locals != null) 
@@ -210,7 +180,8 @@ class ExprTools {
 				Success(Context.typeof(expr));
 			}
 			catch (e:Error) {
-				e.pos.makeFailure(e.message);
+				var m:Dynamic = e.message;
+				e.pos.makeFailure(m);
 			}
 			catch (e:Dynamic) {
 				expr.pos.makeFailure(e);
@@ -229,10 +200,6 @@ class ExprTools {
 					}
 				default: false;
 			}
-	}
-	///used to easily construct failed outcomes
-	static public function makeFailure<A, Reason>(pos:Position, reason:Reason):Outcome<A, MacroError<Reason>> {
-		return Failure(new MacroError(reason, pos));
 	}	
 	///Attempts to extract a string from an expression.
 	static public function getString(e:Expr) {
@@ -267,7 +234,8 @@ class ExprTools {
 						case CIdent(id), CType(id): Success(id);
 						default: e.pos.makeFailure(NOT_AN_IDENT);
 					}
-				default: e.pos.makeFailure(NOT_AN_IDENT);
+				default: 
+					e.pos.makeFailure(NOT_AN_IDENT);
 			}					
 	}
 	///Attempts to extract a name (identifier or string) from an expression.
@@ -288,22 +256,4 @@ class ExprTools {
 	static inline var NOT_A_NAME = "name expected";
 	static inline var EMPTY_EXPRESSION = "expression expected";
 	
-}
-private class MacroError<Data> implements ThrowableFailure {
-	public var data(default, null):Data;
-	public var pos(default, null):Position;
-	public function new(data:Data, ?pos:Position) {
-		this.data = data;
-		this.pos =
-			if (pos == null) 
-				Context.currentPos();
-			else 
-				pos;
-	}
-	public function toString() {
-		return 'Error@' + Std.string(pos) + ': ' + Std.string(data);
-	}
-	public function throwSelf():Dynamic {
-		return Context.error(Std.string(data), pos);
-	}
 }
