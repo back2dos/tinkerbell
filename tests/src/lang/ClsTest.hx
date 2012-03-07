@@ -1,6 +1,6 @@
 package lang;
 import haxe.unit.TestCase;
-import tink.lang.binding.Binding;
+import tink.reactive.Binding;
 import tink.lang.Cls;
 
 /**
