@@ -80,7 +80,7 @@ class AnyMap<V> implements Map<Dynamic,V>, implements Cls {
 		return group([ints.iterator(), strings.iterator(), objs.iterator(), misc.iterator(), funcs.iterator()]);		
 	}
 	function group<A>(a:Iterable<Iterator<A>>) {//TODO: it might make sense extracting this
-		var i = a.iterator();
+		var i = Lambda.filter(a, function (iter) return iter.hasNext()).iterator();
 		return 
 			if (i.hasNext()) {
 				var cur = i.next();
