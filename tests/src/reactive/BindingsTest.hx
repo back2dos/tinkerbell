@@ -3,6 +3,7 @@ package reactive;
 import haxe.unit.TestCase;
 import tink.lang.Cls;
 import tink.reactive.bindings.BindableArray;
+import tink.reactive.bindings.BindableMap;
 import tink.reactive.bindings.Binding;
 
 /**
@@ -62,7 +63,25 @@ class BindingsTest extends TestCase {
 		assertEquals(9, sum.getValue());
 		assertEquals(3, product.getValue());
 	}
-	
+	function testBindableMap() {
+		var m = new tink.reactive.bindings.BindableMap();
+		for (i in 0...10)
+			m.set(i, i+1);
+		//trace(m);
+		assertEquals(10, Lambda.count(m));
+		//trace(m);
+		var b = new Binding(function () {
+			var ret:Int = 0;
+			for (k in m.keys()) {
+				ret += m.get(k) + k;
+			}
+			return ret;
+		});
+		
+		assertEquals(100, b.getValue());
+		m.set(20, 30);
+		assertEquals(150, b.getValue());
+	}
 }
 
 

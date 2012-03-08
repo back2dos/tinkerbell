@@ -5,9 +5,11 @@ import tink.collections.FunctionMap;
 import tink.collections.ObjectMap;
 import tink.collections.AnyMap;
 
-//My tendency to types aside, it is practically impossible for these two not to work. So if they compile, I consider them covered.
+//My tendency to typos aside, it is practically impossible for these two not to work. So if they compile, I consider them covered.
 import tink.collections.IntMap;
 import tink.collections.StringMap;
+
+using tink.collections.MapTools;
 /**
  * ...
  * @author back2dos
@@ -61,5 +63,12 @@ class MapTest extends TestCase {
 		for (i in 0...a.length)
 			assertEquals(m.get(a[i]), i);
 		
+	}
+	function testTools() {
+		assertEquals(Type.getClass([1, 2, 3].zip([])), IntMap);
+		assertEquals(Type.getClass('foo,bar'.split(',').zip([])), StringMap);
+		assertEquals(Type.getClass([true, false].zip([])), AnyMap);
+		assertEquals(Type.getClass([2.0, 3.0].zip([])), AnyMap);
+		assertEquals(Type.getClass([function () {}].zip([])), cast FunctionMap);
 	}
 }

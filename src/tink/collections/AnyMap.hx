@@ -11,15 +11,23 @@ private class StringRepMap<T> extends tink.collections.abstract.StringIDMap < Dy
 		return Std.string(k); 
 	}
 }
- 
+#if js
+	private class Ints<T> extends tink.collections.abstract.IntIDMap < Int, T > {
+		override function transform(k:Int) {
+			return k;
+		}
+	}
+#else
+	private typedef Ints<T> = IntHash<T>
+#end
 class AnyMap<V> implements Map<Dynamic,V>, implements Cls {
-	var ints:IntHash<V>;
+	var ints:Ints<V>;
 	var strings:Hash<V>;
 	var objs:ObjectMap<Dynamic, V>;
 	var misc:StringRepMap<V>;
 	var funcs:FunctionMap<Dynamic, V>;
 	public function new() {
-		this.ints = new IntHash();
+		this.ints = new Ints();
 		this.strings = new Hash();
 		this.objs = new ObjectMap();
 		this.misc = new StringRepMap();
