@@ -43,26 +43,24 @@ package tink.collections;
 			return PHP.objHash(key);
 		}
 	}
-#else
+#elseif (flash || js || neko || cpp)
 	class ObjectMap < K, V > extends tink.collections.abstract.IntIDMap < K, V > {
-		#if (flash || js)
+		#if !cpp
 			static var idCounter = 0;
 		#end
 		override function transform(key:K):Int untyped {			
-			#if neko
-				return $iadd(key, 0);//this is pure evil, but it seems to work perfectly
-			#elseif (flash || js)
+			#if cpp
+				return untyped __global__.__hxcpp_obj_id (key);
+			#else
 				var id = key.__getID;
 				if (id == null) {
 					var v = idCounter++;
 					key.__getID = id = function () return v;
 				}
 				return id();
-			#elseif cpp
-				return untyped __global__.__hxcpp_obj_id (key);
-			#else
-				#error
 			#end
 		}
 	}
+#else
+	#error
 #end

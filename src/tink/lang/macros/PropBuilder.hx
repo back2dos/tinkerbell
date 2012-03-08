@@ -42,14 +42,10 @@ class PropBuilder {
 		this.addField = addField;
 		this.ctor = ctor;
 	}
-	function makeBindable(pos:Position) {
+	function makeBindable(pos) {
 		if (!hasField('bindings')) {
-			var t = 'tink.reactive.Binding'.asTypePath('Signaller');
-			if (!t.toType().isSuccess())
-				pos.error('please make sure to use -lib tink_reactive if you want to use bindable properties');
-			//TODO: find a nicer mechanism to inject this here
-			ctor.init('bindings', pos, AST.build(new tink.reactive.Binding.Signaller(), pos), true);
-			addField(Member.plain('bindings', t, pos));
+			ctor.init('bindings', pos, AST.build(new tink.lang.binding.Signaller(), pos), true);
+			addField(Member.plain('bindings', 'tink.lang.binding.Signaller'.asTypePath(), pos));
 		}		
 	}
 	function processMembers(members:Array<Member>) {
