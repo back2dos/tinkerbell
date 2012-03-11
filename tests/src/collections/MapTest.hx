@@ -1,15 +1,15 @@
 package collections;
 
 import haxe.unit.TestCase;
-import tink.collections.FunctionMap;
-import tink.collections.ObjectMap;
-import tink.collections.AnyMap;
+import tink.collections.maps.FunctionMap;
+import tink.collections.maps.ObjectMap;
+import tink.collections.maps.AnyMap;
 
 //My tendency to typos aside, it is practically impossible for these two not to work. So if they compile, I consider them covered.
-import tink.collections.IntMap;
-import tink.collections.StringMap;
+import tink.collections.maps.IntMap;
+import tink.collections.maps.StringMap;
 
-using tink.collections.MapTools;
+using tink.collections.maps.MapTools;
 /**
  * ...
  * @author back2dos

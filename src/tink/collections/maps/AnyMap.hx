@@ -1,4 +1,4 @@
-package tink.collections;
+package tink.collections.maps;
 import tink.lang.Cls;
 
 /**
@@ -6,13 +6,13 @@ import tink.lang.Cls;
  * @author back2dos
  */
 
-private class StringRepMap<T> extends tink.collections.abstract.StringIDMap < Dynamic, T > {
+private class StringRepMap<T> extends tink.collections.maps.abstract.StringIDMap < Dynamic, T > {
 	override function transform(k:Dynamic) {
 		return Std.string(k); 
 	}
 }
 #if js
-	private class Ints<T> extends tink.collections.abstract.IntIDMap < Int, T > {
+	private class Ints<T> extends tink.collections.maps.abstract.IntIDMap < Int, T > {
 		override function transform(k:Int) {
 			return k;
 		}

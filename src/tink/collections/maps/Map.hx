@@ -1,4 +1,4 @@
-package tink.collections;
+package tink.collections.maps;
 
 /**
  * ...

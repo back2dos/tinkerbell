@@ -1,4 +1,4 @@
-package tink.collections;
+package tink.collections.maps;
 
 
 /**
@@ -57,7 +57,7 @@ package tink.collections;
 		}
 	}
 #elseif neko
-	class FunctionMap < K, V > extends tink.collections.abstract.IntIDMap < K, V > {
+	class FunctionMap < K, V > extends tink.collections.maps.abstract.IntIDMap < K, V > {
 		override function transform(k:K) {
 			return untyped $iadd(k, 0);//this is really evil, but it seems to work perfectly!
 		}

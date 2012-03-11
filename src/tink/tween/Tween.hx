@@ -2,7 +2,7 @@ package tink.tween;
 
 import haxe.FastList;
 import haxe.Timer;
-import tink.collections.ObjectMap;
+import tink.collections.maps.ObjectMap;
 import tink.lang.Cls;
 import tink.tween.plugins.Plugin;
 /**

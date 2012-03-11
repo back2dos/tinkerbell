@@ -1,4 +1,4 @@
-package tink.collections;
+package tink.collections.maps;
 
 /**
  * ...
@@ -46,7 +46,7 @@ class MapTools {
 				case TDynamic(_): 'AnyMap';
 				default: keys.pos.error('failed to abstract type from this collection');
 			}
-		var create = ENew( { pack: ['tink', 'collections'], name: map, params: params, sub:null }, []).at(keys.pos);
+		var create = ENew( { pack: 'tink.collections.maps'.split('.'), name: map, params: params, sub:null }, []).at(keys.pos);
 		
 		return AST.build( {
 			var tmpMap = $create;

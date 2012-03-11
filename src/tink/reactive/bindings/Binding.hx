@@ -1,12 +1,31 @@
 package tink.reactive.bindings;
 
 import tink.lang.Cls;
+import tink.reactive.Source;
 
 /**
  * ...
  * @author back2dos
  */
-
+class Watch<T> extends Binding<T>, implements Source<T> {
+	public var value(get_value, null):T;
+	public function new(get) {
+		super(get);
+	}
+}
+class Link<T> extends Binding<T>, implements Editable<T> {
+	public var value(get_value, set_value):T;
+	var set:T->T;
+	public function new(get, set) {
+		this.set = set;
+		super(get);
+	}
+	function set_value(v:T) {
+		var ret = set(v);
+		invalidate();
+		return ret;
+	}
+}
 class Binding<T> implements Cls {
 	public var valid(default, null):Bool;
 	static var stack = new List<Binding<Dynamic>>();
@@ -15,13 +34,15 @@ class Binding<T> implements Cls {
 	var busy:Bool;
 	var id:Int = counter++;
 	static var counter = 0;
-	public function new(calc) {
+	function new(calc) {
 		this.calc = calc;
 	}
+	public function unwatch(handler:Void->Void):Void {}
+	public function watch(handler:Void->Void):Void {}	
 	function invalidate() {
 		if (valid) {//invalid bindings don't need to fire really
 			valid = false;
-			this.bindings.fire('getValue');
+			this.bindings.fire('value');
 		}
 	}
 	function doCalc() {
@@ -38,7 +59,7 @@ class Binding<T> implements Cls {
 	function toString() {
 		return '[Binding #' + id + ']';
 	}
-	@:bindable public function getValue():T {
+	@:bindable(value) function get_value():T {
 		return
 			if (valid) cache;
 			else 
