@@ -12,9 +12,12 @@ class KVPairMap < K, V > implements Map < K, V > {
 		this.keyList = [];
 		this.valList = [];
 	}
+	function equals(k1:K, k2:K):Bool {
+		return throw 'abstract';
+	}
 	function indexOf(k:K):Int {
 		for (i in 0...keyList.length)
-			if (Reflect.compareMethods(k, keyList[i])) return i;
+			if (equals(k, keyList[i])) return i;
 		return -1;
 	}
 	public function get(k:K):Null<V> {
