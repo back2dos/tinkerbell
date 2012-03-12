@@ -40,6 +40,12 @@ class MapTest extends TestCase {
 		for (v in vals)
 			o.set(v, v);			
 		assertEquals(3, Lambda.count(o));
+		o.set(foo, foo);
+		o.set(foo, foo);
+		assertEquals(4, Lambda.count(o));
+	}
+	function foo() {
+		return 5;
 	}
 	function testAnyMap() {
 		var a:Array<Dynamic> = [];

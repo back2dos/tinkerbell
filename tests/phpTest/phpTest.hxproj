@@ -21,7 +21,7 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="" />
+    <option directives="tink_reactive" />
     <option flashStrict="False" />
     <option mainClass="Main" />
     <option enabledebug="False" />

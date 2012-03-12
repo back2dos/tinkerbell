@@ -5,13 +5,13 @@
     <movie outputType="Application" />
     <movie input="" />
     <movie path="bin\avm2test.swf" />
-    <movie fps="30" />
+    <movie fps="60" />
     <movie width="800" />
     <movie height="600" />
     <movie version="10" />
-    <movie minorVersion="0" />
+    <movie minorVersion="3" />
     <movie platform="Flash Player" />
-    <movie background="#FFFFFF" />
+    <movie background="#808080" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
@@ -21,19 +21,20 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="" />
+    <option directives="tink_reactive" />
     <option flashStrict="False" />
-    <option mainClass="Main" />
+    <option mainClass="BindingsExample" />
     <option enabledebug="True" />
     <option additional="" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
-    <!-- example: <library name="..." /> -->
+    <library name="actuate" />
+    <library name="feffects" />
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="src\Main.hx" />
+    <compile path="src\BindingsExample.hx" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>
