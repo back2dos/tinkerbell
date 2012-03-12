@@ -30,6 +30,7 @@ class Member {
 	public function new() {
 		this.isOverride = this.isStatic = false;
 		this.meta = new Hash();
+		this.excluded = false;
 	}
 
 	public function addMeta(name, pos, ?params) {
