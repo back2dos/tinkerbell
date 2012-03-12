@@ -1,4 +1,5 @@
-package tink.lang.binding;
+package tink.reactive.bindings;
+
 import tink.lang.Cls;
 
 /**
@@ -7,17 +8,17 @@ import tink.lang.Cls;
  */
 
 class Binding<T> implements Cls {
+	public var valid(default, null):Bool;
 	static var stack = new List<Binding<Dynamic>>();
 	var calc:Void->T;
 	var cache:T;
-	public var valid(default, null):Bool;
 	var busy:Bool;
 	var id:Int = counter++;
 	static var counter = 0;
 	public function new(calc) {
 		this.calc = calc;
 	}
-	public function invalidate() {
+	function invalidate() {
 		if (valid) {//invalid bindings don't need to fire really
 			valid = false;
 			this.bindings.fire('getValue');
@@ -48,5 +49,28 @@ class Binding<T> implements Cls {
 			if (stack.isEmpty()) null;
 			else 
 				stack.first().invalidate;
+	}
+}
+
+class Signaller {
+	var propMap:Hash<Array<Void->Void>>;
+	public function new() {
+		this.propMap = new Hash();
+	}
+	public function bind(property:String) {
+		watch(property, Binding.getWatcher());
+	}
+	function watch(property:String, handler:Null<Void->Void>) {
+		if (handler == null) return;
+		var stack = propMap.get(property);
+		if (stack == null)
+			propMap.set(property, stack = []);
+		stack.push(handler);	
+	}
+	public function fire(property:String) {
+		if (propMap.exists(property)) {
+			for (h in propMap.get(property)) h();
+			propMap.set(property, []);
+		}
 	}
 }

@@ -5,6 +5,7 @@ package tink.macro.tools;
  * @author back2dos
  */
 #if (macro || neko)
+typedef Poses = PosTools;
 typedef Funcs = FunctionTools;
 typedef Exprs = ExprTools;
 typedef Metas = MetadataTools;

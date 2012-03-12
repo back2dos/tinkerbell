@@ -30,7 +30,8 @@ class Tween<T> {
 	var components:Array<TweenComponent>;
 	var properties:Array<String>;
 	
-	inline function clamp(f:Float) {
+	#if !php inline #end //inlining will generate incorrect code in PHP
+	function clamp(f:Float) {
 		return
 			if (f < .0) 0.0;
 			else if (f > 1.0) 1.0;
