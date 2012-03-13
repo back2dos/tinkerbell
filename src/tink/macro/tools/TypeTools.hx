@@ -47,7 +47,7 @@ class TypeTools {
 			'_'.resolve(pos)
 		].toBlock(pos).typeof();
 	}
-	static public function asTypePath(s:String, ?params, ?sub) {
+	static public function asComplexType(s:String, ?params, ?sub) {
 		var parts = s.split('.');
 		return TPath({
 			name: parts.pop(),
@@ -77,7 +77,7 @@ class TypeTools {
 		return ret;
 	}
 	static function baseToComplex(t:BaseType, params:Array<Type>) {
-		return asTypePath(t.module, paramsToComplex(params), t.name);
+		return asComplexType(t.module, paramsToComplex(params), t.name);
 	}
 	static public function toComplex(type:Type, ?pretty = false):ComplexType {
 		return 

@@ -1,20 +1,37 @@
 package tink.lang.macros;
+
+import haxe.macro.Context;
 import tink.macro.build.MemberTransformer;
-import tink.reactive.bindings.macros.BindableProperties;
 
 /**
  * ...
  * @author back2dos
  */
 
-@:macro class ClassBuilder {
-	static public function buildFields():Array<haxe.macro.Expr.Field> {
+class ClassBuilder {
+	@:macro static public function buildFields():Array<haxe.macro.Expr.Field> {
 		return new MemberTransformer().build(PLUGINS);
 	}
-	static var PLUGINS = [
-		Init.process,
-		Forward.process,
-		PropBuilder.process,
-		#if tink_reactive BindableProperties.make, #end //probably shouldn't be here but it's very convenient for now
-	];	
+	static function noBindings(ctx:ClassBuildContext) {
+		#if debug
+			for (m in ctx.members)
+				switch (m.extractMeta(':bindable')) {
+					case Success(tag): 
+						Context.warning('you seem to be wanting to use bindings but don\'t use -lib tink_reactive', tag.pos);
+					default: 
+				}
+		#end
+	}
+	#if macro
+		static var PLUGINS = [
+			Init.process,
+			Forward.process,
+			PropBuilder.process,
+			#if tink_reactive //probably shouldn't be here but it's very convenient for now
+				tink.reactive.bindings.macros.BindableProperties.make
+			#else
+				noBindings
+			#end,
+		];	
+	#end
 }

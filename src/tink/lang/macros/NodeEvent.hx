@@ -18,7 +18,7 @@ class NodeEvent {
 					if (f.expr != null) 
 						f.expr.reject();
 					if (f.ret == null) 
-						f.ret = 'Dynamic'.asTypePath();	
+						f.ret = 'Dynamic'.asComplexType();	
 						
 					var pos = tag.pos,
 						name = 
