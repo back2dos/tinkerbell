@@ -17,7 +17,7 @@ class MetadataTools
 		return ret;
 	}
 	
-	static public function getValues<S, T>(m:Metadata, name:String)
+	static public function getValues(m:Metadata, name:String)
 	{
 		var ret = [];
 		for (meta in m)
