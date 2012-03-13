@@ -51,8 +51,8 @@ class BindingTools {
 			}
 	}
 	#if macro
-		static var SOURCE = 'tink.reactive.Source'.asTypePath([TPType('Dynamic'.asTypePath())]);
-		static var EDITABLE = 'tink.reactive.Source'.asTypePath([TPType('Dynamic'.asTypePath())], 'Editable');
+		static var SOURCE = 'tink.reactive.Source'.asComplexType([TPType('Dynamic'.asComplexType())]);
+		static var EDITABLE = 'tink.reactive.Source'.asComplexType([TPType('Dynamic'.asComplexType())], 'Editable');
 		
 		static function control(of:Expr) {
 			return

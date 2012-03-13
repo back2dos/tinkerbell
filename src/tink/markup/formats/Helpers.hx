@@ -54,7 +54,7 @@ class Helpers {
 					}
 			}
 	}
-	static var STRING = 'String'.asTypePath();
+	static var STRING = 'String'.asComplexType();
 	static function stringifyVar(e:Expr) {
 		return
 			if (e.is(STRING)) e;

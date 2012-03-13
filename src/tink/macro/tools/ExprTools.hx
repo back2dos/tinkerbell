@@ -53,6 +53,7 @@ class ExprTools {
 			if (e.getIdent().equals('null')) fallback;
 			else e;
 	}
+
 	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr {
 		return crawl(source, transformer, pos);
 	}

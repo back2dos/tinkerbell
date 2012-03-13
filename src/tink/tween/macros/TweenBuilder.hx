@@ -15,7 +15,7 @@ using StringTools;
  */
 
 class TweenBuilder {
-	static var ITERABLE = 'Iterable'.asTypePath([TPType('Dynamic'.asTypePath())]);
+	static var ITERABLE = 'Iterable'.asComplexType([TPType('Dynamic'.asComplexType())]);
 	static function handler(body:Expr, targetType:Type, additional) {
 		switch (body.typeof()) {
 			case Success(t):
@@ -27,7 +27,7 @@ class TweenBuilder {
 		}
 		return
 			body.func(
-				['tween'.toArg('tink.tween.Tween'.asTypePath([TPType(targetType.toComplex())]))].concat(additional)
+				['tween'.toArg('tink.tween.Tween'.asComplexType([TPType(targetType.toComplex())]))].concat(additional)
 				, false
 			).toExpr(body.pos);
 	}
@@ -125,13 +125,13 @@ class TweenBuilder {
 										else {
 											var tmp = String.tempName();
 											var inst = ENew(tp, [tmp.resolve(), op.e2]).at(op.e1.pos).field('update', op.pos);
-											inst.func([tmp.toArg()], 'Dynamic'.asTypePath()).toExpr(op.pos);
+											inst.func([tmp.toArg()], 'Dynamic'.asComplexType()).toExpr(op.pos);
 										}
 								}
 							AST.build(eval__tmp.addAtom("eval__name", $atom), op.pos);	
 						}
 					case OpLt, OpLte:
-						var e = handler(op.e2, targetType, ['forward'.toArg('Bool'.asTypePath())]);
+						var e = handler(op.e2, targetType, ['forward'.toArg('Bool'.asComplexType())]);
 						if (op.e1.isIterable().isSuccess())
 							AST.build(for (tmp in $(op.e1)) eval__tmp.addCuePoint(tmp, $e), op.pos);
 						else 

@@ -30,8 +30,8 @@ class Nodes {
 	public function postprocess(e) {
 		return xml(e);
 	}
-	static var XML = 'Xml'.asTypePath();
-	static var STRING = 'String'.asTypePath();
+	static var XML = 'Xml'.asComplexType();
+	static var STRING = 'String'.asComplexType();
 	function xml(e:Expr):Expr {
 		return ECheckType(e, XML).at(e.pos);
 	}
