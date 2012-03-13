@@ -1,5 +1,6 @@
 package tink.lang.macros;
 import tink.macro.build.MemberTransformer;
+import tink.reactive.bindings.macros.BindableProperties;
 
 /**
  * ...
@@ -14,5 +15,6 @@ import tink.macro.build.MemberTransformer;
 		Init.process,
 		Forward.process,
 		PropBuilder.process,
+		#if tink_reactive BindableProperties.make, #end //probably shouldn't be here but it's very convenient for now
 	];	
 }

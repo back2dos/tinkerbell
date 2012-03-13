@@ -36,32 +36,37 @@ class MemberTransformer {
 				constructor = new Constructor(null);
 		return constructor;
 	}
+	function prune(a:Array<Member>) {
+		var ret = [];
+		for (m in a) 
+			if (!m.excluded)
+				ret.push(m);
+		return ret;
+	}
 	public function build(plugins:Iterable<ClassBuildContext->Void>) {
-		var declared = [];
+		var fields = [];
 		for (field in Context.getBuildFields()) 
-			addMember(declared, Member.ofHaxe(field));
+			addMember(fields, Member.ofHaxe(field));
 			
-		var generated = [];
 		var context = {
 			cls: localClass,
-			members: declared,
+			members: fields,
 			getCtor: getConstructor,
 			has: hasMember,
-			add: callback(addMember, generated)
+			add: null
 		}
+		
 		for (plugin in plugins) {
+			context.add = callback(addMember, context.members);
+			
 			plugin(context);	
-			var old = declared;
-			declared = [];
-			for (member in old)
-				if (!member.excluded)
-					declared.push(member);
+			
+			context.members = prune(context.members);
 		}
 			
 		var ret = (constructor == null) ? [] : [constructor.toHaxe()];
-		for (member in declared.concat(generated))
-			if (!member.excluded) 
-				ret.push(member.toHaxe());
+		for (member in context.members)
+			ret.push(member.toHaxe());
 			
 		return ret;
 	}

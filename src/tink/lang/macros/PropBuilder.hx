@@ -13,8 +13,6 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class PropBuilder {
-	
-	static public inline var BINDABLE = ':bindable';
 	static public inline var FULL = ':prop';
 	static public inline var READ = ':read';
 	
@@ -42,16 +40,6 @@ class PropBuilder {
 		this.addField = addField;
 		this.ctor = ctor;
 	}
-	function makeBindable(pos:Position) {
-		if (!hasField('bindings')) {
-			var t = 'tink.reactive.bindings.Binding'.asTypePath('Signaller');
-			if (!t.toType().isSuccess())
-				pos.error('please make sure to use -lib tink_reactive if you want to use bindable properties');
-			//TODO: find a nicer mechanism to inject this here
-			ctor.init('bindings', pos, AST.build(new tink.reactive.bindings.Binding.Signaller(), pos), true);
-			addField(Member.plain('bindings', t, pos));
-		}		
-	}
 	function processMembers(members:Array<Member>) {
 		for (member in members)
 			switch (member.kind) {
@@ -62,10 +50,6 @@ class PropBuilder {
 					#if display
 						if (member.extractMeta(READ).isSuccess() || member.extractMeta(FULL).isSuccess())
 							member.isPublic = true;
-						if (member.extractMeta(BINDABLE).isSuccess()) {
-							member.isPublic = true;
-							makeBindable(member.pos);
-						}
 					#else
 						var meta = member.meta,
 							name = member.name;
@@ -105,44 +89,10 @@ class PropBuilder {
 									default:
 										tag.pos.error('too many arguments');
 								}
-								if (member.extractMeta(BINDABLE).isSuccess()) {
-									makeBindable(tag.pos);
-									getter = [AST.build(bindings.bind("eval__name"), tag.pos), getter].toBlock(tag.pos);
-									if (setter != null)
-										setter = [AST.build(bindings.fire("eval__name"), tag.pos), setter].toBlock(tag.pos);
-								}
 								make(member, t, getter, setter, hasField, addField);
 							default:	
-								switch (member.extractMeta(BINDABLE)) {
-									case Success(tag):
-										makeBindable(tag.pos);
-										var getter = AST.build( {
-											bindings.bind("eval__name");
-											this.eval__name;
-										}, tag.pos);
-										var setter = AST.build( {
-											bindings.fire("eval__name");
-											this.eval__name = param;
-										});
-										make(member, t, getter, setter, hasField, addField);
-									default:
-								}
-								
 						}												
 					#end
-					case FFun(f):
-						switch (member.extractMeta(BINDABLE)) {
-							case Success(tag):
-								var name = 
-									switch (tag.params.length) {
-										case 0: member.name;
-										case 1: tag.params[0].getName().sure();
-										default: tag.pos.error('too many arguments');
-									}
-								makeBindable(tag.pos);
-								f.expr = [AST.build(bindings.bind("eval__name"), tag.pos), f.expr].toBlock(tag.pos);
-							default:
-						}
 				default: //maybe do something here?
 			}		
 	}
