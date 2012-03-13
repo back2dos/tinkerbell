@@ -35,7 +35,7 @@ class BindableProperties {
 	static public function make(ctx:ClassBuildContext) {
 		function makeBindable(pos) 
 			if (!ctx.has('bindings')) {
-				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding'.asComplexType('Signaller'), pos));
+				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding.Signaller'.asComplexType(), pos));
 				ctx.getCtor().init('bindings', pos, AST.build(new tink.reactive.bindings.Binding.Signaller(), pos), true);
 			}
 		var setters = new Hash(),

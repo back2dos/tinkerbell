@@ -11,6 +11,7 @@ import tink.core.types.Outcome;
 using Lambda;
 using tink.macro.tools.PosTools;
 using tink.macro.tools.ExprTools;
+using tink.macro.tools.TypeTools;
 using tink.core.types.Outcome;
 
 class ExprTools {
@@ -118,6 +119,9 @@ class ExprTools {
 			expr: e,
 			pos: pos.getPos()
 		}
+	}
+	static public inline function instantiate(s:String, ?args:Array<Expr>, ?params:Array<TypeParam>, ?pos:Position) {
+		return s.asTypePath(params).instantiate(args, pos);
 	}
 	static public inline function assign(target:Expr, value:Expr, ?pos:Position) {
 		return binOp(target, value, OpAssign, pos);
