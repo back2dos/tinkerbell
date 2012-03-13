@@ -202,7 +202,7 @@ class ExprTools {
 				default: false;
 			}
 	}	
-	///Attempts to extract a string from an expression.
+	///Attempts to extract a string constant from an expression.
 	static public function getString(e:Expr) {
 		return 
 			switch (e.expr) {
@@ -226,7 +226,7 @@ class ExprTools {
 				default: e.pos.makeFailure(NOT_AN_INT);
 			}							
 	}
-	///Attempts to extract an identifier from an expression.
+	///Attempts to extract an identifier (CIdent or CType) from an expression.
 	static public function getIdent(e:Expr) {
 		return 
 			switch (e.expr) {
