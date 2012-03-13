@@ -32,7 +32,7 @@ class Tinq {
 class TinQry {
 	#if macro
 		static public function make(q:Qry, ?pos) {
-			return 'tink.lang.Tinq'.asComplexType('TinQry').partial(q, pos);
+			return 'tink.lang.Tinq.TinQry'.asComplexType().partial(q, pos);
 		}
 		static function makeFunctor(of:Expr) {
 			var n = named(of, 'x');

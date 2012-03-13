@@ -47,14 +47,26 @@ class TypeTools {
 			'_'.resolve(pos)
 		].toBlock(pos).typeof();
 	}
-	static public function asComplexType(s:String, ?params, ?sub) {
+	static public inline function instantiate(t:TypePath, ?args, ?pos) {
+		return ENew(t, args == null ? [] : args).at(pos);
+	}
+	static public function asTypePath(s:String, ?params):TypePath {
 		var parts = s.split('.');
-		return TPath({
-			name: parts.pop(),
+		var name = parts.pop(),
+			sub = null;
+		if (parts.length > 0 && parts[parts.length - 1].charCodeAt(0) < 0x5B) {
+			sub = name;
+			name = parts.pop();
+		}
+		return {
+			name: name,
 			pack: parts,
 			params: params == null ? [] : params,
 			sub: sub
-		});
+		}
+	}
+	static public inline function asComplexType(s:String, ?params) {
+		return TPath(asTypePath(s, params));
 	}
 	static public inline function reduce(type:Type, ?once) {
 		return Context.follow(type, once);
@@ -77,7 +89,7 @@ class TypeTools {
 		return ret;
 	}
 	static function baseToComplex(t:BaseType, params:Array<Type>) {
-		return asComplexType(t.module, paramsToComplex(params), t.name);
+		return asComplexType(t.module + '.' + t.name, paramsToComplex(params));
 	}
 	static public function toComplex(type:Type, ?pretty = false):ComplexType {
 		return 
