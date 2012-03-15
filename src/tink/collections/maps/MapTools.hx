@@ -24,8 +24,8 @@ class MapTools {
 	}
 
 	@:macro static public function zip < K, V > (keys:ExprRequire<Iterable<K>>, values:ExprRequire<Iterable<V>>) {
-		var keyType = keys.isIterable().sure();
-		var params = [TPType(keyType.toComplex()), TPType(values.isIterable().sure().toComplex())];
+		var keyType = keys.getIterType().sure();
+		var params = [TPType(keyType.toComplex()), TPType(values.getIterType().sure().toComplex())];
 		var map = 
 			switch (keyType.reduce()) {
 				case TEnum(e, _): 

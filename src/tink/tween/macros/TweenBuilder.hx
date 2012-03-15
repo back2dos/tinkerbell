@@ -132,7 +132,7 @@ class TweenBuilder {
 						}
 					case OpLt, OpLte:
 						var e = handler(op.e2, targetType, ['forward'.toArg('Bool'.asComplexType())]);
-						if (op.e1.isIterable().isSuccess())
+						if (op.e1.getIterType().isSuccess())
 							AST.build(for (tmp in $(op.e1)) eval__tmp.addCuePoint(tmp, $e), op.pos);
 						else 
 							AST.build(eval__tmp.addCuePoint($(op.e1), $e), op.pos);

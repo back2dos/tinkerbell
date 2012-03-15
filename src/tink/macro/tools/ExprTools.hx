@@ -64,7 +64,7 @@ class ExprTools {
 			ret.push(crawl(v, transformer, pos));
 		return ret;
 	}
-	static public function isIterable(target:Expr) {
+	static public function getIterType(target:Expr) {
 		var e:Expr = AST.build( {
 			var tmp = null;
 			for (_ in $target)
