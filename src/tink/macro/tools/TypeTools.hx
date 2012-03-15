@@ -40,8 +40,6 @@ class TypeTools {
 				default: 'type has no statics'.asFailure();
 			}
 	}
-	
-	
 	static public function toString(t:ComplexType) {
 		return Printer.printType('', t);
 	}

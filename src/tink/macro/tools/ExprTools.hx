@@ -255,13 +255,6 @@ class ExprTools {
 				default: e.pos.makeFailure(NOT_A_NAME);
 			}					
 	}
-	static public function getMultiple<T, E>(e:Iterable<Expr>, f:Expr->Outcome<T, E>)
-	{
-		var ret = [];
-		for (expr in e)
-			ret.push(f(expr));
-		return ret;
-	}
 	static inline var NOT_AN_INT = "integer constant expected";
 	static inline var NOT_AN_IDENT = "identifier expected";
 	static inline var NOT_A_STRING = "string constant expected";
