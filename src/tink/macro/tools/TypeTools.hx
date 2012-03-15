@@ -33,7 +33,13 @@ class TypeTools {
 				default: 'type has no fields'.asFailure();
 			}
 	}
-	
+	static public function getStatics(t:Type) {
+		return
+			switch (reduce(t)) {
+				case TInst(t, _): t.get().statics.get().asSuccess();
+				default: 'type has no statics'.asFailure();
+			}
+	}
 	static public function toString(t:ComplexType) {
 		return Printer.printType('', t);
 	}
