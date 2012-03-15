@@ -8,6 +8,7 @@ package tink.macro.tools;
 typedef Poses = PosTools;
 typedef Funcs = FunctionTools;
 typedef Exprs = ExprTools;
+typedef Metas = MetadataTools;
 typedef Bounce = Bouncer;
 typedef Types = TypeTools;
 typedef Binops = OpTools.BinopTools;
