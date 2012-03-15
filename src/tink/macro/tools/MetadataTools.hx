@@ -6,13 +6,12 @@ class MetadataTools
 {	
 	static public function toHash(m:Metadata)
 	{
-		var ret = new Hash<Array<Expr>>();
+		var ret = new Hash<Array<Array<Expr>>>();
 		for (meta in m)
 		{
 			if (!ret.exists(meta.name))
 				ret.set(meta.name, []);
-			for (param in meta.params)
-				ret.get(meta.name).push(param);
+			ret.get(meta.name).push(meta.params);
 		}
 		return ret;
 	}
@@ -23,10 +22,7 @@ class MetadataTools
 		for (meta in m)
 		{
 			if (meta.name == name)
-			{
-				for (param in meta.params)
-					ret.push(param);
-			}
+				ret.push(meta.params);
 		}
 		return ret;		
 	}
