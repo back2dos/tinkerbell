@@ -14,6 +14,13 @@ package tink.util;
  */
 
 class Embed {
+	@:macro static public function filePath(file:String) {
+		var caller = Context.getPosInfos(Context.currentPos()).file.split('/');
+		caller.pop();
+		caller.push(file);
+		file = caller.join('/');
+		return FileSystem.fullPath(file).toExpr();
+	}
 	@:macro static public function stringFromFile(file:String) {
 		//TODO: consider adding support for line numbers
 		var name = String.tempName();
