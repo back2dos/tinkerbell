@@ -15,10 +15,24 @@ class Bouncer {
 	#if macro
 		static var idCounter = 0;
 		static var bounceMap = new IntHash<Void->Expr>();
+		static var outerMap = new IntHash<Expr->Expr>();
 		static public function bounce(f:Void->Expr, ?pos) {
 			var id = idCounter++;
 			bounceMap.set(id, f);
 			return 'tink.macro.tools.Bouncer.catchBounce'.resolve(pos).call([id.toExpr(pos)], pos);
+		}
+		static public function outerTransform(e:Expr, transform:Expr->Expr) {
+			var id = idCounter++,
+				pos = e.pos;
+			outerMap.set(id, transform);
+			return 'tink.macro.tools.Bouncer.makeOuter'.resolve(pos).call([e], pos).field('andBounce', pos).call([id.toExpr(pos)], pos);
+		}		
+		static function doOuter(id:Int, e:Expr) {
+			return
+				if (outerMap.exists(id)) 
+					outerMap.get(id)(e);
+				else
+					Context.currentPos().error('unknown id ' + id);	
 		}
 		static function doBounce(id:Int) {
 			return
@@ -27,24 +41,17 @@ class Bouncer {
 				else
 					Context.currentPos().error('unknown id ' + id);	
 		}
-		static public function unbounce(e:Expr) {
-			return
-				switch (e.expr) {
-					case ECall(target, params):
-						if (target.toString() == 'tink.macro.tools.Bouncer.catchBounce')
-							switch (params[0].expr) {
-								case EConst(c): 
-									switch (c) {
-										case CInt(s): doBounce(Std.parseInt(s));
-										default: params[0].reject();
-									}
-								default: params[0].reject();
-							}
-						else e;
-					default: e;	
-				}
-		}
 	#end
+	static public function makeOuter<A>(a:A):Bouncer {
+		return null;
+	}
+	@:macro public function andBounce(ethis:Expr, id:Int) {
+		return
+			switch (ethis.expr) {
+				case ECall(_, params): doOuter(id, params[0]);
+				default: ethis.reject();
+			}
+	}
 	@:macro static public function catchBounce(id:Int) {
 		return doBounce(id);
 	}
