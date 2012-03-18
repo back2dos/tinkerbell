@@ -1,119 +1,94 @@
 package tink.markup.formats;
 
 import haxe.macro.Expr;
+import haxe.macro.Format;
 import tink.macro.tools.AST;
 
 using tink.macro.tools.MacroTools;
-using tink.core.types.Outcome;
-using tink.markup.formats.Helpers;
+//using tink.core.types.Outcome;
+using Lambda;
+//using tink.markup.formats.Helpers;
 /**
  * ...
  * @author back2dos
  */
 
 class Nodes {
-	//TODO: unify with Fast as far as possible. For example transform (which does the most work anyway) is almost identical
-	var tmp:String;
+	var stack:List<String>;
 	var target:Expr;
-	var count:Int;
 	public function new() {
-		this.count = 0;
+		this.stack = new List();
 	}
-	public function init(pos) {
-		tmp = String.tempName();
-		target = tmp.resolve(pos);
-		return tmp.define(AST.build(Xml.createDocument()), pos);
+	function open() {
+		var name = String.tempName();
+		stack.push(name);
+		target = name.resolve();
+		return name;
 	}
-	public function finalize(pos) {
-		return target;
+	function close() {
+		var ret = stack.pop();
+		var name = stack.first();
+		target = 
+			if (name == null) null;
+			else 
+				name.resolve();
+		return ret.resolve();		
 	}
-	public function postprocess(e) {
-		return xml(e);
+	public function init(pos:Position):Null<Expr> {
+		return open().define(AST.build(Xml.createDocument()), pos);
+	}
+	public function finalize(pos:Position):Null<Expr> {
+		return close();
+	}
+	public function defaultTag(pos:Position):Expr {
+		return 'div'.toExpr(pos);
+	}
+	public function postprocess(e:Expr):Expr {
+		return AST.build($e.firstChild(), e.pos);
+	}
+	function stringifyProp(value:Expr):Expr {
+		return
+			switch (value.getString()) {
+				case Success(_): 
+					Format.format(value);
+				default:
+					if (value.is(STRING)) 
+						value;
+					else 
+						AST.build(Std.string($value));
+			}
+	}
+	public function setProp(attr:String, value:Expr, pos:Position):Expr {
+		value = callback(stringifyProp, value).bounce();
+		return AST.build($target.set("eval__attr", $value), pos);
+	}
+	function addChildNode(e:Expr):Expr {
+		return AST.build($target.addChild($e), e.pos);
+	}
+	function doAddChild(target:Expr, e:Expr):Expr {
+		return 
+			if (e.is(XML))
+				AST.build($target.addChild($e), e.pos);
+			else if (e.is(STRING)) 
+				AST.build($target.addChild(Xml.createPCData($e)), e.pos);
+			else
+				AST.build($target.addChild(Std.string(Xml.createPCData($e))), e.pos);
+	}
+	public function addChild(e:Expr, ?t:Type):Expr {
+		return callback(doAddChild, target, e).bounce();
+	}
+	public function addString(s:String):Expr {
+		return AST.build($target.addChild(Xml.createPCData('eval__s')));
+	}
+	public function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr {
+		var ret = [open().define(AST.build(Xml.createElement($nodeName), pos))];
+		for (p in props)
+			ret.push(yield(p));
+		for (c in children)
+			ret.push(yield(c));
+		ret.push(close());
+		return addChildNode(ret.toBlock(pos));
 	}
 	static var XML = 'Xml'.asComplexType();
 	static var STRING = 'String'.asComplexType();
-	function xml(e:Expr):Expr {
-		return ECheckType(e, XML).at(e.pos);
-	}
-	public function transform(e:Expr, yield:Expr->Expr) {
-		return
-			switch (e.typeof()) {
-				case Success(_): addChild(e);
-				case Failure(_): 
-					switch (OpAssign.get(e)) {
-						case Success(op):
-							var ret = [];
-							switch (op.e1.getName()) {
-								case Success(name): setAttr(name, op.e2, op.pos, ret.push);
-								default:
-									switch (op.e1.expr) {
-										case EArrayDecl(exprs):
-											for (e in exprs) {
-												var name = e.getName().sure();
-												setAttr(name, op.e2.field(name, e.pos), e.pos, ret.push);
-											}
-										default: 
-											op.e1.reject();
-									}
-							}							
-							return ret.toBlock(op.pos);
-						default:
-							switch (e.expr) {
-								case ECall(target, params): 
-									bounceNode(target, params, yield, e.pos);
-								default: 
-									switch (OpLt.get(e)) {
-										case Success(op): 
-											bounceNode(op.e1, [op.e2], yield, e.pos);
-										default: 
-											bounceNode(e, [], yield, e.pos);
-									}
-							}
-					}
-			}
-	}	
-	function bounceNode(node, payload, yield, pos) {
-		return callback(buildNode, node, payload, yield).bounce(pos);
-	}
-	function buildNode(node:Expr, payload:Array<Expr>, yield:Expr -> Expr) {
-		var name = node.annotadedName(payload.unshift);
-		var ret = [tmp.define(AST.build(Xml.createElement(Std.format("eval__name")), node.pos))];
-		for (p in payload)
-			for (p in p.interpolate())
-				ret.push(yield(p));
-		ret.push(xml(target));
-		return addChild(ret.toBlock(node.pos));
-	}
-	function isSelfmadeNode(e:Expr) {
-		return
-			switch (e.expr) {
-				case EBlock(exprs):
-					switch (exprs[exprs.length - 1].expr) {
-						case ECheckType(_, t): Type.enumEq(t, XML);
-						default: false;
-					}
-				default: false;	
-			}		
-	}
-	function addChild(e:Expr):Expr {
-		return 
-			if (isSelfmadeNode(e)) 
-				AST.build($target.addChild($e), e.pos);
-			else if (e.is(XML)) {
-				throw ('found XML!!!');
-				AST.build($target.addChild(e), e.pos);
-			}
-			else 
-				AST.build($target.addChild(Xml.createPCData($(stringifyExpr(e)))), e.pos);
-	}
-	function stringifyExpr(e:Expr) {
-		return 
-			if (e.getString().isSuccess()) 
-				AST.build(Std.format($e));
-			else 
-				e.stringify();
-	}
-	function setAttr(name:String, value:Expr, pos:Position, yield:Expr->Dynamic) {
-		yield(AST.build($target.set(Std.format("eval__name"), $(stringifyExpr(value))), pos));
-	}
 }

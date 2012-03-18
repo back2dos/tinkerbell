@@ -1,161 +1,143 @@
 package tink.markup.formats;
+#if macro
+	import haxe.macro.Context;
+	import haxe.macro.Expr;
+	import haxe.macro.Format;
+	import tink.macro.tools.AST;
 
-import haxe.macro.Context;
-import haxe.macro.Expr;
-import haxe.macro.Format;
-import tink.macro.tools.AST;
+	using tink.macro.tools.MacroTools;
+	using tink.core.types.Outcome;
+	/**
+	 * ...
+	 * @author back2dos
+	 */
 
-using tink.macro.tools.MacroTools;
-using tink.core.types.Outcome;
-using tink.markup.formats.Helpers;
-/**
- * ...
- * @author back2dos
- */
-
-private enum Kind {
-	Prop;
-	Child;
-	Conflict;
-	None;
-}
-class Fast {
-	var out:Expr;
-	public function new() {}
-	public function init(pos:Position) {
-		var name = String.tempName();
-		out = name.resolve(pos);
-		return name.define(AST.build(new StringBuf()), pos);
-	}
-	public function postprocess(e) {
-		return e;
-	}
-	public function finalize(pos:Position) {
-		return out;
-	}
-	inline function prints(s:String, ?pos) {
-		return print(s.toExpr(pos));
-	}
-	function print(e:Expr) {
-		var ret = [];
-		for (e in e.interpolate()) 
-			ret.push(AST.build($out.add($(e.stringify())), e.pos));
-		return
-			if (ret.length == 1) ret[0];
-			else 
-				ret.toBlock(e.pos);
-	}
-	function getKind(e:Expr):Kind {
-		return
-			if (e == null) None;
-			else if (OpAssign.get(e).isSuccess()) Prop;
-			else 
+	class Fast {
+		var here:Position;
+		var tmp:String;
+		public function new() {
+			here = Context.currentPos();
+			tmp = String.tempName();
+		}
+		public function init(pos:Position):Null<Expr> {
+			return null;
+		}
+		public function finalize(pos:Position):Null<Expr> {
+			return null;
+		}
+		public function defaultTag(pos:Position):Expr {
+			return 'div'.toExpr(pos);
+		}
+		function flatten(e:Expr) {
+			return
 				switch (e.expr) {
-					case EParenthesis(e), EUntyped(e): 
-						getKind(e);
-					case EIf(cond, cons, alt), ETernary(cond, cons, alt):
-						unify(getKind(cons), getKind(alt)); 
-					case EFor(it, expr):
-						getKind(expr);
-					case EWhile(cond, body, normal):
-						getKind(body);
-					default: Child;
+					case EBlock(exprs):
+						var ret = [];
+						for (e in exprs) 
+							switch (e.expr) {
+								case EBlock(exprs): ret = ret.concat(exprs);
+								default: ret.push(e);
+							}
+						ret.toBlock(e.pos);
+					default: e;
 				}
-	}
-	function unify(k1:Kind, k2:Kind):Kind {
-		return
-			if (k1 == None) k2;
-			else if (k2 == None) k1;
-			else if (k1 == k2) k1;
-			else Conflict;
-	}
-	function bounceNode(atom, payload, yield, pos) {
-		return callback(buildNode, atom, payload, yield).bounce(pos);
-	}
-	function buildNode(atom:Expr, payload:Array<Expr>, yield:Expr->Expr) {
-		var name = atom.annotadedName(payload.unshift);
-		return
-			if (payload.length == 0) prints('<' + name + '/>');
-			else {
-				var props = [],
-					children = [],
-					ret = [];
-					
-				for (p in payload) 
-					switch (getKind(p)) {
-						case Prop: props.push(p);
-						case Child: children = children.concat(p.interpolate());
-						case None: p.reject('expression seems not to yield an attribute or a child');
-						case Conflict: p.reject('you can only either set an attribute or a child');
-					}
-				
-				if (children.length == 0) {
-					ret.push(prints('<' + name));
-					for (p in props)
-						ret.push(yield(p));
-					ret.push(prints('/>'));
+		}
+		function unify(e:Expr) {
+			return
+				switch (e.expr) {
+					case EBlock(exprs):
+						var buf = new StringBuf();
+						var ret = [];
+						function flush() {
+							var s = buf.toString();
+							buf = new StringBuf();
+							if (s.length > 0)
+								ret.push(sOut(s));
+						}
+						for (e in exprs) {
+							switch (AST.match(e, IS_LITERAL)) {
+								case Success(m):
+									buf.add(m.strings.lit);
+								default:
+									flush();
+									ret.push(e);
+							}
+						}
+						flush();
+						ret.toBlock(e.pos);
+					default: e;
 				}
-				else {
-					if (props.length == 0)
-						ret.push(prints('<' + name + '>'));
-					else {
-						ret.push(prints('<' + name));
-						for (p in props)
-							ret.push(yield(p));
-						ret.push(prints('>'));
-					}
-					for (c in children)
-						ret.push(yield(c));
-					ret.push(prints('</' + name + '>'));					
+		}
+		function print(e:Expr) {
+			return
+				switch (AST.match(e, IS_OUT)) {
+					case Success(m):
+						tmp.resolve().field('add').call([m.exprs.v]);
+					default: e;
 				}
-				ret.toBlock();
+		}
+		function optimize(target:Expr) {
+			target = target.transform(flatten).transform(unify).transform(print);
+			return AST.build(new tink.markup.formats.Fast(function (eval__tmp) $target));
+		}
+		public function postprocess(e:Expr):Expr {
+			return e.outerTransform(optimize);
+		}
+		function sOut(s:String):Expr {
+			return out(s.toExpr(here));
+		}
+		static function out(e:Expr):Expr {
+			return AST.build(tink.markup.formats.Fast.add($e), e.pos);
+		}
+		static var IS_LITERAL = out("eval__lit".toExpr());
+		static var IS_OUT = out("$v".resolve());
+		public function setProp(attr:String, value:Expr, pos:Position):Expr {
+			return [
+				sOut((' ' + attr + '="')),
+				out(value),
+				sOut('"')
+			].toBlock(pos);
+		}
+		public function addString(s:String):Expr {
+			return sOut(s);
+		}
+		public function addChild(e:Expr, ?t:Type):Expr {
+			return out(e);
+		}
+		public function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr {
+			var ret = [];
+			ret.push(sOut('<'));
+			ret.push(out(nodeName));
+			for (p in props)
+				ret.push(yield(p));
+			if (children.length > 0) {
+				ret.push(sOut('>'));
+				for (c in children)
+					ret.push(yield(c));
+				ret.push(sOut('</'));
+				ret.push(out(nodeName));
+				ret.push(sOut('>'));
 			}
-	}
-	function setAttr(name:String, value:Expr, pos, yield:Expr->Dynamic) {
-		switch (value.getString()) {
-			case Success(s):
-				yield(prints(' '+name + '="' + s + '"', pos));
-			default:
-				yield(prints(' ' + name + '="', pos));
-				yield(print(value));
-				yield(prints('"', pos));
+			else 
+				ret.push(sOut(' />'));
+			return ret.toBlock();
 		}
 	}
-	public function transform(e:Expr, yield:Expr->Expr) {
-		return
-			switch (e.typeof()) {
-				case Success(_): print(e);
-				case Failure(_): 
-					switch (OpAssign.get(e)) {
-						case Success(op):
-							var ret = [];
-							switch (op.e1.getName()) {
-								case Success(name): setAttr(name, op.e2, op.pos, ret.push);
-								default:
-									switch (op.e1.expr) {
-										case EArrayDecl(exprs):
-											for (e in exprs) {
-												var name = e.getName().sure();
-												setAttr(name, op.e2.field(name, e.pos), e.pos, ret.push);
-											}
-										default: 
-											op.e1.reject();
-									}
-							}
-							ret.toBlock(op.pos);
-						default:
-							switch (e.expr) {
-								case ECall(target, params): 
-									bounceNode(target, params, yield, e.pos);
-								default: 
-									switch (OpLt.get(e)) {
-										case Success(op): 
-											bounceNode(op.e1, [op.e2], yield, e.pos);
-										default: 
-											bounceNode(e, [], yield, e.pos);
-									}
-							}
-					}
-			}
+#else
+	class Fast {
+		var out:StringBuf->Void;
+		public function new(out) {
+			this.out = out;
+		}
+		public inline function printTo(buf:StringBuf) {
+			out(buf);
+			return buf;
+		}
+		public function toString() {
+			return printTo(new StringBuf()).toString();
+		}
+		static public function add(d:Dynamic):Void {
+			return null;
+		}
 	}
-}
+#end

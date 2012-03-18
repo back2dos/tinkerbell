@@ -9,7 +9,7 @@ using tink.macro.tools.MacroTools;
  * @author back2dos
  */
 
-typedef Plugin = {
+private typedef Plugin = {
 	function init(pos:Position):Null<Expr>;
 	function finalize(pos:Position):Null<Expr>;
 	function transform(e:Expr, yield:Expr->Expr):Expr;
