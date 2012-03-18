@@ -1,0 +1,11 @@
+<div>
+	The habitants of <em>::name::</em> are :
+	<ul>
+	::foreach user users::
+		<li>
+			::user.name:: 
+			::if (user.age > 18)::Grown-up::elseif (user.age <= 2)::Baby::else::Young::end::
+		</li>
+	::end::
+	</ul>
+</div>

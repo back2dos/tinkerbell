@@ -1,0 +1,8 @@
+<div>
+	The habitants of <em>@name</em> are :
+	<ul>
+		@for(u in users) {
+			<li>@u.name @if(u.age > 18) {Grown-Up} else if (u.age <= 2) {Baby} else {Young}</li>
+		}	
+	</ul>
+</div>
