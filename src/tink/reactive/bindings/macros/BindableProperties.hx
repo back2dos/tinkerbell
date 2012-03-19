@@ -28,8 +28,7 @@ class BindableProperties {
 	static function setter(name:String, pos:Position) {
 		return 
 			AST.build({ 
-				this.bindings.fire("eval__name");
-				this.eval__name = param;
+				this.bindings.fire("eval__name", this.eval__name = param);
 			}, pos);
 	}	
 	static public function make(ctx:ClassBuildContext) {
