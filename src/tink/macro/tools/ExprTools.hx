@@ -113,7 +113,7 @@ class ExprTools {
 			case ECall(e, params): ECall(e.rec(), params.mapArray(f, ctx, pos));
 			case EIf(econd, eif, eelse): EIf(econd.rec(), eif.rec(), eelse.rec());
 			case ETernary(econd, eif, eelse): ETernary(econd.rec(), eif.rec(), eelse.rec());
-			case EBlock(exprs): EBlock(exprs.mapArray(f, ctx, pos));
+			case EBlock(exprs): EBlock(exprs.mapArray(f, ctx.copy(), pos));
 			case EArrayDecl(exprs): EArrayDecl(exprs.mapArray(f, ctx, pos));
 			case EIn(e1, e2): EIn(e1.rec(), e2.rec());
 			case EWhile(econd, e, normalWhile): EWhile(econd.rec(), e.rec(), normalWhile);
