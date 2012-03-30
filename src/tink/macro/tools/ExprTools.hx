@@ -14,6 +14,8 @@ using tink.macro.tools.ExprTools;
 using tink.macro.tools.TypeTools;
 using tink.core.types.Outcome;
 
+typedef VarDecl = { name : String, type : ComplexType, expr : Null<Expr> };
+
 class ExprTools {
 
 	static public inline function is(e:Expr, c:ComplexType) {
@@ -92,6 +94,127 @@ class ExprTools {
 						}
 						ret;
 				}
+	}
+	@:macro static private function rec(x:Expr, ?ctx:Expr):Expr {
+		return 'map'.resolve().call([x, "f".resolve(), ctx.getIdent().equals('null') ? "ctx".resolve() : ctx, "pos".resolve()]);
+	}	
+	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr
+	{
+		var mappedSource = f(source, ctx);
+		if (mappedSource != source) return mappedSource;
+		
+		return (switch(mappedSource.expr)
+		{
+			case ECheckType(e, t): ECheckType(e.rec(), t);
+			case ECast(e, t): ECast(e.rec(), t);
+			case EArray(e1, e2): EArray(e1.rec(), e2.rec());
+			case EField(e, field): EField(e.rec(), field);
+			case EParenthesis(e):  EParenthesis(e.rec());
+			case ECall(e, params): ECall(e.rec(), params.mapArray(f, ctx, pos));
+			case EIf(econd, eif, eelse): EIf(econd.rec(), eif.rec(), eelse.rec());
+			case ETernary(econd, eif, eelse): ETernary(econd.rec(), eif.rec(), eelse.rec());
+			case EBlock(exprs): EBlock(exprs.mapArray(f, ctx, pos));
+			case EArrayDecl(exprs): EArrayDecl(exprs.mapArray(f, ctx, pos));
+			case EIn(e1, e2): EIn(e1.rec(), e2.rec());
+			case EWhile(econd, e, normalWhile): EWhile(econd.rec(), e.rec(), normalWhile);
+			case EUntyped(e): EUntyped(e.rec());
+			case EThrow(e): EThrow(e.rec());
+			case EReturn(e): EReturn(e.rec());
+			case EDisplay(e, t): EDisplay(e.rec(), t);
+			case EUnop(op, postFix, e): EUnop(op, postFix, e.rec());
+			case ENew(t, params): ENew(t, params.mapArray(f, ctx, pos));
+			case EBinop(op, e1, e2): EBinop(op, e1.rec(), e2.rec());
+			case EObjectDecl(fields):
+				var newFields = [];
+				for (field in fields)
+					newFields.push( { field:field.field, expr:field.expr.rec() } );
+				EObjectDecl(newFields);
+			case ESwitch(expr, cases, def):
+				var newCases = [];
+				for (c in cases)
+				{
+					for (v in c.values)
+					{
+						switch(v.expr)
+						{
+							case ECall(i, params):
+								switch(Context.typeof(i))
+								{
+									case TFun(args, ret):
+										var innerCtx = ctx.copy();
+										for (arg in 0...args.length)
+										{
+											innerCtx.push( { name:params[arg].getName().sure(), type: args[arg].t.toComplex(), expr: null } );
+										}
+										newCases.push({expr:c.expr.rec(innerCtx), values:c.values});
+									default: return Context.error("Internal error.", i.pos);
+								}
+							default: return Context.error("Internal error.", v.pos);
+						}
+					}
+				}
+				ESwitch(expr.rec(), newCases, def.rec());
+			case EFor(it, expr):
+			{
+				switch(it.expr)
+				{
+					case EIn(itIdent, itExpr):
+						var innerCtx = ctx.copy();
+						switch(itExpr.typeof(ctx))
+						{
+							case Success(t):
+								if (t.getID() == "IntIter")
+									innerCtx.push( { name:itIdent.getIdent().sure(), type: "Int".asComplexType(), expr:null } );
+								else
+									innerCtx.push( { name:itIdent.getIdent().sure(), type: null, expr:itExpr.field("iterator").call().field("next").call() } );
+								EFor(it, expr.rec(innerCtx));
+							default:
+						}
+					default: return Context.error("Internal error", mappedSource.pos);
+				}
+			}
+			case ETry(e, catches):
+				var newCatches = [];
+				for (c in catches)
+				{
+					ctx.push({ name:c.name, expr: null, type:c.type });
+					newCatches.push({name:c.name, expr:c.expr.rec(ctx.copy()), type:c.type});
+				}
+				ETry(e.rec(), newCatches);
+			case EFunction(name, func):
+				var innerCtx = ctx.copy();
+				for (arg in func.args)
+					innerCtx.push( { name:arg.name, type:arg.type, expr:null } );
+				func.expr = func.expr.rec(innerCtx);
+				EFunction(name, func);
+			case EVars(vars):
+				var ret = [];
+				for (v in vars)
+				{
+					if (v.type == null && v.expr != null)
+					{
+						switch(v.expr.expr)
+						{
+							case EFunction(name, func):
+								v.type = func.ret;
+							default:
+								v.type = map(v.expr, f, ctx).typeof(ctx).sure().toComplex();
+						}
+					}
+					ctx.push({ name:v.name, expr:null, type:v.type });
+					ret.push({ name:v.name, expr:v.expr == null ? null : v.expr.rec(), type:v.type });
+				}
+				EVars(ret);
+			default:
+				mappedSource.expr;
+		}).at(mappedSource.pos);
+	}
+	static public function mapArray(source:Array<Expr>, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos)
+	{
+		var ret = [];
+		for (e in source)
+			ret.push(e.rec());
+		return ret;
 	}
 	static public inline function iterate(target:Expr, body:Expr, ?loopVar:String = 'i', ?pos:Position) {
 		return EFor(EIn(loopVar.resolve(pos), target).at(pos), body).at(pos);
@@ -259,6 +382,5 @@ class ExprTools {
 	static inline var NOT_AN_IDENT = "identifier expected";
 	static inline var NOT_A_STRING = "string constant expected";
 	static inline var NOT_A_NAME = "name expected";
-	static inline var EMPTY_EXPRESSION = "expression expected";
-	
+	static inline var EMPTY_EXPRESSION = "expression expected";	
 }
