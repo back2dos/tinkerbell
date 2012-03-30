@@ -177,8 +177,9 @@ class ExprTools {
 				var newCatches = [];
 				for (c in catches)
 				{
-					ctx.push({ name:c.name, expr: null, type:c.type });
-					newCatches.push({name:c.name, expr:c.expr.rec(ctx.copy()), type:c.type});
+					var innerCtx = ctx.copy();
+					innerCtx.push({ name:c.name, expr: null, type:c.type });
+					newCatches.push({name:c.name, expr:c.expr.rec(innerCtx), type:c.type});
 				}
 				ETry(e.rec(), newCatches);
 			case EFunction(name, func):
