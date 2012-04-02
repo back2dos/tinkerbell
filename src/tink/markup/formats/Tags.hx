@@ -25,7 +25,7 @@ private typedef Plugin = {
 	function defaultTag(pos:Position):Expr;
 	function postprocess(e:Expr):Expr;
 	function setProp(attr:String, value:Expr, pos:Position):Expr;
-	function addString(s:String):Expr;
+	function addString(s:String, pos:Position):Expr;
 	function addChild(e:Expr, ?t:Type):Expr;
 	function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr;
 }
@@ -155,7 +155,7 @@ class Tags {
 			switch (e.typeof()) {
 				case Success(_): 
 					switch (e.getString()) {
-						case Success(s): plugin.addString(s);
+						case Success(s): plugin.addString(s, e.pos);
 						default: plugin.addChild(e);
 					}
 				case Failure(_): 

@@ -98,7 +98,7 @@ package tink.markup.formats;
 				sOut('"')
 			].toBlock(pos);
 		}
-		public function addString(s:String):Expr {
+		public function addString(s:String, pos:Position):Expr {
 			return sOut(s);
 		}
 		public function addChild(e:Expr, ?t:Type):Expr {

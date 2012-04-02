@@ -77,8 +77,8 @@ class Nodes {
 	public function addChild(e:Expr, ?t:Type):Expr {
 		return callback(doAddChild, target, e).bounce();
 	}
-	public function addString(s:String):Expr {
-		return AST.build($target.addChild(Xml.createPCData('eval__s')));
+	public function addString(s:String, pos:Position):Expr {
+		return AST.build($target.addChild(Xml.createPCData('eval__s')), pos);
 	}
 	public function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr {
 		var ret = [open().define(AST.build(Xml.createElement($nodeName), pos))];
