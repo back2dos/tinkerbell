@@ -6,6 +6,7 @@ import haxe.macro.Context;
 import haxe.macro.Type;
 
 using tink.macro.tools.MacroTools;
+using tink.core.types.Outcome;
 
 /**
  * ...
@@ -30,8 +31,17 @@ class MemberTransformer {
 	}
 	function getConstructor() {
 		if (constructor == null) 
-			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null) 
-				localClass.pos.error('please specify a constructor with a call to the super constructor');
+			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null)
+			{
+				var func = localClass.superClass.t.get().constructor.get().type.toFunction().sure();
+				var args = [];
+				for (arg in func.args)
+					args.push(arg.name.resolve());
+				func.expr = "super".resolve().call(args);
+				constructor = new Constructor(func);
+				if (localClass.superClass.t.get().constructor.get().isPublic)
+					constructor.publish();
+			}
 			else
 				constructor = new Constructor(null);
 		return constructor;

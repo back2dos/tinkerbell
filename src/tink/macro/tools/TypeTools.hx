@@ -8,6 +8,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 using tink.macro.tools.ExprTools;
+using tink.macro.tools.FunctionTools;
 using tink.core.types.Outcome;
 
 class TypeTools {
@@ -39,6 +40,17 @@ class TypeTools {
 				case TInst(t, _): t.get().statics.get().asSuccess();
 				default: 'type has no statics'.asFailure();
 			}
+	}
+	static public function toFunction(t:Type, ?expr:Expr, ?params) {
+		return switch(reduce(t))
+		{
+			case TFun(args, ret):
+				var cArgs = [];
+				for (arg in args)
+					cArgs.push(arg.name.toArg(toComplex(arg.t), arg.opt));
+				FunctionTools.func(expr, cArgs, toComplex(ret), null, false).asSuccess();
+			default: 'type is not a function'.asFailure();
+		}
 	}
 	static public function toString(t:ComplexType) {
 		return Printer.printType('', t);
