@@ -48,7 +48,7 @@ class TypeTools {
 				var cArgs = [];
 				for (arg in args)
 					cArgs.push(arg.name.toArg(toComplex(arg.t), arg.opt));
-				FunctionTools.func(expr, cArgs, toComplex(ret), null, false).asSuccess();
+				FunctionTools.func(expr, cArgs, toComplex(ret), params, false).asSuccess();
 			default: 'type is not a function'.asFailure();
 		}
 	}
