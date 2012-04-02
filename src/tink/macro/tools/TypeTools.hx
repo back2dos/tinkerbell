@@ -42,14 +42,14 @@ class TypeTools {
 			}
 	}
 	static public function toFunction(t:Type, ?expr:Expr, ?params) {
-		return switch(reduce(t))
-		{
-			case TFun(args, ret):
-				var cArgs = [];
-				for (arg in args)
-					cArgs.push(arg.name.toArg(toComplex(arg.t), arg.opt));
-				FunctionTools.func(expr, cArgs, toComplex(ret), params, false).asSuccess();
-			default: 'type is not a function'.asFailure();
+		return
+			switch(reduce(t)) {
+				case TFun(args, ret):
+					var cArgs = [];
+					for (arg in args)
+						cArgs.push(arg.name.toArg(toComplex(arg.t), arg.opt));
+					FunctionTools.func(expr, cArgs, toComplex(ret), params, false).asSuccess();
+				default: 'type is not a function'.asFailure();
 		}
 	}
 	static public function toString(t:ComplexType) {
