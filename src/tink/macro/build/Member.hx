@@ -32,7 +32,10 @@ class Member {
 		this.meta = new Hash();
 		this.excluded = false;
 	}
-
+	public inline function publish() {
+		if (isPublic == null) 
+			isPublic = true;
+	}
 	public function addMeta(name, pos, ?params) {
 		meta.set(name, {
 			name: name,
@@ -110,7 +113,7 @@ class Member {
 	static public function prop(name:String, t:ComplexType, pos, ?noread = false, ?nowrite = false) {
 		var ret = new Member();
 		ret.name = name;
-		ret.isPublic = true;
+		ret.publish();
 		ret.pos = pos;
 		ret.kind = FProp(noread ? 'null' : 'get_' + name, nowrite ? 'null' : ('set_' + name), t);
 		return ret;

@@ -41,7 +41,8 @@ class NodeEvent {
 					f.ret = t;
 					
 					member.kind = FFun(f);
-					member.isBound = member.isPublic = member.isStatic = true;
+					member.isBound = member.isStatic = true;
+					member.publish();
 				default:
 			}
 	}	

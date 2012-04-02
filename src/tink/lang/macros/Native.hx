@@ -45,7 +45,8 @@ class Native {
 								ret = [ret, targetName.resolve(pos)].toBlock();
 							}
 							
-							member.isBound = member.isPublic = member.isStatic = true;
+							member.isBound = member.isStatic = true;
+							member.publish();
 							f.args.unshift(targetName.toArg(t));
 							f.expr = EReturn(ret).at(pos);
 						default:

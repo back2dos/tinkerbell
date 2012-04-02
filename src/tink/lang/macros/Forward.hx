@@ -30,7 +30,7 @@ class Forward {
 		var m = new Member();
 		m.name = name;
 		m.kind = FVar(t.toComplex());
-		m.isPublic = true;
+		m.publish();
 		m.pos = pos;
 		addField(m);
 	}	
@@ -96,12 +96,8 @@ class Forward {
 				#end
 			}
 	}
-	function forwardTo(to:Member, t:ComplexType, pos:Position, params:Array<Expr>) {
-		var fields = t.toType(pos).sure().getFields().sure(),
-			target = ['this', to.name].drill(pos),
-			included = makeFilter(params);
-			
-		for (field in fields) 
+	function forwardToType(t:Type, included:ClassFieldFilter, target:Expr, pos:Position) {
+		for (field in t.getFields().sure()) 
 			if (field.isPublic && included(field) && !hasField(field.name)) {
 				#if display
 					shortForward(field.name, field.type, pos);
@@ -118,7 +114,25 @@ class Forward {
 							}
 					}
 				#end
+			}		
+	}
+	function forwardTo(to:Member, t:ComplexType, pos:Position, params:Array<Expr>) {
+		var t = t.toType(pos).sure().reduce(),
+			target = ['this', to.name].drill(pos),
+			included = makeFilter(params);
+			
+		while (t != null) {
+			forwardToType(t, included, target, pos);
+			t = switch (t) {
+				case TInst(c, _):
+					var c = c.get().superClass;
+					if (c == null) 
+						null;
+					else 
+						TInst(c.t, c.params);
+				default: null;
 			}
+		}
 	}
 	#if !display
 		function forwardFunctionWith(id:String, callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {

@@ -29,7 +29,7 @@ class PropBuilder {
 			addField(Member.setter(m.name, setter, t));
 		
 		m.kind = FProp(get, set, t, null);
-		m.isPublic = true;
+		m.publish();
 		return m;
 	}
 	var hasField:String->Bool;
@@ -45,11 +45,11 @@ class PropBuilder {
 			switch (member.kind) {
 				case FVar(t, e):
 					if (member.isStatic) continue;//skipped for now					
-					if (member.isPublic == false) continue;//explicitly private variables are not elligible for accessor generation
+					//if (member.isPublic == false) continue;//explicitly private variables are not elligible for accessor generation
 					
 					#if display
 						if (member.extractMeta(READ).isSuccess() || member.extractMeta(FULL).isSuccess())
-							member.isPublic = true;
+							member.publish();
 					#else
 						var meta = member.meta,
 							name = member.name;
