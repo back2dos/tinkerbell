@@ -14,12 +14,14 @@ class ClassBuilder {
 	}
 	static function noBindings(ctx:ClassBuildContext) {
 		#if debug
+			var bindable = [':bindable', ':cache'];
 			for (m in ctx.members)
-				switch (m.extractMeta(':bindable')) {
-					case Success(tag): 
-						Context.warning('you seem to be wanting to use bindings but don\'t use -lib tink_reactive', tag.pos);
-					default: 
-				}
+				for (tag in bindable)
+					switch (m.extractMeta(tag)) {
+						case Success(tag): 
+							Context.warning('you seem to be wanting to use bindings but don\'t use -lib tink_reactive', tag.pos);
+						default: 
+					}
 		#end
 	}
 	#if macro

@@ -17,6 +17,7 @@ using Lambda;
 class BindableProperties {
 	static public inline var IS_BINDABLE = 'bindable';
 	static public inline var BINDABLE = ':bindable';
+	static public inline var CACHE = ':cache';
 	
 	static function getter(name:String, pos:Position) {
 		return 
@@ -39,12 +40,12 @@ class BindableProperties {
 			}
 		var setters = new Hash(),
 			getters = new Hash();
-		for (member in ctx.members)
+		for (member in ctx.members) {
 			switch (member.extractMeta(BINDABLE)) {
 				case Success(tag):
 					makeBindable(tag.pos);
 					if (member.isPublic == null) 
-						member.isPublic = true;
+						member.publish();
 					#if !display
 						member.addMeta(IS_BINDABLE, tag.pos);
 						var name = member.name;
@@ -73,6 +74,38 @@ class BindableProperties {
 					#end
 				default:
 			}
+			switch (member.extractMeta(CACHE)) {
+				case Success(tag):
+					//makeBindable(tag.pos);
+					if (member.isPublic == null) 
+						member.publish();
+					#if !display
+						member.addMeta(IS_BINDABLE, tag.pos);
+						var name = member.name;
+						switch (member.kind) {
+							case FVar(t, _):
+								var cacheName = '__tink_reactive_cache__' + name;
+								ctx.add(Member.plain(cacheName, 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]), tag.pos));
+								var expr = 
+									switch (tag.params.length) {
+										case 1: tag.params[0];
+										default: tag.pos.error('tag requires 1 argument exactly');
+									}
+								ctx.getCtor().init(
+									cacheName, 
+									tag.pos, 
+									AST.build(new tink.reactive.bindings.Binding.Watch(function () return $expr), tag.pos), 
+									true
+								);
+								ctx.add(Member.getter(name, tag.pos, AST.build(eval__cacheName.value, tag.pos), t));
+								member.kind = FProp('get_' + name, 'null', t);
+							default: 
+								member.pos.error('');
+						}
+					#end
+				default:
+			}
+		}
 		#if !display
 			for (member in ctx.members) {
 				//trace(member.name);
