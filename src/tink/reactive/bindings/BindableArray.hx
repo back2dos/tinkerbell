@@ -33,6 +33,9 @@ class BindableArray<T> implements Cls {
 		onChange(data.unshift(x));
 		return length;
 	}
+	public function remove(x:T):Bool {
+		return data.remove(x) && onChange(true);
+	}
 	public function shift():Null<T> {
 		return onChange(data.shift());
 	}
