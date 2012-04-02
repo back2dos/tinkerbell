@@ -82,7 +82,7 @@ class MemberTransformer {
 			m.pos.error('duplicate member declaration ' + m.name);
 			
 		if (m.name == 'new') 
-			this.constructor = new Constructor(Enums.enumParameters(m.kind)[0], m.isPublic);
+			this.constructor = new Constructor(Enums.enumParameters(m.kind)[0], m.isPublic, m.pos);
 		else {
 			members.set(m.name, m);
 			to.push(m);				
