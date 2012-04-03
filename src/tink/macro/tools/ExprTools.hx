@@ -193,15 +193,7 @@ class ExprTools {
 				for (v in vars)
 				{
 					if (v.type == null && v.expr != null)
-					{
-						switch(v.expr.expr)
-						{
-							case EFunction(name, func):
-								v.type = func.ret;
-							default:
-								v.type = map(v.expr, f, ctx).typeof(ctx).sure().toComplex();
-						}
-					}
+						v.type = map(v.expr, f, ctx).typeof(ctx).sure().toComplex();
 					ctx.push({ name:v.name, expr:null, type:v.type });
 					ret.push({ name:v.name, expr:v.expr == null ? null : v.expr.rec(), type:v.type });
 				}
