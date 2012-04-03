@@ -33,18 +33,11 @@ class MemberTransformer {
 	function getConstructor() {
 		if (constructor == null) 
 			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null) {
-				var superClass = Context.getLocalClass().get().superClass.t.get();
-				Context.follow(superClass.constructor.get().type); // necessary
-				var func = switch(Context.getTypedExpr(superClass.constructor.get().expr).expr) {
-					case EFunction(name, f): f;
-					default: localClass.pos.error('internal');
-				}
-				var args = [];
-				for (arg in func.args)
-					args.push(arg.name.resolve());
-				func.expr = "super".resolve().call(args);
+				var ctor = Context.getLocalClass().get().superClass.t.get().constructor.get();
+				var func = Context.getTypedExpr(ctor.expr()).getFunction().sure();
+				func.expr = "super".resolve().call(func.getArgIdents());
 				constructor = new Constructor(func);
-				if (superClass.constructor.get().isPublic)
+				if (ctor.isPublic)
 					constructor.publish();
 			}
 			else

@@ -379,9 +379,19 @@ class ExprTools {
 				default: e.pos.makeFailure(NOT_A_NAME);
 			}					
 	}
+	///Attempts to extract a function from an expression.
+	static public function getFunction(e:Expr)
+	{
+		return
+			switch (e.expr) {
+				case EFunction(_, f): Success(f);
+				default: e.pos.makeFailure(NOT_A_FUNCTION);
+			}
+	}
 	static inline var NOT_AN_INT = "integer constant expected";
 	static inline var NOT_AN_IDENT = "identifier expected";
 	static inline var NOT_A_STRING = "string constant expected";
 	static inline var NOT_A_NAME = "name expected";
+	static inline var NOT_A_FUNCTION = "function expected";
 	static inline var EMPTY_EXPRESSION = "expression expected";	
 }
