@@ -2,6 +2,7 @@ package tink.macro.build;
 
 private typedef Enums = Type;
 
+import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.Type;
 
@@ -31,15 +32,19 @@ class MemberTransformer {
 	}
 	function getConstructor() {
 		if (constructor == null) 
-			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null)
-			{
-				var func = localClass.superClass.t.get().constructor.get().type.toFunction().sure();
+			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null) {
+				var superClass = Context.getLocalClass().get().superClass.t.get();
+				Context.follow(superClass.constructor.get().type); // necessary
+				var func = switch(Context.getTypedExpr(superClass.constructor.get().expr).expr) {
+					case EFunction(name, f): f;
+					default: localClass.pos.error('internal');
+				}
 				var args = [];
 				for (arg in func.args)
 					args.push(arg.name.resolve());
 				func.expr = "super".resolve().call(args);
 				constructor = new Constructor(func);
-				if (localClass.superClass.t.get().constructor.get().isPublic)
+				if (superClass.constructor.get().isPublic)
 					constructor.publish();
 			}
 			else
