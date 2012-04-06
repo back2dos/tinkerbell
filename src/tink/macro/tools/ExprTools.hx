@@ -193,15 +193,7 @@ class ExprTools {
 				for (v in vars)
 				{
 					if (v.type == null && v.expr != null)
-					{
-						switch(v.expr.expr)
-						{
-							case EFunction(name, func):
-								v.type = func.ret;
-							default:
-								v.type = map(v.expr, f, ctx).typeof(ctx).sure().toComplex();
-						}
-					}
+						v.type = map(v.expr, f, ctx).typeof(ctx).sure().toComplex();
 					ctx.push({ name:v.name, expr:null, type:v.type });
 					ret.push({ name:v.name, expr:v.expr == null ? null : v.expr.rec(), type:v.type });
 				}
@@ -379,9 +371,19 @@ class ExprTools {
 				default: e.pos.makeFailure(NOT_A_NAME);
 			}					
 	}
+	///Attempts to extract a function from an expression.
+	static public function getFunction(e:Expr)
+	{
+		return
+			switch (e.expr) {
+				case EFunction(_, f): Success(f);
+				default: e.pos.makeFailure(NOT_A_FUNCTION);
+			}
+	}
 	static inline var NOT_AN_INT = "integer constant expected";
 	static inline var NOT_AN_IDENT = "identifier expected";
 	static inline var NOT_A_STRING = "string constant expected";
 	static inline var NOT_A_NAME = "name expected";
+	static inline var NOT_A_FUNCTION = "function expected";
 	static inline var EMPTY_EXPRESSION = "expression expected";	
 }

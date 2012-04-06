@@ -25,5 +25,12 @@ class FunctionTools {
 			params: params == null ? [] : params,
 			expr: if (makeReturn) EReturn(e).at(e.pos) else e
 		}		
-	}	
+	}
+	static public function getArgIdents(f:Function):Array<Expr>
+	{
+		var ret = [];
+		for (arg in f.args)
+			ret.push(arg.name.resolve());
+		return ret;
+	}
 }
