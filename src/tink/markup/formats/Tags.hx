@@ -196,33 +196,81 @@ class Tags {
 					}
 			}
 	}
-	static function interpolate(e:Expr) {
+	static function interpolate(e:Expr):Array<Expr> {
 		return
-			if (e.getString().isSuccess()) {				
-				var f = Context.parse;
-				untyped Context.parse = function (e, pos) return EParenthesis(f(e, pos)).at(pos);//don't do this at home!
-				var ret = [];
-				e = Format.format(e);
-				function yield(e:Expr) 
-					ret.push(
-						switch (e.expr) {
-							case EParenthesis(e): e;
-							default: e;
-						}
-					);
-				while (true) 
-					switch (OpAdd.get(e)) {
-						case Success(op):
-							e = op.e1;
-							yield(op.e2);
-						default: 
-							yield(e);
-							break;
+			switch (e.getString()) {
+				case Success(str):
+					var pos = Context.getPosInfos(e.pos);
+					var min = pos.min;
+					pos.min++;
+					
+					function make(size) {
+						pos.max = pos.min + size;
+						var p = Context.makePosition(pos);
+						pos.min += size;
+						return p;
 					}
-				ret.reverse();
-				untyped Context.parse = f;
-				ret;
+					var ret = [];
+					var add = ret.push,
+						i = 0, 
+						start = 0,
+						max = str.length;
+						
+					while( i < max ) {
+						if( StringTools.fastCodeAt(str,i++) != '$'.code )
+							continue;
+						var len = i - start - 1;
+						if( len > 0 )
+							add({ expr : EConst(CString(str.substr(start,len))), pos : make(len) });
+						pos.min++;
+						start = i;
+						var c = StringTools.fastCodeAt(str, i);
+						if( c == '{'.code ) {
+							var count = 1;
+							i++;
+							while( i < max ) {
+								var c = StringTools.fastCodeAt(str,i++);
+								if( c == "}".code ) {
+									if( --count == 0 ) break;
+								} else if( c == "{".code )
+									count++;
+							}
+							if( count > 0 )
+								Context.error("Closing brace not found",make(1));
+							pos.min++;
+							start++;
+							var len = i - start - 1;
+							var expr = str.substr(start, len);
+							add(Context.parseInlineString(expr, make(len)));
+							pos.min++;
+							start++;
+						} else if( (c >= 'a'.code && c <= 'z'.code) || (c >= 'A'.code && c <= 'Z'.code) || c == '_'.code ) {
+							i++;
+							while( true ) {
+								var c = StringTools.fastCodeAt(str, i);
+								if( (c >= 'a'.code && c <= 'z'.code) || (c >= 'A'.code && c <= 'Z'.code) || (c >= '0'.code && c <= '9'.code) || c == '_'.code )
+									i++;
+								else
+									break;
+							}
+							var len = i - start;
+							var ident = str.substr(start, len);
+							add( { expr : EConst(CIdent(ident)), pos : make(len) } );
+						} else if( c == '$'.code ) {
+							start = i++;
+							continue;
+						} else {
+							start = i - 1;
+							continue;
+						}
+						start = i;
+					}
+					var len = i - start;
+					if( len > 0 )
+						add( { expr : EConst(CString(str.substr(start, len))), pos : make(len) } );
+						
+					ret;
+				default: [e];
 			}
-			else [e];
-	}	
+	}
 }
