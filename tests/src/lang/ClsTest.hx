@@ -82,6 +82,28 @@ class ClsTest extends TestCase {
 			assertEquals(b.h+1, b.i);
 		}
 	}
+	function testSuperConstructor() {
+		var c = new Child("1", 2);
+		assertEquals("1", c.a);
+		assertEquals(2, c.b);
+		assertEquals(3, c.c);
+		assertEquals(2, c.d);
+		assertEquals("1", c.e);
+
+		var c2 = new Child("1", 2, 9);
+		assertEquals("1", c2.a);
+		assertEquals(2, c2.b);
+		assertEquals(9, c2.c);
+		assertEquals(2, c2.d);
+		assertEquals("1", c2.e);
+
+		var c3 = new Child2("1", 2);
+		assertEquals("1", c3.a);
+		assertEquals(2, c3.b);
+		assertEquals(3, c3.c);
+		assertEquals(2, c3.d);
+		assertEquals("1", c3.e);		
+	}
 }
 typedef FwdTarget = {
 	function add(a:Int, b:Int):Int;
@@ -123,3 +145,20 @@ class Built implements Cls {
 	public function new() {}
 }
 
+class Base {
+	public var a:String;
+	public function new(a:String) {
+		this.a = a;
+	}
+}
+
+class Child extends Base, implements Cls {
+	public var b:Int = _;
+	public var c = (3);
+	public var d:Int = b;
+	public var e:String = a;
+}
+
+class Child2 extends Child {
+
+}
