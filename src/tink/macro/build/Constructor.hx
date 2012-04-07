@@ -47,6 +47,10 @@ class Constructor {
 		else
 			this.nuStatements.push(s);
 	}
+	public inline function publish() {
+		if (isPublic == null) 
+			isPublic = true;
+	}
 	public function toBlock() {
 		return nuStatements.concat(oldStatements).toBlock(pos);
 	}
