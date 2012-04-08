@@ -14,41 +14,50 @@ import tink.macro.tools.AST;
 
 class BindingTools {
 	@:macro static public function bindExpr(target:Expr, value:Expr) {
-		return
-			switch (target.expr) {
-				case EField(e, field), EType(e, field):
-					var source = makeSource(value);
-					if (target.is(EDITABLE)) {
-						if (!source.is(EDITABLE)) 
-							source.reject('expression is not editable, although required by site property ' + field);
-						else 
-							target.assign(source);
-					}
-					else if (target.is(SOURCE))
-						target.assign(source);
-					else {
-						var link = String.tempName();
-						var init = 
-							if (source.is(EDITABLE)) 
-								AST.build(eval__link.twoway($source))
+		var source = makeSource(value);
+		var ret:Expr = AST.build({ 
+			var tmpSrc = $source;
+			var tmpUpdate = function () $target(tmpSrc.value);
+			tmpSrc.watch(tmpUpdate);
+			tmpUpdate();
+			tmpSrc.value;//comes from cache so it should be cheap
+		});
+		return 
+			if (ret.typeof().isSuccess()) ret;
+			else 
+				switch (target.expr) {
+					case EField(e, field), EType(e, field):
+						if (target.is(EDITABLE)) {
+							if (!source.is(EDITABLE)) 
+								source.reject('expression is not editable, although required by site property ' + field);
 							else 
-								AST.build(eval__link.single($source));
-						AST.build({
-							var tmp = $e;
-							var eval__link = tink.reactive.bindings.Binding.Link.by(
-								tmp, 
-								"eval__field"
-							);
-							eval__link.init(
-								function () return $target,
-								function (tmpArg) return $target = tmpArg
-							);
-							$init;
-						});
-					}
-				default:
-					target.reject();
-			}
+								target.assign(source);
+						}
+						else if (target.is(SOURCE))
+							target.assign(source);
+						else {
+							var link = String.tempName();
+							var init = 
+								if (source.is(EDITABLE)) 
+									AST.build(eval__link.twoway($source))
+								else 
+									AST.build(eval__link.single($source));
+							AST.build({
+								var tmp = $e;
+								var eval__link = tink.reactive.bindings.Binding.Link.by(
+									tmp, 
+									"eval__field"
+								);
+								eval__link.init(
+									function () return $target,
+									function (tmpArg) return $target = tmpArg
+								);
+								$init;
+							});
+						}
+					default:
+						target.reject();
+				}
 	}
 	#if macro
 		static var SOURCE = 'tink.reactive.Source'.asComplexType([TPType('Dynamic'.asComplexType())]);
