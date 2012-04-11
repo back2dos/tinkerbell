@@ -47,6 +47,12 @@ class TypeTools {
 		return 
 			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof();
 	}
+	static public function isDynamic(t:Type) {
+		return switch(reduce(t)) {
+			case TDynamic(_): true;
+			default: false;
+		}
+	}
 	static public function toType(t:ComplexType, ?pos) {	
 		return [
 			'_'.define(t, pos),
