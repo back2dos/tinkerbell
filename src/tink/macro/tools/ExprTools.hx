@@ -192,10 +192,11 @@ class ExprTools {
 				var ret = [];
 				for (v in vars)
 				{
-					if (v.type == null && v.expr != null)
-						v.type = map(v.expr, f, ctx).typeof(ctx).sure().toComplex();
+					var vExpr = v.expr == null ? null : map(v.expr, f, ctx);
+					if (v.type == null && vExpr != null)
+						v.type = vExpr.typeof(ctx).sure().toComplex();
 					ctx.push({ name:v.name, expr:null, type:v.type });
-					ret.push({ name:v.name, expr:v.expr == null ? null : v.expr.rec(), type:v.type });
+					ret.push({ name:v.name, expr:vExpr == null ? null : vExpr, type:v.type });
 				}
 				EVars(ret);
 			default:
