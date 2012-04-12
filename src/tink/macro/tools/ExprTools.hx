@@ -100,6 +100,7 @@ class ExprTools {
 	}	
 	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr
 	{
+		if (source == null)	return null;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
 		
