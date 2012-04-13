@@ -100,6 +100,7 @@ class ExprTools {
 	}	
 	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr
 	{
+		if (source == null)	return null;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
 		
@@ -147,9 +148,9 @@ class ExprTools {
 											innerCtx.push( { name:params[arg].getName().sure(), type: args[arg].t.toComplex(), expr: null } );
 										}
 										newCases.push({expr:c.expr.rec(innerCtx), values:c.values});
-									default: return Context.error("Internal error.", i.pos);
+									default: return Context.error("Internal error: " +v.expr, i.pos);
 								}
-							default: return Context.error("Internal error.", v.pos);
+							default: newCases.push({expr:c.expr.rec(), values:c.values});
 						}
 					}
 				}
