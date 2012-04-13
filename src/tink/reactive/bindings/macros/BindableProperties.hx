@@ -76,7 +76,6 @@ class BindableProperties {
 			}
 			switch (member.extractMeta(CACHE)) {
 				case Success(tag):
-					//makeBindable(tag.pos);
 					if (member.isPublic == null) 
 						member.publish();
 					#if !display
@@ -91,6 +90,7 @@ class BindableProperties {
 										case 1: tag.params[0];
 										default: tag.pos.error('tag requires 1 argument exactly');
 									}
+								
 								ctx.getCtor().init(
 									cacheName, 
 									tag.pos, 
