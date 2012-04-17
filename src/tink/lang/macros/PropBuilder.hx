@@ -19,7 +19,7 @@ class PropBuilder {
 	static public function process(ctx) {
 		new PropBuilder(ctx.has, ctx.add, ctx.getCtor()).processMembers(ctx.members);
 	}
-	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member) {
+	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
 		var get = 'get_' + m.name,
 			set = if (setter == null) 'null' else 'set_' + m.name;
 			
@@ -28,7 +28,7 @@ class PropBuilder {
 		if (setter != null && !hasField(set))
 			addField(Member.setter(m.name, setter, t));
 		
-		m.kind = FProp(get, set, t, null);
+		m.kind = FProp(get, set, t, e);
 		m.publish();
 		return m;
 	}
@@ -45,7 +45,6 @@ class PropBuilder {
 			switch (member.kind) {
 				case FVar(t, e):
 					if (member.isStatic) continue;//skipped for now					
-					//if (member.isPublic == false) continue;//explicitly private variables are not elligible for accessor generation
 					
 					#if display
 						if (member.extractMeta(READ).isSuccess() || member.extractMeta(FULL).isSuccess())
@@ -89,7 +88,7 @@ class PropBuilder {
 									default:
 										tag.pos.error('too many arguments');
 								}
-								make(member, t, getter, setter, hasField, addField);
+								make(member, t, getter, setter, hasField, addField, e);
 							default:	
 						}												
 					#end
