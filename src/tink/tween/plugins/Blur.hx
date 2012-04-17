@@ -2,7 +2,7 @@ package tink.tween.plugins;
 import flash.display.DisplayObject;
 import flash.filters.BlurFilter;
 import flash.utils.TypedDictionary;
-import tink.collections.ObjectMap;
+import tink.collections.maps.ObjectMap;
 import tink.tween.plugins.PluginBase;
 import tink.tween.Tween;
 
@@ -11,7 +11,7 @@ import tink.tween.Tween;
  * @author back2dos
  */
 
-class BlurX extends PluginBase<DisplayObject> {
+@:alias('blurX') class Foo extends PluginBase<DisplayObject> {
 	override function init(_):Float {
 		return Helper.getFilter(target).blurX;
 	}
@@ -34,7 +34,7 @@ private class Helper {
 	static public function getFilter(d:DisplayObject):BlurFilter {
 		for (f in d.filters)
 			if (Std.is(f, BlurFilter))
-				return f;
+				return cast (f, BlurFilter);
 		var ret = new BlurFilter(0, 0, 3);
 		d.filters = d.filters.concat([ret]);
 		return ret;
@@ -44,7 +44,7 @@ private class Helper {
 			filters = d.filters;
 		for (f in filters) 
 			if (Std.is(f, BlurFilter)) {
-				modify(f);
+				modify(cast(f, BlurFilter));
 				break;
 			}
 		d.filters = filters;

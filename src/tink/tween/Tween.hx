@@ -49,7 +49,7 @@ class Tween<T> {
 				if (cueIndex > -1) {
 					if (delta >= 0) {
 						while (cueIndex < cue.length) 
-							if (cue[cueIndex].mark < progress) {
+							if (cue[cueIndex].mark <= progress) {
 								cue[cueIndex].handler(this, true);
 								cueIndex++;
 							}
