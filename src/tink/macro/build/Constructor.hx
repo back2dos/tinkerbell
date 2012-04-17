@@ -35,14 +35,16 @@ class Constructor {
 					}
 		}
 	}
-	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?first:Bool) {
+	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool) {
 		if (e == null) {
 			e = name.resolve(pos);
 			args.push( { name : name, opt : def != null, type : null, value : def } );
-			if (isPublic == null) isPublic = true;
+			if (isPublic == null) 
+				isPublic = true;
 		}
-		var s = ['this', name].drill(pos).assign(e, pos);
-		if (first)
+		var s = EUntyped('this'.resolve(pos)).at(pos).field(name, pos).assign(e, pos);
+			
+		if (prepend)
 			this.nuStatements.unshift(s);
 		else
 			this.nuStatements.push(s);

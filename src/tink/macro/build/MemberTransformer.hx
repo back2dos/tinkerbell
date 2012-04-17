@@ -19,6 +19,7 @@ typedef ClassBuildContext = {
 	members:Array<Member>,
 	getCtor:Void->Constructor,
 	has:String->Bool,
+	hasOwn:String->Bool,
 	add:Member->Member
 }
 class MemberTransformer {
@@ -26,6 +27,7 @@ class MemberTransformer {
 	var members:Hash<Member>;
 	var constructor:Null<Constructor>;
 	var localClass:ClassType;
+	var superFields:Hash<Bool>;
 	public function new() { 
 		members = new Hash();
 		localClass = Context.getLocalClass().get();
@@ -61,6 +63,7 @@ class MemberTransformer {
 			members: fields,
 			getCtor: getConstructor,
 			has: hasMember,
+			hasOwn: hasOwnMember,
 			add: null
 		}
 		
@@ -78,15 +81,31 @@ class MemberTransformer {
 			
 		return ret;
 	}
-	function hasMember(name:String) {
+	function hasOwnMember(name:String) {
 		return 
 			if (name == 'new')
 				constructor != null;
 			else
-				members.exists(name) && !members.get(name).excluded;
+				members.exists(name) && !members.get(name).excluded;		
+	}
+	function hasSuperField(name:String) {
+		if (superFields == null) {
+			superFields = new Hash();
+			var cl = localClass.superClass;
+			while (cl != null) {
+				var c = cl.t.get();
+				for (f in c.fields.get())
+					superFields.set(f.name, true);
+				cl = c.superClass;
+			}
+		}
+		return superFields.get(name);
+	}
+	function hasMember(name:String) {
+		return hasOwnMember(name) || hasSuperField(name);
 	}
 	function addMember(to:Array<Member>, m:Member) {
-		if (hasMember(m.name)) 
+		if (hasOwnMember(m.name)) 
 			m.pos.error('duplicate member declaration ' + m.name);
 			
 		if (m.name == 'new') 
