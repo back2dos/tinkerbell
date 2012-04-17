@@ -11,7 +11,7 @@ class Lorem {
 		return text.text(sep, paragraphs, sentences, words);
 	}
 	static public var person = new RandomPerson();
-	static var text = new RandomText(
+	static public var text = new RandomText(
 		.3,
 		'.',
 		" | | | | | | | |, |, | - ".split('|'),
