@@ -108,7 +108,6 @@ class BindableProperties {
 		}
 		#if !display
 			for (member in ctx.members) {
-				//trace(member.name);
 				if (setters.exists(member.name)) {
 					var f = member.getFunction().sure();
 					f.expr = f.expr.transform(injectFire(setters.get(member.name)));
