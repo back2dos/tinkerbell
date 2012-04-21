@@ -7,6 +7,7 @@ import flash.display.Graphics;
  */
 
 enum Skin {
+	None;
 	Draw(fill:DrawStyle, ?stroke:DrawStyle);
 }
 
@@ -16,9 +17,10 @@ enum DrawStyle {
 
 class SkinDrawer {
 	static public function draw(skin:Skin, g:Graphics, w:Float, h:Float) {
+		g.clear();
 		switch (skin) {
+			case None:
 			case Draw(fill, stroke):
-				g.clear();
 				switch (fill) {
 					case Plain(rgb, alpha): doFill(g, rgb, alpha);
 				}

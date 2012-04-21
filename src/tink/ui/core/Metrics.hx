@@ -10,14 +10,14 @@ import tink.lang.Cls;
 class Metrics {
 	var min:Pair<Float>;
 	var align:Pair<Float>;
-	var size:Pair<Dim>;
+	var weight:Pair<Float>;
 	var setPos:Bool->Float->Dynamic;
 	var setDim:Bool->Float->Dynamic;
 	
-	public function new(min, align, size, setPos, setDim) {
+	public function new(min, align, weight, setPos, setDim) {
 		this.min = min;
 		this.align = align;
-		this.size = size;
+		this.weight = weight;
 		
 		this.setPos = setPos;
 		this.setDim = setDim;
@@ -25,8 +25,8 @@ class Metrics {
 	public function getMin(h:Bool):Float {
 		return min.get(h);
 	}
-	public function getSize(h:Bool):Dim {
-		return size.get(h);
+	public function getWeight(h:Bool):Float {
+		return weight.get(h);
 	}
 	public function getAlign(h:Bool):Float {
 		return align.get(h);
@@ -38,11 +38,6 @@ class Metrics {
 	public function updateDim(h:Bool, dim:Float):Void {
 		setDim(h, dim);
 	}
-}
-
-enum Dim {
-	Min;
-	Relative(weight:Float);
 }
 
 using tink.ui.core.Metrics.MetricsTools;
@@ -72,18 +67,20 @@ class MetricsTools {
 			arrangeShort(group, h, offset, total);
 	}
 	static public function arrangeShort(group:Iterable<Metrics>, h:Bool, offset:Float, total:Float) {
-		var maxWeight = Math.NEGATIVE_INFINITY;
+		var maxWeight = Math.NEGATIVE_INFINITY,
+			weight = .0;
+			
 		for (m in group) 
-			switch (m.getSize(h)) {
-				case Relative(weight): maxWeight = Math.max(maxWeight, weight);
-				default:
-			}
+			maxWeight = Math.max(maxWeight, m.getWeight(h));
+			
 		for (m in group) {
-			var dim =
-				switch (m.getSize(h)) {
-					case Min: m.getMin(h);
-					case Relative(weight): Math.max(m.getMin(h), total * weight / maxWeight);
-				}
+			var weight = m.getWeight(h);
+			var dim = 
+				if (weight == .0) 
+					m.getMin(h)
+				else
+					Math.max(m.getMin(h), total * weight / maxWeight);
+				
 			m.updateDim(h, dim);
 			m.updatePos(h, (total - dim) * m.getAlign(h) + offset);
 		}
@@ -92,7 +89,8 @@ class MetricsTools {
 
 		var totalWeight = .0,
 			infos = [],
-			sizes = new ObjectMap();
+			sizes = new ObjectMap(),
+			weight = .0;
 		function setSize(m:Metrics, size:Float) {
 			m.updateDim(h, size);
 			sizes.set(m, size);
@@ -101,13 +99,13 @@ class MetricsTools {
 		
 		for (m in group) {
 			total -= spacing;
-			switch (m.getSize(h)) {
-				case Min: 
-					setSize(m, m.getMin(h));
-				case Relative(weight): 
-					totalWeight += weight;
-					infos.push(new RelSizeInfo(m.getMin(h), weight, m));
-			}
+			weight = m.getWeight(h);
+			if (weight == .0)
+				setSize(m, m.getMin(h));
+			else {
+				totalWeight += weight;
+				infos.push(new RelSizeInfo(m.getMin(h), weight, m));				
+			}				
 		}
 		total += spacing;	
 		infos.sort(function (i1, i2) 

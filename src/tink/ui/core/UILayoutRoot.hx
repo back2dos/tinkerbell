@@ -31,7 +31,6 @@ class UILayoutRoot extends UIContainer {
 	}
 	function doRenderJobs() {
 		var todo = UIComponent.renderTodos;
-		//if (!todo.isEmpty()) trace('yo!');
 		while (!todo.isEmpty()) 
 			todo.get()();
 	}

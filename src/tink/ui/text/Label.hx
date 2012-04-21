@@ -18,8 +18,8 @@ class Label extends UIComponent<TextField, ComponentStyle> {
 		view.selectable = false;
 		this.text = text;
 	}
-	override function calcHMin() return this.bindings.bind('hmin', view.width)
-	override function calcVMin() return this.bindings.bind('vmin', view.height)
+	@:bindable('hmin') override private function calcHMin() return view.width
+	@:bindable('vmin') override private function calcVMin() return view.height
 	
 	function set_text(param) {
 		var w0 = view.width,

@@ -25,8 +25,16 @@ class ComponentStyle implements Cls, implements Style {
 	@:bindable var vAlign = .5;
 	public function new() {}	
 }
-class PaneStyle extends ComponentStyle {
-	@:bindable var skin = Draw(Plain(0x808080, .25), Plain(0));
+enum Size {
+	Const(pt:Float);
+	Rel(weight:Float);
+}
+class ResizableStyle extends ComponentStyle {
+	@:bindable var width = Rel(1);
+	@:bindable var height = Rel(1);
+}
+class PaneStyle extends ResizableStyle {
+	@:bindable var skin = Draw(Plain(0xDEDEDE, 1));
 }
 class ContainerStyle extends PaneStyle {
 	@:bindable var paddingLeft = 8.0;

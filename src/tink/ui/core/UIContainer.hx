@@ -14,13 +14,11 @@ using tink.ui.style.Skin;
  * @author back2dos
  */
  
-class UIContainer extends UIComponent<Sprite, ContainerStyle> {
+class UIContainer extends UIPaneBase<ContainerStyle> {
 	var children = new BindableArray<UILeaf>();	
 		
 	public function new() {
-		super(new Sprite(), new ContainerStyle());
-		_hSize = Dim.Relative(1);
-		_vSize = Dim.Relative(1);
+		super(new ContainerStyle());
 		view.addEventListener(MouseEvent.CLICK, function (e:MouseEvent) {
 			if (e.target == view)
 				Debug.log(_hMin, _vMin);
@@ -40,10 +38,6 @@ class UIContainer extends UIComponent<Sprite, ContainerStyle> {
 	override function calcVMin() 
 		return style.paddingTop + style.paddingBottom + getMin(false)
 	
-	override function redraw(width:Float, height:Float) {
-		Debug.log(width, height);
-		style.skin.draw(view.graphics, width, height);
-	}
 	function getChildMetrics():Iterable<Metrics> {
 		return {
 			iterator: function () {

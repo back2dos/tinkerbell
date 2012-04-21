@@ -26,10 +26,7 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	
 	@:cache(this.style.marginLeft + this.style.marginRight + calcHMin()) private var _hMin = .0;
 	@:cache(this.style.marginTop + this.style.marginBottom + calcVMin()) private var _vMin = .0;
-	
-	@:bindable private var _hSize = Dim.Min;
-	@:bindable private var _vSize = Dim.Min;
-	
+		
 	var view:V;
 	public var style(default, null):S;
 	
@@ -42,14 +39,16 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 				function () return this.style.hAlign, 
 				function () return this.style.vAlign
 			),
-			new BindingPair(get__hSize, get__vSize),
+			new BindingPair(calcHWeight, calcVWeight),
 			setPos,
 			setDim
 		);
 	}
 	
-	function calcHMin():Float return .0
-	function calcVMin():Float return .0
+	function calcHMin() return .0
+	function calcVMin() return .0
+	function calcHWeight() return .0
+	function calcVWeight() return .0
 	
 	public function getView():DisplayObject return view
 	public function getMetrics():Metrics return metrics
@@ -69,12 +68,13 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	function setDim(h:Bool, dim:Float) {
 		if (h) width = dim;
 		else height = dim;
-		uponRender(render);
+		uponRender(doRender);
 	}
 	
 	inline function uponRender(f) 
 		renderTodos.add(f)
-	function render() 
+			
+	function doRender() 
 		redraw(width, height)
 		
 	function redraw(width:Float, height:Float) { }
