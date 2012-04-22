@@ -3,6 +3,7 @@ package tink.ui.text;
 import flash.filters.DropShadowFilter;
 import flash.text.TextField;
 import flash.text.TextFieldType;
+import flash.text.TextFormat;
 import tink.ui.core.UIComponent;
 import tink.ui.style.Style;
 import flash.events.Event;
@@ -21,6 +22,8 @@ class Input extends UIComponent<TextField, ComponentStyle> {
 		view.width = 100;
 		view.height = 20;		
 		view.type = TextFieldType.INPUT;
+		view.defaultTextFormat = new TextFormat('_sans', 12);
+		
 		view.addEventListener(Event.CHANGE, function (_) {
 			bindings.fire('text');
 		});

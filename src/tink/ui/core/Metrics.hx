@@ -92,6 +92,7 @@ class MetricsTools {
 			sizes = new ObjectMap(),
 			weight = .0;
 		function setSize(m:Metrics, size:Float) {
+			size = Math.ceil(size);
 			m.updateDim(h, size);
 			sizes.set(m, size);
 			total -= size;
@@ -117,6 +118,8 @@ class MetricsTools {
 			totalWeight -= i.weight;
 		}
 		var pos = offset;
+		if (infos.length == 0)
+			pos += total / 2;
 		for (m in group) {
 			m.updatePos(h, pos);
 			pos += sizes.get(m) + spacing;

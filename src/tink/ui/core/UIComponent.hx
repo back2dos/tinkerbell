@@ -24,8 +24,8 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	var x = .0;
 	var y = .0;
 	
-	@:cache(this.style.marginLeft + this.style.marginRight + calcHMin()) private var _hMin = .0;
-	@:cache(this.style.marginTop + this.style.marginBottom + calcVMin()) private var _vMin = .0;
+	@:cache(hMargin() + calcHMin()) private var _hMin = .0;
+	@:cache(vMargin() + calcVMin()) private var _vMin = .0;
 		
 	var view:V;
 	public var style(default, null):S;
@@ -50,11 +50,15 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	function calcHWeight() return .0
 	function calcVWeight() return .0
 	
+	inline function hMargin() return style.marginLeft + style.marginRight
+	inline function vMargin() return style.marginTop + style.marginBottom
+	
 	public function getView():DisplayObject return view
 	public function getMetrics():Metrics return metrics
 	
 	function updateX() view.x = x
 	function updateY() view.y = y
+	
 	function setPos(h:Bool, pos:Float) {
 		if (h) {
 			x = pos + style.marginLeft;
@@ -75,7 +79,7 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 		renderTodos.add(f)
 			
 	function doRender() 
-		redraw(width, height)
+		redraw(width - hMargin(), height - vMargin())
 		
 	function redraw(width:Float, height:Float) { }
 	

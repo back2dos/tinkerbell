@@ -34,13 +34,17 @@ class ResizableStyle extends ComponentStyle {
 	@:bindable var height = Rel(1);
 }
 class PaneStyle extends ResizableStyle {
-	@:bindable var skin = Draw(Plain(0xDEDEDE, 1));
+	@:bindable var skin = Draw(
+		Linear([0xEEEEEE, 0xCCCCCC], [1, 1], [0x00, 0xFF], -Math.PI / 4 * 3), 
+		//Linear([0xFFFFFF, 0xEEEEEE, 0xCCCCCC, 0xBBBBBB], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7)
+		Linear([0xBBBBBB, 0xAAAAAA, 0x999999, 0x888888], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7)
+	);
 }
 class ContainerStyle extends PaneStyle {
-	@:bindable var paddingLeft = 8.0;
-	@:bindable var paddingTop = 8.0;
-	@:bindable var paddingBottom = 8.0;
-	@:bindable var paddingRight = 8.0;
+	@:bindable var paddingLeft = 5.0;
+	@:bindable var paddingTop = 5.0;
+	@:bindable var paddingBottom = 5.0;
+	@:bindable var paddingRight = 5.0;
 	@:bindable var spacing = 2.0;
 	@:bindable var flow = Flow.Down;
 }

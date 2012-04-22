@@ -6,7 +6,7 @@ import tink.devtools.Debug;
 import tink.reactive.bindings.BindableArray;
 import tink.ui.core.Metrics;
 import tink.ui.style.Style;
-import flash.events.MouseEvent;
+
 using tink.ui.core.Metrics;
 using tink.ui.style.Skin;
 /**
@@ -19,16 +19,20 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 		
 	public function new() {
 		super(new ContainerStyle());
-		view.addEventListener(MouseEvent.CLICK, function (e:MouseEvent) {
-			if (e.target == view)
-				Debug.log(_hMin, _vMin);
-		});
 	}
-	public function addChild(child:UILeaf) {
-		var view = child.getView();
+	public inline function addChild(child:UILeaf) {
+		addChildAt(child, 0xFFFF);
+	}
+	public function addChildAt(child:UILeaf, pos:Int) {
+		view.addChild(child.getView());
 		children.remove(child);
-		children.push(child);
-		this.view.addChild(view);
+		if (pos > children.length) 
+			pos = children.length;
+		children.insert(pos, child);
+	}
+	public function removeChild(child:UILeaf) {
+		view.removeChild(child.getView());
+		children.remove(child);
 	}
 	function getMin(h) return getChildMetrics().min(isLong(h), h, style.spacing)
 	
@@ -60,7 +64,7 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 	override function setDim(h:Bool, dim:Float) {
 		super.setDim(h, dim);
 		var offset = h ? style.paddingLeft : style.paddingTop;
-		dim -= h ? (style.paddingLeft + style.paddingRight) : (style.paddingTop + style.paddingBottom);
+		dim -= h ? (style.paddingLeft + style.paddingRight + hMargin()) : (style.paddingTop + style.paddingBottom + vMargin());
 		getChildMetrics().arrange(h, isLong(h), offset , dim, style.spacing);
 	}
 }
