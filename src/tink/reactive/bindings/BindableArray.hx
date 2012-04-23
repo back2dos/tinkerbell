@@ -39,6 +39,9 @@ class BindableArray<T> implements Cls {
 	public function shift():Null<T> {
 		return onChange(data.shift());
 	}
+	public function insert(pos, x) {
+		onChange(data.insert(pos, x));
+	}
 	@:bindable(CHANGE) public function get(index:Int) {
 		return data[index];
 	}
