@@ -37,10 +37,10 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 	function getMin(h) return getChildMetrics().min(isLong(h), h, style.spacing)
 	
 	override function calcHMin() 
-		return style.paddingLeft + style.paddingRight + getMin(true)
+		return Math.max(super.calcHMin(), style.paddingLeft + style.paddingRight + getMin(true))
 		
 	override function calcVMin() 
-		return style.paddingTop + style.paddingBottom + getMin(false)
+		return Math.max(super.calcVMin(), style.paddingTop + style.paddingBottom + getMin(false))
 	
 	function getChildMetrics():Iterable<Metrics> {
 		return {

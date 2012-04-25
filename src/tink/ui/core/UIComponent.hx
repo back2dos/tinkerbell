@@ -24,8 +24,8 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	var x = .0;
 	var y = .0;
 	
-	@:cache(hMargin() + calcHMin()) private var _hMin = .0;
-	@:cache(vMargin() + calcVMin()) private var _vMin = .0;
+	@:cache(hMargin() + calcHMin()) private var _hMin:Float;
+	@:cache(vMargin() + calcVMin()) private var _vMin:Float;
 		
 	var view:V;
 	public var style(default, null):S;

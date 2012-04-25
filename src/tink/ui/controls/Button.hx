@@ -20,19 +20,50 @@ using tink.reactive.bindings.BindingTools;
  * @author back2dos
  */
 
+private enum State {
+	Up;
+	Over;
+	Down;
+	Disabled;
+}
+
+class States<T> implements Cls {
+	@:bindable var up:T;
+	@:bindable var over:T;
+	@:bindable var down:T;
+	@:bindable var disabled:T;
+	
+	var fallback:State-> T;
+	
+	public function new(?fallback:States<T>) {
+		this.fallback =
+			if (fallback == null) toSelf;
+			else fallback.get;
+	}
+	function toSelf(state:State) {
+		return
+			switch (state) {
+				case Up: up;
+				case Over: over.or(up);
+				case Down: down.or(toSelf(Over));
+				case Disabled: disabled.or(up);
+			}
+	}
+	public function get(state:State) {
+		var ret =
+			switch (state) {
+				case Up: up; 
+				case Over: over; 
+				case Down: down;
+				case Disabled: disabled;
+			}
+		return ret.or(fallback(state));
+	}
+}
+
 class ButtonStyle implements Style, implements Cls {
-	@:bindable var normal:Skin		= Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
-	@:bindable var over:Skin		= Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
-	@:bindable var down:Skin		= Skin.Draw(Plain(0xF8F8F8, 1), Plain(0, .25));
-	@:bindable var disabled:Skin	= Skin.Draw(Plain(0xF0F0F0, 1), Empty);
-	
-	@:bindable var selectedNormal:Skin		= Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .75));
-	@:bindable var selectedOver:Skin    	= Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .75));
-	@:bindable var selectedDown:Skin    	= Skin.Draw(Plain(0xF8F8F8, 1), Plain(0, .75));
-	@:bindable var selectedDisabled:Skin	= Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
-	
-	@:bindable var icon:Dynamic;
-	@:bindable var selectedIcon:Dynamic;
+	@:read var normal = new States<Skin>();
+	@:read var selected:States<Skin> = new States(normal);
 	
 	@:forward var container:ContainerStyle;
 	@:forward var label:LabelStyle;
@@ -40,29 +71,13 @@ class ButtonStyle implements Style, implements Cls {
 	public function new(container, label) {
 		this.container = container;
 		this.label = label;
-		this.marginLeft = this.marginRight = this.marginTop = this.marginBottom = 10;
+		//this.marginLeft = this.marginRight = this.marginTop = this.marginBottom = 10;
+		
+		normal.up = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
+		normal.over = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
+		normal.down = Skin.Draw(Plain(0xF8F8F8, 1), Plain(0, .25));
+		normal.disabled = Skin.Draw(Plain(0xF0F0F0, 1), Empty);
 	}
-}
-
-class Portion<T> {
-	@:bindable var up:Skin;
-	@:bindable var over:Skin;
-	@:bindable var down:Skin;
-	var fallback:Null<Portion<T>>;
-	public function new(?fallback) {
-		this.fallback = fallback;
-	}
-	public function get(state:State) {
-		//return
-			//switch (state) {
-				//case 
-			//}
-	}
-}
-private enum State {
-	Over;
-	Normal;
-	Down;
 }
 
 class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
@@ -72,14 +87,14 @@ class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	@:prop(updateCaption(param)) var caption:String;
 	@:bindable var enabled = true;
 	@:bindable var selected = false;
-	@:bindable private var state = Normal;
+	@:bindable private var state = Up;
 	
 	public function new() {
 		var s = cast(container.getView(), Sprite);
 		super(s, new ButtonStyle(container.style, label.style));
 		
 		s.addEventListener(MouseEvent.ROLL_OVER, function (e) state = e.buttonDown ? Down : Over);
-		s.addEventListener(MouseEvent.ROLL_OUT, function (_) state = Normal);
+		s.addEventListener(MouseEvent.ROLL_OUT, function (_) state = Up);
 		s.addEventListener(MouseEvent.MOUSE_DOWN, function (_) state = Down);
 		s.addEventListener(MouseEvent.MOUSE_UP, function (_) state = Over);
 		
@@ -102,30 +117,10 @@ class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 		style.skin.bindExpr(self.calcSkin());
 	}
 	function calcSkin():Skin {
-		//TODO: there must be a more elegant solution to all this
-		function plainSkin(state) 
-			return switch (state) {
-				case Normal: style.normal;
-				case Over: style.over.or(style.normal);
-				case Down: style.down.or(plainSkin(Over));
-			}
-		
-		return
-			if (enabled) {
-				if (selected) 
-					switch (state) {
-						case Normal: style.selectedNormal.or(plainSkin(Normal));
-						case Over: style.selectedOver.or(plainSkin(Over));
-						case Down: style.selectedOver.or(plainSkin(Down));
-					}
-				else
-					plainSkin(state);
-			}
-			else 
-				if (selected) 
-					style.selectedDisabled.or(style.disabled);
-				else 
-					style.disabled;
+		var states = 
+			if (selected) style.selected;
+			else style.normal;
+		return states.get(state);
 	}
 	override public function getMetrics() {
 		return container.getMetrics();

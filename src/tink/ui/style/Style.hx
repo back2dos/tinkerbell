@@ -41,10 +41,10 @@ class PaneStyle extends ResizableStyle {
 	);
 }
 class ContainerStyle extends PaneStyle {
-	@:bindable var paddingLeft = 5.0;
-	@:bindable var paddingTop = 5.0;
-	@:bindable var paddingBottom = 5.0;
-	@:bindable var paddingRight = 5.0;
-	@:bindable var spacing = 2.0;
+	@:bindable var paddingLeft = .0;
+	@:bindable var paddingTop = .0;
+	@:bindable var paddingBottom = .0;
+	@:bindable var paddingRight = .0;
+	@:bindable var spacing = .0;
 	@:bindable var flow = Flow.Down;
 }

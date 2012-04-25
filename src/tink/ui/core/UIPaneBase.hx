@@ -1,6 +1,7 @@
 package tink.ui.core;
 
 import flash.display.Sprite;
+import flash.display.DisplayObject;
 import flash.filters.DropShadowFilter;
 import tink.ui.style.Style;
 
@@ -11,16 +12,34 @@ using tink.reactive.bindings.BindingTools;
  * @author back2dos
  */
 
-
-class UIPaneBase<S:PaneStyle> extends UIComponent<Sprite, S> {
+class ResizableComponent<V:DisplayObject, S:ResizableStyle> extends UIComponent<V, S> {
+	function new(view, style) {
+		super(view, style);
+	}
+	override function calcHMin() return calcMin(style.width)
+	override function calcVMin() return calcMin(style.height)
+	
+	override function calcHWeight() return calcWeight(style.width)
+	override function calcVWeight() return calcWeight(style.height)
+	
+	function calcMin(size:Size)
+		return switch (size) {
+			case Const(px): px;
+			case Rel(_): .0;
+		}
+	
+	function calcWeight(size:Size)
+		return switch (size) {
+			case Const(_): .0;
+			case Rel(weight): weight;
+		}
+}
+class UIPaneBase<S:PaneStyle> extends ResizableComponent<Sprite, S> {
 	function new(style) {
 		super(new Sprite(), style);
 		function updateSkin(_) uponRender(doRender);
 		updateSkin.bindExpr(style.skin);
-	}
-	
-	override function calcHWeight() return 1.0		
-	override function calcVWeight() return 1.0
+	}	
 	
 	override function redraw(width:Float, height:Float) {
 		style.skin.draw(view, width, height);
