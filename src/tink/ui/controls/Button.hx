@@ -77,18 +77,7 @@ class ButtonStyle implements Style, implements Cls {
 		normal.over = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
 		normal.down = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
 		normal.disabled = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .5));
-		//function rect(index) return new Rectangle(0, 22 * index, 100, 22);
-		//function grid(index) {
-			//var ret = rect(index);
-			//ret.inflate( -6, -6);
-			//return ret;
-		//}
-		//normal.up = Skin.Bitmap(TEXTURE, rect(0), grid(0));
-		//normal.over = Skin.Bitmap(TEXTURE, rect(1), grid(1));
-		//normal.down = Skin.Bitmap(TEXTURE, rect(2), grid(2));
-		//normal.disabled = Skin.Bitmap(TEXTURE, rect(3), grid(3));
 	}
-	//static var TEXTURE = new MyFile();
 }
 class FlashBehavior {
 	static public function wire(s:Sprite, click, down, drag, up, setState) {
@@ -118,6 +107,7 @@ class FlashBehavior {
 		});
 		s.buttonMode = true;
 		s.mouseChildren = false;
+		s.tabEnabled = false;
 	}
 }
 class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {

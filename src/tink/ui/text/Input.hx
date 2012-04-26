@@ -32,7 +32,7 @@ class InputStyle extends ComponentStyle {
 		2
 	);
 	@:bindable var fontFamily = '_sans';
-	@:bindable var fontSize = 12;
+	@:bindable var fontSize = 12.0;
 	@:bindable var textColor = 0x000000;
 }
  
@@ -71,6 +71,7 @@ class Input extends UIComponent<Sprite, InputStyle> {
 	override function calcHMin() return ResizableComponent.calcMin(style.width)
 	override function calcHWeight() return ResizableComponent.calcWeight(style.width)
 	override function calcVMin() {
+		curFormat;
 		return tf.getLineMetrics(0).height + 4;//I just love good apis
 	}
 	override function redraw(width, height) {
