@@ -14,7 +14,7 @@ class ClassBuilder {
 	}
 	static function noBindings(ctx:ClassBuildContext) {
 		#if debug
-			var bindable = [':bindable', ':cache'];
+			var bindable = [':bindable', ':cache', ':signal'];
 			for (m in ctx.members)
 				for (tag in bindable)
 					switch (m.extractMeta(tag)) {
@@ -30,10 +30,11 @@ class ClassBuilder {
 			Forward.process,
 			PropBuilder.process,
 			#if tink_reactive //probably shouldn't be here but it's very convenient for now
-				tink.reactive.bindings.macros.BindableProperties.make
+				tink.reactive.bindings.macros.BindableProperties.make,
+				tink.reactive.signals.macros.SignalBuilder.make
 			#else
 				noBindings
-			#end,
+			#end
 		];	
 	#end
 }
