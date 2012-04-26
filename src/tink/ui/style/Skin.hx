@@ -3,7 +3,19 @@ import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.Sprite;
 import flash.geom.Matrix;
+import flash.geom.Point;
+import flash.geom.Point;
+import flash.geom.Point;
+import flash.geom.Point;
+import flash.geom.Point;
 import flash.geom.Rectangle;
+import flash.geom.Rectangle;
+import flash.geom.Rectangle;
+import flash.geom.Rectangle;
+import flash.geom.Rectangle;
+import flash.geom.Rectangle;
+import flash.geom.Rectangle;
+import tink.devtools.Debug;
 
 /**
  * ...
@@ -12,14 +24,14 @@ import flash.geom.Rectangle;
 
 enum Skin {
 	None;
-	Draw(fill:DrawStyle, stroke:DrawStyle);
+	Draw(fill:DrawStyle, stroke:DrawStyle, ?thickness:Int, ?corner:Float);
+	Bitmap(sheet:BitmapData, source:Rectangle, grid:Rectangle);
 }
 
 enum DrawStyle {
 	Empty;
 	Plain(rgb:Int, alpha:Float);
 	Linear(colors:Array<Int>, alphas:Array<Dynamic>, ratios:Array<Dynamic>, angle:Float);
-	//Bitmap(sheet:BitmapData, source:Rectangle, scaleGrid:Rectangle);
 }
 
 class SkinTools {
@@ -28,17 +40,18 @@ class SkinTools {
 		g.clear();
 		switch (skin) {
 			case None:
-			case Draw(fill, stroke):
+			case Draw(fill, stroke, thickness, corner):
+				if (thickness == null) thickness = 1;
 				var margin = 
 					switch (stroke) {
 						case Plain(rgb, alpha): 
 							doFill(g, rgb, alpha);
-							g.drawRect(0, 0, w, h);
-							1;
+							g.drawRoundRect(0, 0, w, h, corner * 2);
+							thickness;
 						case Linear(colors, alphas, ratios, angle):
 							doLinear(g, colors, alphas, ratios, angle, w, h);
-							g.drawRect(0, 0, w, h);
-							1;
+							g.drawRoundRect(0, 0, w, h, corner * 2);
+							thickness;
 						case Empty: 0;
 					}
 				switch (fill) {
@@ -47,9 +60,56 @@ class SkinTools {
 						doLinear(g, colors, alphas, ratios, angle, w, h);
 					case Empty:
 				}
-				g.drawRect(margin, margin, w - 2 * margin, h - 2 * margin);
+				
+				g.drawRoundRect(margin, margin, w - 2 * margin, h - 2 * margin, Math.max(0, (corner - margin) * 2));
+			case Bitmap(sheet, source, grid):
+				//S - source, T - target, t - top, l - left, b - bottom, r - right
+				var tlS = rect(source.left, source.top, grid.left, grid.top);
+				var tlT = rect(0, 0, tlS.width, tlS.height);
+					drawTexture(g, sheet, tlS, tlT);
+				var trS = rect(grid.right, source.top, source.right, grid.top);
+				var trT = rect(w - trS.width, 0, w, trS.height); 
+					drawTexture(g, sheet, trS, trT);
+				var blS = rect(source.left, grid.bottom, grid.left, source.bottom);
+				var blT = rect(0, h - blS.height, blS.width, h);
+					drawTexture(g, sheet, blS, blT);
+				var brS = rect(grid.right, grid.bottom, source.right, source.bottom);
+				var brT = rect(trT.left, blT.top, trT.right, blT.bottom);
+					drawTexture(g, sheet, brS, brT);
+				
+				var tS = rect(tlS.right, tlS.top, trS.left, trS.bottom);
+				var tT = rect(tlT.right, tlT.top, trT.left, trT.bottom);
+					drawTexture(g, sheet, tS, tT);
+				var bS = rect(blS.right, blS.top, brS.left, brS.bottom);
+				var bT = rect(blT.right, blT.top, brT.left, brT.bottom);
+					drawTexture(g, sheet, bS, bT);
+				var lS = rect(tlS.left, tlS.bottom, blS.right, blS.top);
+				var lT = rect(tlT.left, tlT.bottom, tlT.right, blT.top);
+					drawTexture(g, sheet, lS, lT);
+				var rS = rect(trS.left, trS.bottom, brS.right, brS.top);
+				var rT = rect(trT.left, trT.bottom, brT.right, brT.top);
+					drawTexture(g, sheet, rS, rT);
+				
+				var cS = rect(tlS.right, tlS.bottom, brS.left, brS.top);
+				var cT = rect(tlT.right, tlT.bottom, brT.left, brT.top);
+					drawTexture(g, sheet, cS, cT);				
 		}
 	}
+	static inline function drawTexture(g:Graphics, sheet:BitmapData, source:Rectangle, target:Rectangle) {
+		g.beginBitmapFill(sheet, fromTo(source, target));
+		g.drawRect(target.x, target.y, target.width, target.height);		
+	}
+	static inline function fromTo(source:Rectangle, target:Rectangle) {
+		var m = new Matrix();
+		m.translate(-source.x, -source.y);
+		m.scale(target.width / source.width, target.height / source.height);
+		m.translate(target.x, target.y);
+		return m;
+	}
+	static inline function rect(left:Float, top:Float, right:Float, bottom:Float) {
+		return new Rectangle(left, top, right - left, bottom - top);
+	}
+	
 	static function doLinear(g:Graphics, colors, alphas, ratios, angle, w, h) {
 		var m = new Matrix();
 		m.createGradientBox(w, h, angle, 0, 0);

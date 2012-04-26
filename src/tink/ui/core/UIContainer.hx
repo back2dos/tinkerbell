@@ -34,7 +34,10 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 		view.removeChild(child.getView());
 		children.remove(child);
 	}
-	function getMin(h) return getChildMetrics().min(isLong(h), h, style.spacing)
+	function getMin(h) {
+		for (c in children) c.getMetrics().getAlign(h);
+		return getChildMetrics().min(isLong(h), h, style.spacing);
+	}
 	
 	override function calcHMin() 
 		return Math.max(super.calcHMin(), style.paddingLeft + style.paddingRight + getMin(true))

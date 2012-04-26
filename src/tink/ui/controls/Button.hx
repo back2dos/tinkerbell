@@ -1,5 +1,7 @@
 package tink.ui.controls;
 
+import flash.geom.Rectangle;
+import flash.geom.Rectangle;
 import tink.lang.Cls;
 import tink.ui.style.Skin;
 import tink.ui.style.Flow;
@@ -60,7 +62,6 @@ class States<T> implements Cls {
 		return ret.or(fallback(state));
 	}
 }
-
 class ButtonStyle implements Style, implements Cls {
 	@:read var normal = new States<Skin>();
 	@:read var selected:States<Skin> = new States(normal);
@@ -71,13 +72,23 @@ class ButtonStyle implements Style, implements Cls {
 	public function new(container, label) {
 		this.container = container;
 		this.label = label;
-		//this.marginLeft = this.marginRight = this.marginTop = this.marginBottom = 10;
-		
+		container.paddingLeft = container.paddingRight = container.paddingTop = container.paddingBottom = 5;
 		normal.up = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
 		normal.over = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
-		normal.down = Skin.Draw(Plain(0xF8F8F8, 1), Plain(0, .25));
-		normal.disabled = Skin.Draw(Plain(0xF0F0F0, 1), Empty);
+		normal.down = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
+		normal.disabled = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .5));
+		//function rect(index) return new Rectangle(0, 22 * index, 100, 22);
+		//function grid(index) {
+			//var ret = rect(index);
+			//ret.inflate( -6, -6);
+			//return ret;
+		//}
+		//normal.up = Skin.Bitmap(TEXTURE, rect(0), grid(0));
+		//normal.over = Skin.Bitmap(TEXTURE, rect(1), grid(1));
+		//normal.down = Skin.Bitmap(TEXTURE, rect(2), grid(2));
+		//normal.disabled = Skin.Bitmap(TEXTURE, rect(3), grid(3));
 	}
+	//static var TEXTURE = new MyFile();
 }
 
 class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {

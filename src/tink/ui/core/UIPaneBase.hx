@@ -3,6 +3,7 @@ package tink.ui.core;
 import flash.display.Sprite;
 import flash.display.DisplayObject;
 import flash.filters.DropShadowFilter;
+import tink.ui.style.Skin;
 import tink.ui.style.Style;
 
 using tink.ui.style.Skin;
@@ -22,13 +23,13 @@ class ResizableComponent<V:DisplayObject, S:ResizableStyle> extends UIComponent<
 	override function calcHWeight() return calcWeight(style.width)
 	override function calcVWeight() return calcWeight(style.height)
 	
-	function calcMin(size:Size)
+	static public function calcMin(size:Size)
 		return switch (size) {
 			case Const(px): px;
 			case Rel(_): .0;
 		}
 	
-	function calcWeight(size:Size)
+	static public function calcWeight(size:Size)
 		return switch (size) {
 			case Const(_): .0;
 			case Rel(weight): weight;
@@ -40,7 +41,6 @@ class UIPaneBase<S:PaneStyle> extends ResizableComponent<Sprite, S> {
 		function updateSkin(_) uponRender(doRender);
 		updateSkin.bindExpr(style.skin);
 	}	
-	
 	override function redraw(width:Float, height:Float) {
 		style.skin.draw(view, width, height);
 	}

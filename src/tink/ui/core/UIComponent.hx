@@ -70,9 +70,12 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 		}
 	}
 	function setDim(h:Bool, dim:Float) {
+		var changed = h ? width != dim : height != dim;//not pretty but good enough
 		if (h) width = dim;
 		else height = dim;
-		uponRender(doRender);
+		
+		if (changed)
+			uponRender(doRender);
 	}
 	
 	inline function uponRender(f) 
