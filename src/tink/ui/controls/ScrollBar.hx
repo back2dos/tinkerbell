@@ -85,6 +85,8 @@ class ScrollBar extends UIComponent<Sprite, ScrollBarStyle>, implements Cls {
 		style.track.down = 		Skin.Draw(Plain(0xB8B8B8, 1), Plain(0, .25));
 		style.track.disabled = 	Skin.Draw(Plain(0xB0B0B0, 1), Empty);
 		
+		wireSignals();
+		
 		var thumbStyle = thumb.style;
 		var self = this;
 		
@@ -92,6 +94,21 @@ class ScrollBar extends UIComponent<Sprite, ScrollBarStyle>, implements Cls {
 		thumbStyle.height.bindExpr(Rel(self.style.horizontal ? 1 : self.percentage));
 		thumbStyle.hAlign.bindExpr(self.position);
 		thumbStyle.vAlign.bindExpr(self.position);
+	}
+	function wireSignals() {
+		function normalize(x:Float, y:Float)
+			return 
+				if (style.horizontal) x / (track.getView().width - thumb.getView().width);
+				else y / (track.getView().height - thumb.getView().height);
+		function sign(x:Float) 
+			return x > 0 ? 1 : -1;		
+			
+		thumb.drag.watch(function (p) {
+			position += normalize(p.dx, p.dy);
+		});	
+		track.down.watch(function (p) {
+			position += percentage * sign(normalize(p.x, p.y) - position);
+		});
 	}
 
 	override function getMetrics() 

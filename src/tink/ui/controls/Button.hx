@@ -73,8 +73,8 @@ class ButtonStyle implements Style, implements Cls {
 		this.container = container;
 		this.label = label;
 		container.paddingLeft = container.paddingRight = container.paddingTop = container.paddingBottom = 5;
-		normal.up = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
-		normal.over = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
+		normal.up = Skin.Draw(Plain(0xE0E0E0, 1), Plain(0, .25));
+		normal.over = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
 		normal.down = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));
 		normal.disabled = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .5));
 		//function rect(index) return new Rectangle(0, 22 * index, 100, 22);
@@ -90,24 +90,56 @@ class ButtonStyle implements Style, implements Cls {
 	}
 	//static var TEXTURE = new MyFile();
 }
-
+class FlashBehavior {
+	static public function wire(s:Sprite, click, down, drag, up, setState) {
+		s.addEventListener(MouseEvent.CLICK, function (e:MouseEvent) click.fire( { x:s.mouseX, y:s.mouseY } ));
+		s.addEventListener(MouseEvent.ROLL_OVER, function (e:MouseEvent) if (!e.buttonDown) setState(Over));
+		s.addEventListener(MouseEvent.ROLL_OUT, function (e:MouseEvent) if (!e.buttonDown) setState(Up));
+		s.addEventListener(MouseEvent.MOUSE_DOWN, function (e:MouseEvent) {
+			var stage = s.stage;
+			var x0 = stage.mouseX, 
+				y0 = stage.mouseY;
+			function handleDrag(_) {
+				drag.fire( { dx: stage.mouseX - x0, dy: stage.mouseY - y0 } );
+				x0 = stage.mouseX;
+				y0 = stage.mouseY;
+			}
+			down.fire( { x:s.mouseX, y:s.mouseY } );
+			stage.addEventListener(MouseEvent.MOUSE_MOVE, handleDrag);
+			function handleUp(e) {
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleDrag);
+				stage.removeEventListener(MouseEvent.MOUSE_UP, handleUp);
+				var inside = s.hitTestPoint(stage.mouseX, stage.mouseY);
+				setState(inside ? Over : Up);
+				up.fire( { x:s.mouseX, y:s.mouseY, inside: inside } );
+			}
+			stage.addEventListener(MouseEvent.MOUSE_UP, handleUp);
+			setState(Down);
+		});
+		s.buttonMode = true;
+		s.mouseChildren = false;
+	}
+}
 class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	var label = new Label();
 	var container = new UIContainer();
 	
 	@:prop(updateCaption(param)) var caption:String;
+	
 	@:bindable var enabled = true;
 	@:bindable var selected = false;
 	@:bindable private var state = Up;
+	
+	@:signal var click:{ x:Float, y:Float };
+	@:signal var down:{ x:Float, y:Float };
+	@:signal var drag:{ dx:Float, dy:Float };
+	@:signal var up:{ x:Float, y:Float, inside:Bool };
 	
 	public function new() {
 		var s = cast(container.getView(), Sprite);
 		super(s, new ButtonStyle(container.style, label.style));
 		
-		s.addEventListener(MouseEvent.ROLL_OVER, function (e) state = e.buttonDown ? Down : Over);
-		s.addEventListener(MouseEvent.ROLL_OUT, function (_) state = Up);
-		s.addEventListener(MouseEvent.MOUSE_DOWN, function (_) state = Down);
-		s.addEventListener(MouseEvent.MOUSE_UP, function (_) state = Over);
+		FlashBehavior.wire(s, _click, _down, _drag, _up, set_state);
 		
 		bindSkin();
 	}

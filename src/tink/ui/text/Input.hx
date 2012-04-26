@@ -48,10 +48,8 @@ class Input extends UIComponent<Sprite, InputStyle> {
 	public function new() {
 		super(new Sprite(), new InputStyle());
 		view.addChild(tf);
-		//tf.background = true;
 		tf.multiline = false;
 		tf.type = TextFieldType.INPUT;
-		//tf.defaultTextFormat = new TextFormat('_sans', 12);
 		tf.addEventListener(Event.CHANGE, function (_) {
 			bindings.fire('text');
 		});
