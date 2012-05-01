@@ -9,14 +9,7 @@ import tink.util.Embed;
  * @author back2dos
  */
 class SpeedTest {
-	static inline function ageGroup(user) 
-		return 
-			if (user.age > 18) 
-				'Grown-Up';
-			else if (user.age <= 2) 
-				'Baby';
-			else 
-				'Young'
+	
 
 	static public function run(?count = 10000) {
         var town = new Town("Paris");
@@ -25,11 +18,11 @@ class SpeedTest {
         town.addUser( new User("Julie",15) );
         town.addUser( new User("Akambo", 2) );
 		
-		var r = Benchmark.measure('tink', Build.fast(
+		var r = Benchmark.measure('tink fast', Build.fast(
 			$div(
 				'The habitants of ${$em < town.name} are:',
 				$ul < for (u in town.users) 
-					$li('${u.name} ${ageGroup(u)}')
+					$li('${u.name} ', (u.age > 18) ? 'Grown-Up' : (u.age <= 2) ? 'Baby' : 'Young')
 			)
 		).toString(), count);
 		#if neko
@@ -47,6 +40,15 @@ class SpeedTest {
 		var r = Benchmark.measure('hx', {
 			t.execute(town);
 		}, count);
+		
+		var r = Benchmark.measure('tink xml', Build.xml(
+			$div(
+				'The habitants of ${$em < town.name} are:',
+				$ul < for (u in town.users) 
+					$li('${u.name} ', (u.age > 18) ? 'Grown-Up' : (u.age <= 2) ? 'Baby' : 'Young')
+			)
+		).toString(), count);				
+		
 		#if erazor
 			var s = Embed.stringFromFile('tpl.ezt');
 			var t = new erazor.Template(s);
