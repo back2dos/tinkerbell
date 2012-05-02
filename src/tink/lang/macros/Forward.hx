@@ -195,7 +195,7 @@ class Forward {
 			var pos = target.pos;
 			if (!isAccessible(read, true)) 
 				pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
-			addField(Member.prop(name, t, pos, !isAccessible(write, false)));
+			addField(Member.prop(name, t, pos, false, !isAccessible(write, false)));
 			addField(Member.getter(name, pos, target.field(name, pos), t));
 			if (isAccessible(write, false))
 				addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
