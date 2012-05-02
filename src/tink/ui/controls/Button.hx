@@ -62,6 +62,7 @@ class States<T> implements Cls {
 		return ret.or(fallback(state));
 	}
 }
+
 class ButtonStyle implements Style, implements Cls {
 	@:read var normal = new States<Skin>();
 	@:read var selected:States<Skin> = new States(normal);
@@ -72,7 +73,9 @@ class ButtonStyle implements Style, implements Cls {
 	public function new(container, label) {
 		this.container = container;
 		this.label = label;
-		container.paddingLeft = container.paddingRight = container.paddingTop = container.paddingBottom = 5;
+		
+		container.padding.all = [5.0];
+		
 		normal.up = Skin.Draw(Plain(0xE0E0E0, 1), Plain(0, .25));
 		normal.over = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0, .25));
 		normal.down = Skin.Draw(Plain(0xF0F0F0, 1), Plain(0, .25));

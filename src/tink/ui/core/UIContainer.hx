@@ -40,10 +40,10 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 	}
 	
 	override function calcHMin() 
-		return Math.max(super.calcHMin(), style.paddingLeft + style.paddingRight + getMin(true))
+		return Math.max(super.calcHMin(), style.padding.left + style.padding.right + getMin(true))
 		
 	override function calcVMin() 
-		return Math.max(super.calcVMin(), style.paddingTop + style.paddingBottom + getMin(false))
+		return Math.max(super.calcVMin(), style.padding.top + style.padding.bottom + getMin(false))
 	
 	function getChildMetrics():Iterable<Metrics> {
 		return {
@@ -66,8 +66,8 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 	}
 	override function setDim(h:Bool, dim:Float) {
 		super.setDim(h, dim);
-		var offset = h ? style.paddingLeft : style.paddingTop;
-		dim -= h ? (style.paddingLeft + style.paddingRight + hMargin()) : (style.paddingTop + style.paddingBottom + vMargin());
+		var offset = h ? style.padding.left : style.padding.top;
+		dim -= h ? (style.padding.left + style.padding.right + hMargin()) : (style.padding.top + style.padding.bottom + vMargin());
 		getChildMetrics().arrange(h, isLong(h), offset , dim, style.spacing);
 	}
 }

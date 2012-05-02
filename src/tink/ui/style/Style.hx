@@ -16,6 +16,24 @@ interface Style {
 	var hAlign(dynamic, null):Float;
 	var vAlign(dynamic, null):Float;
 }
+class Frame implements Cls {
+	@:bindable var top = .0;
+	@:bindable var left = .0;
+	@:bindable var bottom = .0;
+	@:bindable var right = .0;
+	@:prop([top, right, bottom, left], expand(param)) var all:Array<Float>;
+	public function new() {}
+	function expand(a:Array<Float>) {		
+		switch (a.length) {
+			case 1: top = left = bottom = right = a[0];
+			case 2: top = bottom = a[0]; right = left = a[1];
+			case 3: top = a[0]; right = left = a[1]; bottom = a[2];
+			case 4: top = a[0]; right = a[1]; bottom = a[2]; left = a[3];
+			default: throw 'invalid number of values: ' + a.length;
+		}
+		return a;
+	}
+}
 class ComponentStyle implements Cls, implements Style {
 	@:bindable var marginLeft = .0;
 	@:bindable var marginTop = .0;
@@ -23,7 +41,7 @@ class ComponentStyle implements Cls, implements Style {
 	@:bindable var marginRight = .0;
 	@:bindable var hAlign = .5;
 	@:bindable var vAlign = .5;
-	public function new() {}	
+	public function new() { }
 }
 enum Size {
 	Const(pt:Float);
@@ -40,10 +58,11 @@ class PaneStyle extends ResizableStyle {
 	);
 }
 class ContainerStyle extends PaneStyle {
-	@:bindable var paddingLeft = .0;
-	@:bindable var paddingTop = .0;
-	@:bindable var paddingBottom = .0;
-	@:bindable var paddingRight = .0;
+	//@:bindable var paddingLeft = .0;
+	//@:bindable var paddingTop = .0;
+	//@:bindable var paddingBottom = .0;
+	//@:bindable var paddingRight = .0;
+	@:read var padding = new Frame();
 	@:bindable var spacing = .0;
 	@:bindable var flow = Flow.Down;
 }
