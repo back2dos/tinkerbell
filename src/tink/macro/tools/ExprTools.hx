@@ -134,24 +134,26 @@ class ExprTools {
 				var newCases = [];
 				for (c in cases)
 				{
+					var newValues:Array<Expr> = [];
 					for (v in c.values)
+						newValues.push(v.rec());
+					
+					switch(newValues[0].expr)
 					{
-						switch(v.expr)
-						{
-							case ECall(i, params):
-								switch(Context.typeof(i))
-								{
-									case TFun(args, ret):
-										var innerCtx = ctx.copy();
-										for (arg in 0...args.length)
-										{
-											innerCtx.push( { name:params[arg].getName().sure(), type: args[arg].t.toComplex(), expr: null } );
-										}
-										newCases.push({expr:c.expr.rec(innerCtx), values:c.values});
-									default: return Context.error("Internal error: " +v.expr, i.pos);
-								}
-							default: newCases.push({expr:c.expr.rec(), values:c.values});
-						}
+						case ECall(i, params):
+							var t = Context.typeof(i);
+							switch(t)
+							{
+								case TFun(args, ret):
+									var innerCtx = ctx.copy();
+									for (arg in 0...args.length)
+									{
+										innerCtx.push( { name:params[arg].getName().sure(), type: args[arg].t.toComplex(), expr: null } );
+									}
+									newCases.push({expr:c.expr.rec(innerCtx), values:newValues});
+								default: return Context.error("Expected function but found " +t, i.pos);
+							}
+						default: newCases.push( { expr:c.expr.rec(), values:c.values } );
 					}
 				}
 				ESwitch(expr.rec(), newCases, def.rec());
