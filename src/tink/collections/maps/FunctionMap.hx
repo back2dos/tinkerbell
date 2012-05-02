@@ -32,7 +32,7 @@ package tink.collections.maps;
 		}
 	}	
 #else
-	//TODO: optimize for both neko and c++ - depends on the ability do decompose a method closure to it's components
+	//TODO: optimize for both neko and c++ - depends on the ability do decompose a method closure to it's components or have another way to get a unique ID for method closures
 	class FunctionMap < K, V > extends tink.collections.maps.abstract.KVPairMap < K, V > {
 		override function equals(k1:K, k2:K):Bool {
 			return Reflect.compareMethods(k1, k2);
