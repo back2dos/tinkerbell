@@ -35,13 +35,15 @@ class Constructor {
 					}
 		}
 	}
-	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool) {
+	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool, ?t:ComplexType) {
 		if (e == null) {
 			e = name.resolve(pos);
 			args.push( { name : name, opt : def != null, type : null, value : def } );
 			if (isPublic == null) 
 				isPublic = true;
 		}
+		if (t != null)
+			e = ECheckType(e, t).at(e.pos);
 		var s = EUntyped('this'.resolve(pos)).at(pos).field(name, pos).assign(e, pos);
 			
 		if (prepend)

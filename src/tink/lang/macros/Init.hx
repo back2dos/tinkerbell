@@ -31,19 +31,19 @@ class Init {
 				switch (member.kind) {
 					case FVar(t, e):
 						if (e != null) {
-							member.kind = FVar(getType(t, e));
-							initMember(member, e);
+							member.kind = FVar(t = getType(t, e));
+							initMember(member, t, e);
 						}
 					case FProp(get, set, t, e):
 						if (e != null) {
-							member.kind = FProp(get, set, getType(t, e));
-							initMember(member, e);
+							member.kind = FProp(get, set, t = getType(t, e));
+							initMember(member, t, e);
 						}						
 					default:
 				}
 		}
 	}
-	function initMember(member:Member, e:Expr) {
+	function initMember(member:Member, t:ComplexType, e:Expr) {
 		var init = null,
 			def = null;
 		if (!e.isWildcard())
@@ -51,6 +51,6 @@ class Init {
 				case EParenthesis(e): def = e;
 				default: init = e;
 			}
-		this.constructor.init(member.name, e.pos, init, def);		
+		this.constructor.init(member.name, e.pos, init, def, t);		
 	}
 }
