@@ -92,7 +92,6 @@ class MetricsTools {
 			sizes = new ObjectMap(),
 			weight = .0;
 		function setSize(m:Metrics, size:Float) {
-			size = Math.ceil(size);
 			m.updateDim(h, size);
 			sizes.set(m, size);
 			total -= size;
