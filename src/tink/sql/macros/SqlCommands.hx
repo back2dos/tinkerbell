@@ -17,54 +17,20 @@ using tink.sql.macros.SqlBuilder;
 
 typedef SqlSelect = {
 	from:{ expr:Expr, desc:SqlTableDesc },
-	join:Array<SqlJoin>,
-	?values:Array<Expr>,
+	ctx:SqlContext,
+	?values:Array<{ name:String, ?from:String, expr:SqlExpr }>,
 	?where:Array<Expr>,
 	?order:Array<Expr>,
 	?range:{ count:Int, offset:Null<Int> }
 }
 
-typedef SqlJoin = {
-	
-}
-
 class SqlCommands {
-	static function getType(s:SqlExpr, table:SqlTableDesc):Type {
-		return
-			switch (s.expr) {
-				case SqlField(name, tName):
-					if (tName != null) s.pos.error('not implemented');
-					if (table.hasField(name)) 
-						table.field(name).type;
-					else s.pos.error('unknown field ' + name);
-					
-				case SqlParam(e): 
-					e.typeof().sure();
-				case SqlIn(_, _): 
-					s.pos.error('not implemented');
-				case SqlBin(op, e1, e2):
-					s.pos.error('not implemented');
-			}	
-	}
-	static function getName(s:SqlExpr, table:SqlTableDesc) {
-		return
-			switch (s.expr) {
-				case SqlField(name, _): name;
-				default: s.pos.error('only plain fields can be selected for now');
-			}
-	}
-	static function getTypeAndName(s:SqlExpr, table:SqlTableDesc) {
-		return {
-			type: getType(s, table),
-			name: getName(s, table)
-		};
-	}
 	static public function select(cmd:SqlSelect, maker:Expr->Expr->ComplexType->Expr):Expr {
-		if (cmd.join.length > 0)
-			cmd.join[0][0].pos.error('joins not implemented yet');
+		//if (cmd.join.length > 0)
+			//Context.currentPos().error('joins not implemented yet');
 		
-		var desc = cmd.from.desc,
-			joiners = new Hash();//TODO: cleanup
+		var table = cmd.from.desc,
+			ctx = cmd.ctx;
 			
 		var cnx = String.tempName(),
 			buf = String.tempName();
@@ -84,7 +50,7 @@ class SqlCommands {
 		var retType = 
 			if (cmd.values == null || cmd.values.length == 0) {
 				out('*');
-				desc.cType;
+				table.cType;
 			}
 			else {
 				var first = true;
@@ -92,20 +58,20 @@ class SqlCommands {
 				for (v in cmd.values) {
 					if (first) first = false;
 					else out(', ');
-					var sql = v.toSqlExpr(desc, joiners);
-					var field = getTypeAndName(sql, desc);
-					fields.push( { name: field.name, doc:null, access:[], kind:FVar(field.type.toComplex()), pos: v.pos, meta: [] } );
-					ret.push(sql.toSqlString(cnx, buf));
+					//var sql = v.toSqlExpr(ctx);
+					//var fieldName = getName(sql, ctx);
+					fields.push( { name: v.name, doc:null, access:[], kind:FVar(v.expr.type.toComplex()), pos: v.expr.pos, meta: [] } );
+					ret.push(v.expr.toSqlString(cnx, buf));
 				}
 				ComplexType.TAnonymous(fields);
 			}
 			
-		out(' FROM ' + desc.name);	
+		out(' FROM ' + table.name);	
 		out(' WHERE ');
-		ret.push(cmd.where.whereClause(desc).toSqlString(cnx, buf));
+		ret.push(cmd.where.whereClause(ctx).toSqlString(cnx, buf));
 		
 		ret.push(maker(cnx, AST.build($buf.toString()), retType));
-		return ret.toBlock();
+		return ret.toBlock().log();
 	}
 	static public function insert(table:Expr, params:Expr):Expr {
 		var info = SqlTableDesc.fromExpr(table);

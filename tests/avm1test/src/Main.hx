@@ -1,4 +1,5 @@
 package ;
+import tink.markup.Build;
 
 /**
  * ...
@@ -8,7 +9,9 @@ package ;
 class Main {
 	
 	static function main() {
-		TestAll.run();
+		//TestAll.run();
+		//Build.fast($foo);
+		markup.SpeedTest.run(5000);
 	}
 	
 }

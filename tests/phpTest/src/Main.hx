@@ -7,6 +7,7 @@ package ;
 
 class Main {
 	static function main() {
-		TestAll.run();
+		//TestAll.run();
+		markup.SpeedTest.run(2000);
 	}
 }

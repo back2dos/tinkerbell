@@ -35,13 +35,13 @@ class DBBuild {
 							
 							var name = m.name;//TODO: allow table renaming
 							
-							t = 'tink.sql.Table'.asTypePath([
+							t = 'tink.sql.Table'.asComplexType([
 								TPType(Context.getLocalType().toComplex()),
 								TPType(TAnonymous([field(name, t, m.pos)]))
 							]);
 							
 							m.kind = FProp('default', 'null', t, null);
-							m.isPublic = true;
+							m.publish();
 							
 							
 							var t = {

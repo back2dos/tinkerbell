@@ -2,3 +2,10 @@
 /tests/avm1test/bin/avm1test.swf
 /tests/avm2test/bin/avm2test.swf
 /tests/nekoTest/bin/nekoTest.n
+/tests/cppTest/bin/Main-debug.exe
+/tests/cppTest/bin/Main.exe
+/tests/cppTest/bin/Main-debug.exp
+/tests/cppTest/bin/Main.exp
+/tests/cppTest/bin/Main.lib
+/tests/cppTest/bin/vc100.pdb
+/tests/cppTest/bin/Main-debug.pdb

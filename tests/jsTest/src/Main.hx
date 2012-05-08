@@ -1,7 +1,10 @@
 package ;
 
 class Main {
+	function new() {}
+	function foo() {}
 	static function main() {
-		TestAll.run();
+		var m = new Main();
+		var f = m.foo;
 	}
 }

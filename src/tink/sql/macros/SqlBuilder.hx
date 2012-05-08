@@ -19,7 +19,6 @@ using Lambda;
  */
 
 
-
 class SqlBuilder {
 	static var hx2sql:Hash<SqlBinop>; 
 	static var sql2string:Hash<String>;
@@ -33,58 +32,46 @@ class SqlBuilder {
 			sql2string.set(f, a[0]);
 		}
 	}
-
-	static function buildWhereClause(exprs:Array<Expr>, table):SqlExpr {
+	static public function selectClause(exprs:Array<Expr>, ctx:SqlContext) {
+		var ret:Array<{name:String, expr:SqlExpr, ?from:String }> = [];
+		for (e in exprs) {
+			var sql = toSqlExpr(e, ctx);
+			var name = 
+				switch (sql.expr) {
+					case SqlField(name, table): ret.push( { name: name, expr:sql, from: table } );
+					case SqlAlias(name, _): ret.push( { name: name, expr:sql } );
+					default: sql.pos.error('only plain fields can be selected for now');
+				}
+		}
+		return ret;
+	}
+	static public function whereClause(exprs:Array<Expr>, ctx:SqlContext):SqlExpr { 
 		return
 			if (exprs == null || exprs.length == 0) { expr: SqlParam(1.toExpr()), pos:Context.currentPos(), type: true.toExpr().typeof().sure() };
 			else {
 				var ret = exprs.shift();
 				for (e in exprs)
 					ret = ret.binOp(e, OpAnd, e.pos);
-				toSqlExpr(ret, table, null);
-			}		
+				toSqlExpr(ret, ctx);
+			}	
 	}
-	//static function checkClause(clause:SqlExpr, table:Hash<ClassField>) {
-		//return
-			//switch (clause.expr) {
-				//case SqlField(name, tName):
-					//if (tName != null) clause.pos.error('not supported');
-					//if (table.exists(name)) 
-						//table.get(name).type;
-					//else
-						//clause.pos.error('unknown field ' + name);
-				//case SqlParam(e):
-					//e.typeof().sure();
-				//case SqlBin(op, e1, e2):
-					//var t1 = checkClause(e1, table),
-						//t2 = checkClause(e2, table);
-					//Type.TDynamic(null);
-				//default: 
-					//clause.pos.error('not supported');
-			//}
-	//}
-	static public function whereClause(exprs:Array<Expr>, table:SqlTableDesc):SqlExpr { 
-		var clause = buildWhereClause(exprs, table);
-		//checkClause(clause, table);
-		return clause;
-	}
-	static public function toSqlExpr(e:Expr, table:SqlTableDesc, tables:Hash<SqlTableDesc>):SqlExpr {
+	static public function toSqlExpr(e:Expr, ctx:SqlContext):SqlExpr {
 		function rec(x) 
-			return toSqlExpr(x, table, tables);
+			return toSqlExpr(x, ctx);
 		function make(x, t):SqlExpr
 			return { expr: x, type:t, pos: e.pos };
 			
 		return
 			if (e == null) null;
-			switch (e.typeof()) {
+			else switch (e.typeof()) {
 				case Success(t): make(SqlParam(e), t);
 				case Failure(f):
 					switch (e.getIdent()) {
 						case Success(s): 
 							if (s.charAt(0) == '$') {
 								var name = s.substr(1);
-								if (table.hasField(name))
-									make(SqlField(name), table.field(name).type);
+								if (ctx.first.hasField(name))
+									make(SqlField(name), ctx.first.field(name).type);
 								else
 									e.reject('unknown field ' + name);
 							}
@@ -92,6 +79,7 @@ class SqlBuilder {
 								f.throwSelf();
 						default: 
 							switch (e.expr) {
+								case EDisplay(e, _): rec(e);
 								case EBinop(op, e1, e2):
 									var name = Enums.enumConstructor(op);
 									if (hx2sql.exists(name)) {
@@ -117,8 +105,8 @@ class SqlBuilder {
 										case Success(s):
 											if (s.charAt(0) == '$') {
 												var tName = s.substr(1);
-												if (tables.exists(tName)) {
-													var table = tables.get(tName);
+												if (ctx.has(tName)) {
+													var table = ctx.table(tName);
 													if (table.hasField(field))
 														make(SqlField(field, tName), table.field(field).type);
 													else
@@ -158,6 +146,9 @@ class SqlBuilder {
 			buildSql(e, plain, esc);
 			
 		switch (e.expr) {
+			case SqlAlias(name, of):
+				rec(of);
+				plain(' AS ' + name);
 			case SqlField(name, table):
 				if (table == null) plain(name);
 				else plain(table + '.' + name);

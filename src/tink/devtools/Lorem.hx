@@ -7,6 +7,9 @@ package tink.devtools;
 
 
 class Lorem {
+	static public function html(?paragraphs = 3, ?sentences = 5, ?words = 10) {
+		return '<p>' + ipsum('</p><p>', paragraphs, sentences, words) + '</p>';
+	}
 	static public function ipsum(?sep = '\n', ?paragraphs = 3, ?sentences = 5, ?words = 10) {
 		return text.text(sep, paragraphs, sentences, words);
 	}

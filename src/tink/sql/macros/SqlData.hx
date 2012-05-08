@@ -1,12 +1,14 @@
 package tink.sql.macros;
 
+private typedef Enums = Type;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
-
+using tink.sql.macros.SqlBuilder;
 /**
  * ...
  * @author back2dos
@@ -35,6 +37,7 @@ typedef SqlExpr = {
 }
 
 enum SqlEDef {
+	SqlAlias(name:String, of:SqlExpr);
 	SqlField(name:String, ?table:String);
 	SqlParam(e:Expr);
 	SqlIn(e:SqlExpr, options:Array<SqlExpr>);
@@ -46,16 +49,12 @@ class SqlDatabaseDesc {
 	function new(type:Type) {
 		this.type = type;
 	}
-	private function init() {
+	function init() {
 		if (tables == null) {
 			tables = new Hash();	
 			for (f in type.getFields().sure()) 
-				if (f.type.getID() == 'tink.sql.Table') {
-					trace('found ' + f.name);
+				if (f.type.getID() == 'tink.sql.Table') 
 					this.tables.set(f.name, SqlTableDesc.get(f.type, f.pos));
-				}
-			for (t in this.tables)
-				trace('table ' + t.name);
 		}		
 	}
 	public function has(name:String) {
@@ -88,13 +87,14 @@ class SqlTableDesc {
 	function new(db:Type, tb:ClassField) { 
 		
 		this.name = tb.name;
-		trace('building info for ' + tb.name);
 		this.type = tb.type;
 		this.cType = tb.type.toComplex();
 		this.fieldList = tb.type.getFields().sure();
 		this.fieldMap = new Hash();
+		
 		for (f in this.fieldList)
 			this.fieldMap.set(f.name, f);
+		
 		this.db = SqlDatabaseDesc.get(db);
 	}
 	public inline function hasField(name:String) {
@@ -123,5 +123,61 @@ class SqlTableDesc {
 	}
 	static public function fromExpr(e:Expr) {
 		return get(e.typeof().sure(), e.pos);
+	}
+}
+enum SqlJoinKind {
+	LEFT;
+	RIGHT;
+	INNER;
+	NATURAL;
+}
+typedef SqlJoin = {
+	cond:SqlExpr,
+	kind:SqlJoinKind,
+	table:SqlTableDesc
+}
+class SqlContext {
+	public var first(default, null):SqlTableDesc;
+	var joins:Array<SqlJoin>;
+	var tableMap:Hash<SqlTableDesc>;
+	public function new(first:SqlTableDesc) {
+		this.first = first;
+		this.tableMap = new Hash();
+		this.tableMap.set(first.name, first);
+		this.joins = [];
+	}
+	public function has(name:String) {
+		return tableMap.exists(name);
+	}
+	public function table(name:String) {
+		return tableMap.get(name);
+	}
+	public function join(table:Expr, kind:Expr, on:Expr) {
+		var tName = table.getIdent().sure();
+		if (!first.db.has(tName))
+			table.reject('unknown table ' + tName);		
+		var table = first.db.table(tName);
+		var kindName = kind.ifNull('natural'.resolve()).getIdent().sure().toUpperCase();
+		var kind =
+			if (Enums.getEnumConstructs(SqlJoinKind).copy().remove(kindName))
+				Enums.createEnum(SqlJoinKind, kindName);
+			else
+				kind.reject('unknown join type ' + kindName);
+		tableMap.set(tName, table);
+		joins.push( {
+			cond: on.ifNull(1.toExpr()).toSqlExpr(this),
+			table: table,
+			kind: kind
+		});
+	}
+	public function joinClause(cnx:Expr, buf:Expr):Expr {
+		var ret = [];
+		
+		return ret.toBlock();
+	}
+	static public function from(table:Expr) {
+		var tDesc = SqlTableDesc.fromExpr(table);
+		var ret = new SqlContext(tDesc);
+		return ret;
 	}
 }

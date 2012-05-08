@@ -11,7 +11,7 @@
     <movie version="10" />
     <movie minorVersion="3" />
     <movie platform="Flash Player" />
-    <movie background="#808080" />
+    <movie background="#FFFFFF" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
@@ -31,9 +31,11 @@
   <haxelib>
     <library name="actuate" />
     <library name="feffects" />
+    <library name="erazor" />
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
+    <compile path="..\..\..\MinimalCompsHX\Source\Minimalcompshx.hx" />
     <compile path="src\Main.hx" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
