@@ -1,0 +1,8 @@
+-cp src
+-cp ../src
+-cp ../../src
+-swf bin/avm1test.swf
+-swf-header 800:600:30:FFFFFF
+-swf-version 8
+-D tink_reactive
+-main Main

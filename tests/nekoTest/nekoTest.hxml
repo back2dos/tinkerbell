@@ -1,0 +1,6 @@
+-cp src
+-cp ../../src
+-cp ../src
+-neko bin/nekoTest.n
+-D tink_reactive
+-main Main

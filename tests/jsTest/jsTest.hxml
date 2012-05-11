@@ -1,0 +1,7 @@
+-cp src
+-cp ../../src
+-cp ../src
+-js bin/jsTest.js
+-D tink_reactive
+-main Main
+--remap flash:jeash

@@ -1,0 +1,8 @@
+-cp src
+-cp ../src
+-cp ../../src
+-lib erazor
+-php bin
+-D tink_reactive
+-main Main
+--remap neko:php

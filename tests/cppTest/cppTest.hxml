@@ -1,0 +1,6 @@
+-cp src
+-cp ../src
+-cp ../../src
+-cpp bin
+-D tink_reactive
+-main Main
