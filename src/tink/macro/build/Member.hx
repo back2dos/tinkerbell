@@ -32,7 +32,7 @@ class Member {
 		this.meta = new Hash();
 		this.excluded = false;
 	}
-	public inline function publish() {
+	public inline function forceInline() {
 		this.isBound = true;
 		addMeta(':extern', pos);
 	}
