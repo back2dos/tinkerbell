@@ -33,6 +33,10 @@ class Member {
 		this.excluded = false;
 	}
 	public inline function publish() {
+		this.isBound = true;
+		addMeta(':extern', pos);
+	}
+	public inline function publish() {
 		if (isPublic == null) 
 			isPublic = true;
 	}
