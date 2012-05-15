@@ -31,9 +31,7 @@ class InputStyle extends ComponentStyle {
 		Linear([0x99AAFF, 0x8899DD, 0x7788CC, 0x6677BB], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7),
 		2
 	);
-	@:bindable var fontFamily = '_sans';
-	@:bindable var fontSize = 12.0;
-	@:bindable var textColor = 0x000000;
+	@:forward var text = new TextStyle();
 }
  
 class Input extends UIComponent<Sprite, InputStyle> {
@@ -44,7 +42,7 @@ class Input extends UIComponent<Sprite, InputStyle> {
 	
 	@:bindable private var focused = false;
 	@:cache(focused ? style.focus : style.normal) private var curSkin:Skin;
-	@:cache(new TextFormat(style.fontFamily, style.fontSize, style.textColor)) private var curFormat:TextFormat;
+	@:cache(new TextFormat(style.font, style.size, style.color, style.bold, style.italic)) private var curFormat:TextFormat;
 	public function new() {
 		super(new Sprite(), new InputStyle());
 		view.addChild(tf);
@@ -56,13 +54,12 @@ class Input extends UIComponent<Sprite, InputStyle> {
 		tf.addEventListener(FocusEvent.FOCUS_IN, function (_) focused = true);
 		tf.addEventListener(FocusEvent.FOCUS_OUT, function (_) focused = false);
 		
-		updateSkin.bindExpr(curSkin);
-		
+		bindSkin();
 		bindFormat();
 	}
-	function bindFormat() {
-		updateFormat.bindExpr(curFormat);
-	}
+	function bindFormat() updateFormat.bindExpr(curFormat)
+	function bindSkin() updateSkin.bindExpr(curSkin)
+	
 	function updateFormat(fmt) {
 		tf.defaultTextFormat = fmt;
 		tf.setTextFormat(fmt);

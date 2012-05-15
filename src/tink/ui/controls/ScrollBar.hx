@@ -103,10 +103,10 @@ class ScrollBar extends UIComponent<Sprite, ScrollBarStyle>, implements Cls {
 		function sign(x:Float) 
 			return x > 0 ? 1 : -1;		
 			
-		thumb.drag.watch(function (p) {
+		thumb.drag.on(function (p) {
 			position += normalize(p.dx, p.dy);
 		});	
-		track.down.watch(function (p) {
+		track.down.on(function (p) {
 			position += percentage * sign(normalize(p.x, p.y) - position);
 		});
 	}

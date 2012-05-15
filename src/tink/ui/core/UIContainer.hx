@@ -24,10 +24,12 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 		addChildAt(child, 0xFFFF);
 	}
 	public function addChildAt(child:UILeaf, pos:Int) {
-		view.addChild(child.getView());
 		children.remove(child);
-		if (pos > children.length) 
+		if (pos < 0)
+			pos = 0;
+		else if (pos > children.length) 
 			pos = children.length;
+		view.addChild(child.getView());
 		children.insert(pos, child);
 	}
 	public function removeChild(child:UILeaf) {

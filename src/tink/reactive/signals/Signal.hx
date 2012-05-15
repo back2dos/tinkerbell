@@ -7,8 +7,8 @@ import tink.collections.maps.FunctionMap;
  */
 
 interface Signal<T> {
-	function watch(handler:T->Dynamic):Void;
-	function unwatch(handler:T->Dynamic):Void;
+	function on(handler:T->Dynamic):Void;
+	function un(handler:T->Dynamic):Void;
 }
 
 class SimpleSignal<T> implements Signal<T> {
@@ -16,10 +16,10 @@ class SimpleSignal<T> implements Signal<T> {
 	public function new() {
 		this.handlers = new FunctionMap();
 	}
-	public function watch(handler) {
+	public function on(handler) {
 		handlers.set(handler, handler);
 	}
-	public function unwatch(handler) {
+	public function un(handler) {
 		handlers.remove(handler);
 	}
 	public function fire(data:T) {

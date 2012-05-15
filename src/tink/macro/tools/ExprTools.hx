@@ -34,6 +34,21 @@ class ExprTools {
 				default: e.reject();
 			}
 	}
+	static public function getPrivate(e:Expr, field:String, ?pos) {
+		if (pos == null) pos = e.pos;
+		for (f in e.typeof().sure().getFields().sure()) {
+			if (f.name == field) {
+				var t = ComplexType.TAnonymous([ { 
+					name: field,
+					access: [APrivate],
+					kind: FProp('default', 'null', f.type.toComplex()),
+					pos: pos
+				}]);
+				return ECheckType(e, t).at(pos).field(field, pos);
+			}
+		}
+		return pos.error('has no field ' + e);
+	}
 	static public function partial<D>(c:ComplexType, data:D, ?pos) {
 		return ECheckType('null'.resolve(), c).at(pos).tag(data);
 	}

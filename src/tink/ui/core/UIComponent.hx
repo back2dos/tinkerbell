@@ -50,8 +50,8 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	function calcHWeight() return .0
 	function calcVWeight() return .0
 	
-	inline function hMargin() return style.marginLeft + style.marginRight
-	inline function vMargin() return style.marginTop + style.marginBottom
+	inline function hMargin() return style.margin.left + style.margin.right
+	inline function vMargin() return style.margin.top + style.margin.bottom
 	
 	public function getView():DisplayObject return view
 	public function getMetrics():Metrics return metrics
@@ -61,11 +61,11 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	
 	function setPos(h:Bool, pos:Float) {
 		if (h) {
-			x = pos + style.marginLeft;
+			x = pos + style.margin.left;
 			uponRender(updateX);
 		}
 		else {
-			y = pos + style.marginTop;
+			y = pos + style.margin.top;
 			uponRender(updateY);
 		}
 	}

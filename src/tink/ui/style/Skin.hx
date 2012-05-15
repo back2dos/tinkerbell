@@ -4,16 +4,6 @@ import flash.display.Graphics;
 import flash.display.Sprite;
 import flash.geom.Matrix;
 import flash.geom.Point;
-import flash.geom.Point;
-import flash.geom.Point;
-import flash.geom.Point;
-import flash.geom.Point;
-import flash.geom.Rectangle;
-import flash.geom.Rectangle;
-import flash.geom.Rectangle;
-import flash.geom.Rectangle;
-import flash.geom.Rectangle;
-import flash.geom.Rectangle;
 import flash.geom.Rectangle;
 import tink.devtools.Debug;
 
@@ -25,7 +15,7 @@ import tink.devtools.Debug;
 enum Skin {
 	None;
 	Draw(fill:DrawStyle, stroke:DrawStyle, ?thickness:Int, ?corner:Float);
-	Bitmap(sheet:BitmapData, source:Rectangle, grid:Rectangle);
+	Bitmap(sheet:BitmapData, source:Rectangle, ?grid:Rectangle, ?actual:Rectangle);
 }
 
 enum DrawStyle {
@@ -62,17 +52,26 @@ class SkinTools {
 				}
 				
 				g.drawRoundRect(margin, margin, w - 2 * margin, h - 2 * margin, Math.max(0, (corner - margin) * 2));
-			case Bitmap(sheet, source, grid):
+			case Bitmap(sheet, source, grid, actual):
+				if (actual == null) actual = source;
+				if (grid == null) grid = source;
 				//S - source, T - target, t - top, l - left, b - bottom, r - right
+				
 				var tlS = rect(source.left, source.top, grid.left, grid.top);
-				var tlT = rect(0, 0, tlS.width, tlS.height);
+				var tlT = rect(0, 0, tlS.right, tlS.bottom);
+					tlT.offset(source.left - actual.left, source.top - actual.top);
 					drawTexture(g, sheet, tlS, tlT);
+
 				var trS = rect(grid.right, source.top, source.right, grid.top);
-				var trT = rect(w - trS.width, 0, w, trS.height); 
+				var trT = rect(w - trS.width, 0, w, trS.bottom); 
+					trT.offset(source.right - actual.right, source.top - actual.top);
 					drawTexture(g, sheet, trS, trT);
+					
 				var blS = rect(source.left, grid.bottom, grid.left, source.bottom);
 				var blT = rect(0, h - blS.height, blS.width, h);
+					blT.offset(source.left - actual.left, source.bottom - actual.bottom);
 					drawTexture(g, sheet, blS, blT);
+					
 				var brS = rect(grid.right, grid.bottom, source.right, source.bottom);
 				var brT = rect(trT.left, blT.top, trT.right, blT.bottom);
 					drawTexture(g, sheet, brS, brT);

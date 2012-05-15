@@ -115,6 +115,7 @@ class TypeTools {
 						baseToComplex(t.get(), params);
 					case TLazy(f):
 						toComplex(f(), true);
+					//TODO: check TDynamic here
 					default: toComplex(type, false);
 				}
 			}

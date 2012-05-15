@@ -1,17 +1,18 @@
 package tink.ui.controls;
 
-import flash.geom.Rectangle;
-import flash.geom.Rectangle;
 import tink.lang.Cls;
 import tink.ui.style.Skin;
 import tink.ui.style.Flow;
 import tink.ui.style.Style;
+import tink.ui.text.TextStyle;
 
 import flash.events.MouseEvent;
+import flash.display.Sprite;
+import flash.geom.Rectangle;
+
 import tink.ui.core.UIContainer;
 import tink.ui.core.UIComponent;
 import tink.ui.text.Label;
-import flash.display.Sprite;
 
 using tink.ui.controls.Default;
 using tink.reactive.bindings.BindingTools;
@@ -62,13 +63,16 @@ class States<T> implements Cls {
 		return ret.or(fallback(state));
 	}
 }
-
+class SingleStyle {
+	@:bindable var skin:Skin;
+	@:bindable var text:TextStyle;
+}
 class ButtonStyle implements Style, implements Cls {
 	@:read var normal = new States<Skin>();
 	@:read var selected:States<Skin> = new States(normal);
 	
 	@:forward var container:ContainerStyle;
-	@:forward var label:LabelStyle;
+	var label:LabelStyle;
 	
 	public function new(container, label) {
 		this.container = container;
