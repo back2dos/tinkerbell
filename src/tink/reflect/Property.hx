@@ -8,7 +8,7 @@ import tink.devtools.Benchmark;
  */
 
 class Property {
-	static inline function call(owner:Dynamic, name:String, args:Array<Dynamic>) {
+	static inline function call(owner:Dynamic, name:String, args:Array<Dynamic>):Dynamic {
 		return Reflect.callMethod(owner, Reflect.field(owner, name), args);
 	}
 	static public inline function get<O, T>(owner:O, name:String):T {

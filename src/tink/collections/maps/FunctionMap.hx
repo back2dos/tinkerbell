@@ -10,10 +10,10 @@ package tink.collections.maps;
 #elseif (js || flash)
 	class FunctionMap < K, V > extends tink.collections.maps.abstract.StringIDMap < K, V > { 
 		static var idCounter = 0;
-		function objID(o:Dynamic):Int untyped {			
+		function objID(o:Dynamic):String untyped {			
 			var id = o.__getID;
 			if (id == null) {
-				var v = idCounter++;
+				var v = Std.string(idCounter++);
 				o.__getID = id = function () return v;
 			}
 			return id();		
