@@ -113,12 +113,12 @@ class MetricsTools {
 		);
 		
 		for (i in infos) {
-			setSize(i.owner, Math.max(i.min, total * i.weight / totalWeight));
+			setSize(i.owner, Math.round(Math.max(i.min, total * i.weight / totalWeight)));
 			totalWeight -= i.weight;
 		}
 		var pos = offset;
 		if (infos.length == 0)
-			pos += total / 2;
+			pos += Math.round(total / 2);
 		for (m in group) {
 			m.updatePos(h, pos);
 			pos += sizes.get(m) + spacing;

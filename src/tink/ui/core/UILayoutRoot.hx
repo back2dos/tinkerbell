@@ -39,8 +39,8 @@ class UILayoutRoot extends UIContainer {
 		var w = Math.max(stage.stageWidth - 40, _hMin),
 			h = Math.max(stage.stageHeight - 40, _vMin);
 			
-		setPos(true, .5 * (stage.stageWidth - w));
-		setPos(false, .5 * (stage.stageHeight - h));
+		setPos(true, Math.round(.5 * (stage.stageWidth - w)));
+		setPos(false, Math.round(.5 * (stage.stageHeight - h)));
 		
 		setDim(true, w);
 		setDim(false, h);

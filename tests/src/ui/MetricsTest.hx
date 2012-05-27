@@ -44,7 +44,7 @@ class MetricsTest extends TestCase {
 			assertEquals(m.dim.get(true), m.getMin(true));
 		
 		for (i in 0...10) {
-			var total = min * (1 + 2 * Math.random());
+			var total:Float = Math.round(min * (1 + 2 * Math.random()));
 			group.arrangeLong(true, 0, total, 0);
 			for (m in group)
 				total -= m.dim.get(true);
