@@ -1,7 +1,5 @@
 package tink.ui.core;
 
-import flash.display.DisplayObject;
-import flash.events.Event;
 import tink.collections.maps.FunctionMap;
 import tink.collections.queues.ArrayQueue;
 import tink.collections.queues.UniqueQueue;
@@ -17,7 +15,9 @@ using tink.ui.core.Metrics;
  * @author back2dos
  */
 
-class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
+typedef NativeView = flash.display.DisplayObject;
+
+class UIComponent<V:NativeView, S:Style> implements Cls, implements UILeaf {
 	var metrics:Metrics;
 	var width = .0;
 	var height = .0;
@@ -53,7 +53,7 @@ class UIComponent<V:DisplayObject, S:Style> implements Cls, implements UILeaf {
 	inline function hMargin() return style.margin.left + style.margin.right
 	inline function vMargin() return style.margin.top + style.margin.bottom
 	
-	public function getView():DisplayObject return view
+	public function getView():NativeView return view
 	public function getMetrics():Metrics return metrics
 	
 	function updateX() view.x = x

@@ -48,14 +48,18 @@ class ResizableStyle extends ComponentStyle {
 	@:bindable var width = Rel(1);
 	@:bindable var height = Rel(1);
 }
-@:bitmap("skin.png") class PaneSkin extends BitmapData {
-	static public var SKIN = new PaneSkin(0, 0);
+@:bitmap("skin.png") 
+class PaneSkin extends BitmapData {
+	//static public var SKIN = nme.Assets.getBitmapData('assets/skin.png');
+	static public var SKIN = new PaneSkin(100, 100);
 }
 class PaneStyle extends ResizableStyle {
-	@:bindable var skin = Draw(
-		Linear([0xEEEEEE, 0xCCCCCC], [1, 1], [0x00, 0xFF], -Math.PI / 4 * 3), 
-		Linear([0xBBBBBB, 0xAAAAAA, 0x999999, 0x888888], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7)
-	);
+	@:bindable var skin = Draw(Plain(0xF0F0F0, 1), Plain(0xBBBBBB, 1), .5, 0);
+	//@:bindable var skin = Draw(
+		//Linear([0xEEEEEE, 0xCCCCCC], [1, 1], [0x00, 0xFF], -Math.PI / 4 * 3), 
+		//Linear([0xBBBBBB, 0xAAAAAA, 0x999999, 0x888888], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7),
+		//1,1
+	//);
 	//@:bindable var skin = Bitmap(
 		//PaneSkin.SKIN, 
 		//PaneSkin.SKIN.rect, 

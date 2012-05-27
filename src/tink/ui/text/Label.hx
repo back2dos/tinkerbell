@@ -1,5 +1,6 @@
 package tink.ui.text;
 
+import flash.filters.DropShadowFilter;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
 import flash.text.TextFormat;
@@ -20,7 +21,11 @@ class Label extends UIComponent<TextField, LabelStyle> {
 		super(new TextField(), new LabelStyle());
 		view.autoSize = TextFieldAutoSize.LEFT;
 		view.selectable = false;
-		view.defaultTextFormat = new TextFormat('_sans', 12);
+		view.defaultTextFormat = new TextFormat('_sans', 12, 0x222222);
+		view.filters = [
+			//new DropShadowFilter(1, 225, 0x000000, .25, 1, 1, 1, 3),
+			new DropShadowFilter(1, 45, 0xFFFFFF, 1, 1, 1, 1, 3),
+		];
 		this.text = text;
 	}
 	

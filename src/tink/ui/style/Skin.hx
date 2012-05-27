@@ -1,11 +1,13 @@
 package tink.ui.style;
+
 import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.Sprite;
+import tink.devtools.Debug;
+
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
-import tink.devtools.Debug;
 
 /**
  * ...
@@ -14,7 +16,7 @@ import tink.devtools.Debug;
 
 enum Skin {
 	None;
-	Draw(fill:DrawStyle, stroke:DrawStyle, ?thickness:Int, ?corner:Float);
+	Draw(fill:DrawStyle, stroke:DrawStyle, ?thickness:Float, ?inset:Float, ?corner:Float);
 	Bitmap(sheet:BitmapData, source:Rectangle, ?grid:Rectangle, ?actual:Rectangle);
 }
 
@@ -28,22 +30,27 @@ class SkinTools {
 	static public function draw(skin:Skin, surface:Sprite, w:Float, h:Float) {
 		var g = surface.graphics;
 		g.clear();
+		//trace(surface.localToGlobal(new Point()));
 		switch (skin) {
 			case None:
-			case Draw(fill, stroke, thickness, corner):
+			case Draw(fill, stroke, thickness, inset, corner):
 				if (thickness == null) thickness = 1;
+				if (inset == null) inset = .5;
+				var delta = (1 - inset) * thickness;
 				var margin = 
 					switch (stroke) {
 						case Plain(rgb, alpha): 
 							doFill(g, rgb, alpha);
-							g.drawRoundRect(0, 0, w, h, corner * 2);
-							thickness;
+							g.drawRoundRect( -delta, -delta, w + 2 * delta, h + 2 * delta, corner * 2 + 2 * delta);
+							inset * thickness;
 						case Linear(colors, alphas, ratios, angle):
 							doLinear(g, colors, alphas, ratios, angle, w, h);
-							g.drawRoundRect(0, 0, w, h, corner * 2);
-							thickness;
+							g.drawRoundRect( -delta, -delta, w + 2 * delta, h + 2 * delta, corner * 2 + 2 * delta);
+							inset * thickness;
 						case Empty: 0;
 					}
+				Debug.log(margin, inset, thickness, delta);
+				//margin = 0;
 				switch (fill) {
 					case Plain(rgb, alpha): doFill(g, rgb, alpha);
 					case Linear(colors, alphas, ratios, angle):
