@@ -43,12 +43,12 @@ class ScrollBarStyle implements Style, implements Cls {
 		if (horizontal) {
 			container.width = length;
 			container.height = Const(thickness);
-			container.flow = Flow.Right;
+			container.flow = Flow.East;
 		}
 		else {
 			container.width = Const(thickness);
 			container.height = length;			
-			container.flow = Flow.Down;
+			container.flow = Flow.South;
 		}
 	}
 }

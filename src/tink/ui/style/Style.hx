@@ -70,5 +70,5 @@ class PaneStyle extends ResizableStyle {
 class ContainerStyle extends PaneStyle {
 	@:read var padding = new Frame();
 	@:bindable var spacing = .0;
-	@:bindable var flow = Flow.Down;
+	@:bindable var flow = Flow.South;
 }

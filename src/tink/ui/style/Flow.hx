@@ -8,7 +8,7 @@ package tink.ui.style;
 enum Flow {
 	//Up;
 	//Left;
-	Down;
-	Right;
+	South;
+	East;
 	Stack;
 }

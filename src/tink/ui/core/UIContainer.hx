@@ -16,7 +16,13 @@ using tink.ui.style.Skin;
  
 class UIContainer extends UIPaneBase<ContainerStyle> {
 	var children = new BindableArray<UILeaf>();	
-		
+	@:cache({
+		var a = [];
+		for (c in children)
+			a.push(c.getMetrics());
+		a;
+	}) 
+	var childMetrics:Array<Metrics>;	
 	public function new() {
 		super(new ContainerStyle());
 	}
@@ -38,7 +44,7 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 	}
 	function getMin(h) {
 		for (c in children) c.getMetrics().getAlign(h);
-		return getChildMetrics().min(isLong(h), h, style.spacing);
+		return childMetrics.min(isLong(h), h, style.spacing);
 	}
 	
 	override function calcHMin() 
@@ -47,22 +53,11 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 	override function calcVMin() 
 		return Math.max(super.calcVMin(), style.padding.top + style.padding.bottom + getMin(false))
 	
-	function getChildMetrics():Iterable<Metrics> {
-		return {
-			iterator: function () {
-				var it = children.iterator();
-				return {
-					next: function () return it.next().getMetrics(),
-					hasNext: function () return it.hasNext()
-				}
-			}
-		}
-	}
 	function isLong(h:Bool) {
 		return
 			switch (style.flow) {
-				case Right: h;
-				case Down: !h;
+				case East: h;
+				case South: !h;
 				case Stack: false;
 			}		
 	}
@@ -70,6 +65,6 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 		super.setDim(h, dim);
 		var offset = h ? style.padding.left : style.padding.top;
 		dim -= h ? (style.padding.left + style.padding.right + hMargin()) : (style.padding.top + style.padding.bottom + vMargin());
-		getChildMetrics().arrange(h, isLong(h), offset , dim, style.spacing);
+		childMetrics.arrange(h, isLong(h), offset , dim, style.spacing);
 	}
 }

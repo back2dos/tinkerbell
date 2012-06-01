@@ -6,6 +6,7 @@ import tink.ui.style.Skin;
 import tink.ui.style.Flow;
 import tink.ui.style.Style;
 import tink.ui.text.TextStyle;
+import tink.ui.input.State;
 
 import flash.events.MouseEvent;
 import flash.display.Sprite;
@@ -23,13 +24,6 @@ using tink.reactive.bindings.BindingTools;
  * ...
  * @author back2dos
  */
-
-private enum State {
-	Up;
-	Over;
-	Down;
-	Disabled;
-}
 
 class States<T> implements Cls {
 	@:bindable var up:T;
@@ -85,10 +79,10 @@ class ButtonStyle implements Style, implements Cls {
 		//Linear([0xEEEEEE, 0xCCCCCC], [1, 1], [0x00, 0xFF], -Math.PI / 4 * 3), 
 		//Linear([0xBBBBBB, 0xAAAAAA, 0x999999, 0x888888], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7),
 		
-		normal.up = Skin.Draw(Linear([0xEEEEEE, 0xF8F8F8], [1, 1], [0x00, 0xFF], -Math.PI / 2), Plain(0xBBBBBB, 1), 1, 0, 2);
-		normal.over = Skin.Draw(Linear([0xEEEEEE, 0xFFFFFF], [1, 1], [0x00, 0xFF], -Math.PI / 2), Plain(0xAAAAAA, 1), 1, 0, 2);
-		normal.down = Skin.Draw(Linear([0xF8F8F8, 0xEEEEEE], [1, 1], [0x00, 0xFF], -Math.PI / 2), Plain(0xBBBBBB, 1), 1, 0, 2);
-		normal.disabled = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0xBBBBBB, 1), 1, 0, 2);
+		normal.up = Skin.Draw(Linear([0xEEEEEE, 0xF8F8F8], [1, 1], [0x00, 0xFF], -Math.PI / 2), Plain(0xBBBBBB, 1), 1, 1, 2);
+		normal.over = Skin.Draw(Linear([0xEEEEEE, 0xFFFFFF], [1, 1], [0x00, 0xFF], -Math.PI / 2), Plain(0xAAAAAA, 1), 1, 1, 2);
+		normal.down = Skin.Draw(Linear([0xF8F8F8, 0xEEEEEE], [1, 1], [0x00, 0xFF], -Math.PI / 2), Plain(0xBBBBBB, 1), 1, 1, 2);
+		normal.disabled = Skin.Draw(Plain(0xE8E8E8, 1), Plain(0xBBBBBB, 1), 1, 1, 2);
 	}
 }
 class FlashBehavior {
@@ -124,6 +118,7 @@ class FlashBehavior {
 		#end
 	}
 }
+import tink.reflect.Private;
 class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	var label = new Label();
 	var container = new UIContainer();
@@ -140,7 +135,7 @@ class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	@:signal var up:{ x:Float, y:Float, inside:Bool };
 	
 	public function new() {
-		var s = cast(container.getView(), Sprite);
+		var s = Private.get(container, view);
 		super(s, new ButtonStyle(container.style, label.style));
 		
 		FlashBehavior.wire(s, _click, _down, _drag, _up, set_state);

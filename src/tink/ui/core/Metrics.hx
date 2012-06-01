@@ -43,30 +43,30 @@ class Metrics {
 using tink.ui.core.Metrics.MetricsTools;
 
 class MetricsTools {
-	static public inline function min(group:Iterable<Metrics>, long:Bool, h:Bool, spacing:Float) {
+	static public inline function min(group:Array<Metrics>, long:Bool, h:Bool, spacing:Float) {
 		return 
 			if (long) minLong(group, h, spacing);
 			else minShort(group, h);
 	}
-	static public inline function minShort(group:Iterable<Metrics>, h:Bool) {
+	static public inline function minShort(group:Array<Metrics>, h:Bool) {
 		var ret = .0;
 		for (m in group)
 			ret = Math.max(ret, m.getMin(h));
 		return ret;
 	}
-	static public inline function minLong(group:Iterable<Metrics>, h:Bool, spacing:Float) {
+	static public inline function minLong(group:Array<Metrics>, h:Bool, spacing:Float) {
 		var ret = -spacing;
 		for (m in group)
 			ret += m.getMin(h) + spacing;
 		return ret;		
 	}
-	static public inline function arrange(group:Iterable<Metrics>, h, long, offset, total, spacing) {
+	static public inline function arrange(group:Array<Metrics>, h, long, offset, total, spacing) {
 		if (long)
 			arrangeLong(group, h, offset, total, spacing);
 		else
 			arrangeShort(group, h, offset, total);
 	}
-	static public function arrangeShort(group:Iterable<Metrics>, h:Bool, offset:Float, total:Float) {
+	static public function arrangeShort(group:Array<Metrics>, h:Bool, offset:Float, total:Float) {
 		var maxWeight = Math.NEGATIVE_INFINITY,
 			weight = .0;
 			
@@ -85,7 +85,7 @@ class MetricsTools {
 			m.updatePos(h, (total - dim) * m.getAlign(h) + offset);
 		}
 	}
-	static public function arrangeLong(group:Iterable<Metrics>, h:Bool, offset:Float, total:Float, spacing:Float) {
+	static public function arrangeLong(group:Array<Metrics>, h:Bool, offset:Float, total:Float, spacing:Float) {
 
 		var totalWeight = .0,
 			infos = [],
