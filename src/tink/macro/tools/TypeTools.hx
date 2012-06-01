@@ -28,7 +28,7 @@ class TypeTools {
 	static public function getFields(t:Type) {
 		return
 			switch (reduce(t)) {
-				case TInst(t, _): t.get().fields.get().asSuccess();
+				case TInst(t, _): t.get().fields.get().asSuccess();//TODO: this might need to follow the inheritance chain
 				case TAnonymous(anon): anon.get().fields.asSuccess();
 				default: 'type has no fields'.asFailure();
 			}
