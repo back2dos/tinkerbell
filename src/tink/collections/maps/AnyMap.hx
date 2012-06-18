@@ -81,11 +81,12 @@ class AnyMap<V> implements Map<Dynamic,V>, implements Cls {
 				case TFunction: funcs.remove(k);
 			}
 	}
+	//TODO: the untyped statement is uggly but I'm not sure there's an equally concise alternative
 	public function keys():Iterator<Dynamic> {
-		return group([ints.keys(), strings.keys(), objs.keys(), misc.keys(), funcs.keys()]);
+		return group(untyped [ints.keys(), strings.keys(), objs.keys(), misc.keys(), funcs.keys()]);
 	}
 	public function iterator():Iterator<V> {
-		return group([ints.iterator(), strings.iterator(), objs.iterator(), misc.iterator(), funcs.iterator()]);		
+		return group(untyped [ints.iterator(), strings.iterator(), objs.iterator(), misc.iterator(), funcs.iterator()]);		
 	}
 	function group<A>(a:Iterable<Iterator<A>>) {//TODO: it might make sense extracting this
 		var i = Lambda.filter(a, function (iter) return iter.hasNext()).iterator();

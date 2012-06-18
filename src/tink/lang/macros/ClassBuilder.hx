@@ -19,7 +19,7 @@ class ClassBuilder {
 				for (tag in bindable)
 					switch (m.extractMeta(tag)) {
 						case Success(tag): 
-							Context.warning('you seem to be wanting to use bindings but don\'t use -lib tink_reactive', tag.pos);
+							Context.warning('you seem to be wanting to use bindings/signals but don\'t use -lib tink_reactive', tag.pos);
 						default: 
 					}
 		#end

@@ -232,6 +232,8 @@ class Printer {
 						for (field in fields) 
 							ret.push(field.field + ' : ' + rec(field.expr));
 						printList(ret, '{}'.split(''));
+					case EMacro(e): 
+						'macro ' + rec(e);
 					case EFunction(name, f): 
 						printFunction(f, name, indent);
 			}

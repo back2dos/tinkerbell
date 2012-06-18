@@ -36,6 +36,7 @@ class ExprTools {
 	}
 	static public function getPrivate(e:Expr, field:String, ?pos) {
 		if (pos == null) pos = e.pos;
+		
 		var type = ComplexType.TAnonymous([ { 
 			name: field,
 			access: [APrivate],

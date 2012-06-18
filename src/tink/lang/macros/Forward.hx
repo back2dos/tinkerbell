@@ -3,6 +3,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import tink.macro.build.Member;
+import tink.macro.build.MemberTransformer;
 
 using tink.macro.tools.MacroTools;
 using StringTools;
@@ -17,7 +18,7 @@ typedef ClassFieldFilter = ClassField->Bool;
 typedef ForwardRules = { call:Null<Expr>, get:Null<Expr>, set:Null<Expr> };
 class Forward {
 	static inline var TAG = ":forward";
-	static public function process(ctx) {
+	static public function process(ctx:ClassBuildContext) {
 		new Forward(ctx.has, ctx.add).processMembers(ctx.members);
 	}
 	var hasField:String->Bool;
