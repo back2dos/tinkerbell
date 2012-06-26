@@ -65,7 +65,7 @@ class Constructor {
 			access : isPublic ? [APublic] : [],
 			kind :  FFun( {
 				args:this.args,
-				ret: 'Void'.asTypePath(),
+				ret: 'Void'.asComplexType(),
 				expr: toBlock(),
 				params: []
 			}),
