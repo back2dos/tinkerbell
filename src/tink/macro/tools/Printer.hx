@@ -119,14 +119,19 @@ class Printer {
 			if (e == null) '';
 			else ' = ' + printExpr(indent, e);
 	}
+	static function typify(indent:String, t:ComplexType) {
+		return 
+			if (t == null) '';
+			else ':' + printType(indent, t);
+	}
 	static public function printField(indent:String, field:Field) {
 		var ret = '';
 		for (a in field.access)
 			ret += Type.enumConstructor(a).substr(1).toLowerCase() + ' ';
 		ret +=
 			switch (field.kind) {
-				case FVar(t, e): 'var ' + field.name + ':' + printType(indent, t) + printInitializer(indent, e);
-				case FProp(get, set, t, e): 'var ' + field.name + '(' + get + ', ' + set + '):' + printType(indent, t) + printInitializer(indent, e);
+				case FVar(t, e): 'var ' + field.name + typify(indent, t) + printInitializer(indent, e);
+				case FProp(get, set, t, e): 'var ' + field.name + '(' + get + ', ' + set + ')' + typify(indent, t) + printInitializer(indent, e);
 				case FFun(f): printFunction(f, field.name, indent);
 			}
 		return ret;
@@ -158,7 +163,7 @@ class Printer {
 							);
 						}
 						'var ' + ret.join(', ');
-					case ECheckType(e, t): rec(e);
+					case ECheckType(e, t): '(' + rec(e) + '/* ' + typify(indent, t) + ' */)';
 					case ECast(e, t):
 						'cast(' + rec(e) + ((t == null) ? '' : ', ' + printType(indent, t)) + ')';
 					case EArray(e1, e2): 
@@ -191,7 +196,7 @@ class Printer {
 							'do ' + rec(e) + '\nwhile (' + rec(econd) + ')';
 					case EBreak: 'break';
 					case EContinue: 'continue';
-					case EUntyped(e): 'untyped ' + rec(e);
+					case EUntyped(e): '(untyped ' + rec(e) + ')';
 					case EThrow(e): 'throw ' + rec(e);
 					case EReturn(e): 'return' + if (e == null) '' else (' ' + rec(e));
 					case EDisplay(e, isCall):
@@ -232,8 +237,6 @@ class Printer {
 						for (field in fields) 
 							ret.push(field.field + ' : ' + rec(field.expr));
 						printList(ret, '{}'.split(''));
-					case EMacro(e): 
-						'macro ' + rec(e);
 					case EFunction(name, f): 
 						printFunction(f, name, indent);
 			}
