@@ -56,22 +56,22 @@ class ClsTest extends TestCase {
 	}
 	function testPropertyBuild() {
 		var b = new Built();
-		assertEquals(b.a, 0);
-		assertEquals(b.b, 1);
-		assertEquals(b.c, 2);
-		assertEquals(b.d, 3);
-		assertEquals(b.e, 4);
-		assertEquals(b.f, 5);
-		
-		assertEquals(b.g, 6);
-		b.g = 3;
-		assertEquals(b.g, 6);
-		
-		assertEquals(b.h, 7);
-		b.h = 7;
-		assertEquals(b.h, 7);
-		
-		assertEquals(b.i, 8);
+		assertEquals(0, b.a);
+		assertEquals(1, b.b);
+		assertEquals(2, b.c);
+		assertEquals(3, b.d);
+		assertEquals(4, b.e);
+		assertEquals(5, b.f);
+		                
+		assertEquals(6, b.g);
+		b.g = 3;        
+		assertEquals(6, b.g);
+		                
+		assertEquals(7, b.h);
+		b.h = 7;        
+		assertEquals(7, b.h);
+		                
+		assertEquals(8, b.i);
 		b.i = 8;
 		#if !cpp //in cpp this will fail, since Reflect.field calls the accessor
 			assertFalse(Reflect.field(b, 'i') == b.i);
