@@ -2,7 +2,7 @@ package tink.lang.macros;
 
 import haxe.macro.Context;
 import tink.macro.build.MemberTransformer;
-
+using tink.macro.tools.MacroTools;
 /**
  * ...
  * @author back2dos
@@ -10,7 +10,7 @@ import tink.macro.build.MemberTransformer;
 
 class ClassBuilder {
 	@:macro static public function buildFields():Array<haxe.macro.Expr.Field> {
-		return new MemberTransformer().build(PLUGINS);
+		return new MemberTransformer(Context.getLocalClass().get().meta.get().getValues(':verbose').length > 0).build(PLUGINS);
 	}
 	static function noBindings(ctx:ClassBuildContext) {
 		#if debug

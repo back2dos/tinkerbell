@@ -46,52 +46,47 @@ class PropBuilder {
 				case FVar(t, e):
 					if (member.isStatic) continue;//skipped for now					
 					
-					#if display
-						if (member.extractMeta(READ).isSuccess() || member.extractMeta(FULL).isSuccess())
-							member.publish();
-					#else
-						var meta = member.meta,
-							name = member.name;
-						
-						switch (member.extractMeta(READ)) {
-							case Success(tag):
-								member.disallowMeta(FULL, READ);	
-								var get = 
-									switch (tag.params.length) {
-										case 0, 1: 
-											[tag.params[0], '_'.resolve(tag.pos)];
-										default: 
-											tag.pos.error('too many arguments');
-									}
-								member.addMeta(FULL, tag.pos, get);
-							default:
-						}
-						switch (member.extractMeta(FULL)) {
-							case Success(tag):
-								var getter = null,
-									setter = null,
-									field = ['this', name].drill(tag.pos);
+					var meta = member.meta,
+						name = member.name;
+					
+					switch (member.extractMeta(READ)) {
+						case Success(tag):
+							member.disallowMeta(FULL, READ);	
+							var get = 
 								switch (tag.params.length) {
-									case 0:
-										getter = field;
-										setter = field.assign('param'.resolve());
-									case 1: 
-										getter = field;
-										setter = field.assign(tag.params[0], tag.params[0].pos);
-									case 2: 
-										getter = tag.params[0];
-										if (getter == null)
-											getter = field;
-											
-										setter = tag.params[1];
-										if (setter.isWildcard()) setter = null;
-									default:
+									case 0, 1: 
+										[tag.params[0], '_'.resolve(tag.pos)];
+									default: 
 										tag.pos.error('too many arguments');
 								}
-								make(member, t, getter, setter, hasField, addField, e);
-							default:	
-						}												
-					#end
+							member.addMeta(FULL, tag.pos, get);
+						default:
+					}
+					switch (member.extractMeta(FULL)) {
+						case Success(tag):
+							var getter = null,
+								setter = null,
+								field = ['this', name].drill(tag.pos);
+							switch (tag.params.length) {
+								case 0:
+									getter = field;
+									setter = field.assign('param'.resolve());
+								case 1: 
+									getter = field;
+									setter = field.assign(tag.params[0], tag.params[0].pos);
+								case 2: 
+									getter = tag.params[0];
+									if (getter == null)
+										getter = field;
+										
+									setter = tag.params[1];
+									if (setter.isWildcard()) setter = null;
+								default:
+									tag.pos.error('too many arguments');
+							}
+							make(member, t, getter, setter, hasField, addField, e);
+						default:	
+					}												
 				default: //maybe do something here?
 			}		
 	}

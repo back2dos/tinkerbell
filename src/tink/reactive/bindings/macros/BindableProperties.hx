@@ -46,78 +46,75 @@ class BindableProperties {
 					makeBindable(tag.pos);
 					if (member.isPublic == null) 
 						member.publish();
-					#if !display
-						member.addMeta(IS_BINDABLE, tag.pos);
-						var name = member.name;
-						switch (member.kind) {
-							case FVar(t, _):
-								PropBuilder.make(member, t, getter(name, tag.pos), setter(name, tag.pos), ctx.has, ctx.add);
-							case FProp(get, set, t, _):
-								var nonCustom = 'default,never,null'.split(',');
-								if (nonCustom.has(get)) 
-									tag.pos.error('cannot make non-custom read access bindable');
-								else
-									getters.set(get, name);
-								if (nonCustom.has(set)) {
-									if (set == 'default')
-										tag.pos.error('cannot make non-custom write access bindable');
-								}
-								else 
-									setters.set(set, name);
-							case FFun(f):
-								var body = [];
-								for (key in [name.toExpr(tag.pos)].concat(tag.params))
-									body.push(AST.build(bindings.bind($key), key.pos));
-								body.push(f.expr);
-								f.expr = body.toBlock(tag.pos);
-						}
-					#end
+					member.addMeta(IS_BINDABLE, tag.pos);
+					var name = member.name;
+					switch (member.kind) {
+						case FVar(t, _):
+							PropBuilder.make(member, t, getter(name, tag.pos), setter(name, tag.pos), ctx.has, ctx.add);
+						case FProp(get, set, t, _):
+							var nonCustom = 'default,never,null'.split(',');
+							if (nonCustom.has(get)) 
+								tag.pos.error('cannot make non-custom read access bindable');
+							else
+								getters.set(get, name);
+							if (nonCustom.has(set)) {
+								if (set == 'default')
+									tag.pos.error('cannot make non-custom write access bindable');
+							}
+							else 
+								setters.set(set, name);
+						case FFun(f):
+							var body = [];
+							for (key in [name.toExpr(tag.pos)].concat(tag.params))
+								body.push(AST.build(bindings.bind($key), key.pos));
+							body.push(f.expr);
+							f.expr = body.toBlock(tag.pos);
+					}
 				default:
 			}
 			switch (member.extractMeta(CACHE)) {
 				case Success(tag):
 					if (member.isPublic == null) 
 						member.publish();
-					#if !display
-						member.addMeta(IS_BINDABLE, tag.pos);
-						var name = member.name;
-						switch (member.kind) {
-							case FVar(t, _):
-								var cacheName = '__tink_reactive_cache__' + name;
-								ctx.add(Member.plain(cacheName, 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]), tag.pos));
-								var expr = 
-									switch (tag.params.length) {
-										case 1: tag.params[0];
-										default: tag.pos.error('tag requires 1 argument exactly');
-									}
+					member.addMeta(IS_BINDABLE, tag.pos);
+					var name = member.name;
+					switch (member.kind) {
+						case FVar(t, _):
+							var cacheName = '__tink_reactive_cache__' + name,
+								bindingType = 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]);
 								
-								ctx.getCtor().init(
-									cacheName, 
-									tag.pos, 
-									AST.build(new tink.reactive.bindings.Binding.Watch(function () return $expr), tag.pos), 
-									true
-								);
-								ctx.add(Member.getter(name, tag.pos, AST.build(eval__cacheName.value, tag.pos), t));
-								member.kind = FProp('get_' + name, 'null', t);
-							default: 
-								member.pos.error('');
-						}
-					#end
+							ctx.add(Member.plain(cacheName, bindingType, tag.pos));
+							var expr = 
+								switch (tag.params.length) {
+									case 1: tag.params[0];
+									default: tag.pos.error('tag requires 1 argument exactly');
+								}
+							
+							ctx.getCtor().init(
+								cacheName, 
+								tag.pos, 
+								AST.build(new tink.reactive.bindings.Binding.Watch(function () return $expr), tag.pos), 
+								true,
+								bindingType
+							);
+							ctx.add(Member.getter(name, tag.pos, AST.build(eval__cacheName.value, tag.pos), t));
+							member.kind = FProp('get_' + name, 'null', t);
+						default: 
+							member.pos.error('');
+					}
 				default:
 			}
 		}
-		#if !display
-			for (member in ctx.members) {
-				if (setters.exists(member.name)) {
-					var f = member.getFunction().sure();
-					f.expr = f.expr.transform(injectFire(setters.get(member.name)));
-				}
-				else if (getters.exists(member.name)) {
-					var f = member.getFunction().sure();
-					f.expr = f.expr.transform(injectBind(getters.get(member.name)));			
-				}
+		for (member in ctx.members) {
+			if (setters.exists(member.name)) {
+				var f = member.getFunction().sure();
+				f.expr = f.expr.transform(injectFire(setters.get(member.name)));
 			}
-		#end
+			else if (getters.exists(member.name)) {
+				var f = member.getFunction().sure();
+				f.expr = f.expr.transform(injectBind(getters.get(member.name)));			
+			}
+		}
 	}
 	static function injectFire(name:String) {
 		return

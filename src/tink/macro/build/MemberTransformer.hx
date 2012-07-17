@@ -5,6 +5,7 @@ private typedef Enums = Type;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.Type;
+import tink.macro.tools.Printer;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
@@ -28,9 +29,11 @@ class MemberTransformer {
 	var constructor:Null<Constructor>;
 	var localClass:ClassType;
 	var superFields:Hash<Bool>;
-	public function new() { 
+	var verbose:Bool;
+	public function new(?verbose) { 
 		members = new Hash();
 		localClass = Context.getLocalClass().get();
+		this.verbose = verbose;
 	}
 	function getConstructor() {
 		if (constructor == null) 
@@ -79,6 +82,9 @@ class MemberTransformer {
 		for (member in context.members)
 			ret.push(member.toHaxe());
 			
+		if (verbose) 
+			for (field in ret) 
+				Context.warning(Printer.printField('', field), field.pos);
 		return ret;
 	}
 	function hasOwnMember(name:String) {

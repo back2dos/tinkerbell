@@ -27,19 +27,12 @@ class Forward {
 		this.hasField = hasField;
 		this.addField = addField;
 	}
-	function shortForward(name:String, t:Type, pos:Position) {
-		var m = new Member();
-		m.name = name;
-		m.kind = FVar(t.toComplex());
-		m.publish();
-		m.pos = pos;
-		addField(m);
-	}	
 	function processMembers(members:Array<Member>) {
 		for (member in members)
 			
 			switch (member.extractMeta(TAG)) {
 				case Success(tag):
+					//trace(member.kind);
 					switch (member.kind) {
 						case FVar(t, _):
 							forwardTo(member, t, tag.pos, tag.params);
@@ -78,43 +71,35 @@ class Forward {
 		var fields = t.toType(pos).sure().getFields().sure();
 		for (field in fields) 
 			if (field.isPublic && filter(field) && !hasField(field.name)) {
-				#if display
-					shortForward(field.name, field.type, pos);
-				#else
-					switch (field.kind) {
-						case FVar(read, write):
-							forwardVarWith(id, rules.get, rules.set, isAccessible(read, true), isAccessible(read, false), field.name, field.type.toComplex(), pos);
-						case FMethod(_):
-							if (rules.call != null) {
-								switch (Context.follow(field.type)) {
-									case TFun(args, ret):
-										forwardFunctionWith(id, rules.call, pos, field.name, args, ret, field.params);
-									default: 
-										pos.error('wtf?');
-								}								
-							}
-					}
-				#end
+				switch (field.kind) {
+					case FVar(read, write):
+						forwardVarWith(id, rules.get, rules.set, isAccessible(read, true), isAccessible(read, false), field.name, field.type.toComplex(), pos);
+					case FMethod(_):
+						if (rules.call != null) {
+							switch (Context.follow(field.type)) {
+								case TFun(args, ret):
+									forwardFunctionWith(id, rules.call, pos, field.name, args, ret, field.params);
+								default: 
+									pos.error('wtf?');
+							}								
+						}
+				}
 			}
 	}
 	function forwardToType(t:Type, included:ClassFieldFilter, target:Expr, pos:Position) {
 		for (field in t.getFields().sure()) 
 			if (field.isPublic && included(field) && !hasField(field.name)) {
-				#if display
-					shortForward(field.name, field.type, pos);
-				#else
-					switch (field.kind) {
-						case FVar(read, write):
-							forwardVarTo(target, field.name, field.type.toComplex(), read, write);
-						case FMethod(_):
-							switch (Context.follow(field.type)) {
-								case TFun(args, ret):
-									forwardFunctionTo(target, field.name, args, ret, field.params);
-								default: 
-									pos.error('wtf?');
-							}
-					}
-				#end
+				switch (field.kind) {
+					case FVar(read, write):
+						forwardVarTo(target, field.name, field.type.toComplex(), read, write);
+					case FMethod(_):
+						switch (Context.follow(field.type)) {
+							case TFun(args, ret):
+								forwardFunctionTo(target, field.name, args, ret, field.params);
+							default: 
+								pos.error('wtf?');
+						}
+				}
 			}		
 	}
 	function forwardTo(to:Member, t:ComplexType, pos:Position, params:Array<Expr>) {
@@ -135,73 +120,71 @@ class Forward {
 			}
 		}
 	}
-	#if !display
-		function forwardFunctionWith(id:String, callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
-			//TODO: there's a lot of duplication with forwardFunctionTo here
-			var methodArgs = [],
-				callArgs = [];
-				
-			for (arg in args) {
-				callArgs.push(arg.name.resolve(pos));
-				methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
-			}
-			var methodParams = [];
-			for (param in params) 
-				methodParams.push( { name : param.name, constraints : [] } );
-				
-			var call = callExpr.substitute( { 
-				"$args": callArgs.toArray(),
-				"$id": id.toExpr(),
-				"$name": name.toExpr()
-			});
-			addField(Member.method(name, call.func(methodArgs, methodParams)));
-		}
-		function forwardVarWith(id:String, eGet:Null<Expr>, eSet:Null<Expr>, read:Bool, write:Bool, name, t, pos) {
-			read = read && eGet != null;
-			write = write && eSet != null;
+	function forwardFunctionWith(id:String, callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
+		//TODO: there's a lot of duplication with forwardFunctionTo here
+		var methodArgs = [],
+			callArgs = [];
 			
-			if (!(read || write)) return;//I hate guard clauses, but I feel very lazy now
-			addField(Member.prop(name, t, pos, !read, !write));
-			var vars = {
-				"$name": name.toExpr(),
-				"$id": id.toExpr()
-			}
-			if (read)
-				addField(Member.getter(name, pos, eGet.substitute(vars), t));
-			if (write)
-				addField(Member.setter(name, pos, eSet.substitute(vars), t));
+		for (arg in args) {
+			callArgs.push(arg.name.resolve(pos));
+			methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
 		}
-		function forwardFunctionTo(target:Expr, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
-			var methodArgs = [],
-				callArgs = [],
-				pos = target.pos;
-				
-			for (arg in args) {
-				callArgs.push(arg.name.resolve(target.pos));
-				methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
-			}
-			var methodParams = [];
-			for (param in params) 
-				methodParams.push( { name : param.name, constraints : [] } );
-			addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, methodParams)));
+		var methodParams = [];
+		for (param in params) 
+			methodParams.push( { name : param.name, constraints : [] } );
+			
+		var call = callExpr.substitute( { 
+			"$args": callArgs.toArray(),
+			"$id": id.toExpr(),
+			"$name": name.toExpr()
+		});
+		addField(Member.method(name, call.func(methodArgs, methodParams)));
+	}
+	function forwardVarWith(id:String, eGet:Null<Expr>, eSet:Null<Expr>, read:Bool, write:Bool, name, t, pos) {
+		read = read && eGet != null;
+		write = write && eSet != null;
+		
+		if (!(read || write)) return;//I hate guard clauses, but I feel very lazy now
+		addField(Member.prop(name, t, pos, !read, !write));
+		var vars = {
+			"$name": name.toExpr(),
+			"$id": id.toExpr()
 		}
-		function isAccessible(a:VarAccess, read:Bool) {
-			return switch(a) {
-				case AccNormal, AccCall(_): true;
-				case AccInline: read;
-				default: false;
-			}
+		if (read)
+			addField(Member.getter(name, pos, eGet.substitute(vars), t));
+		if (write)
+			addField(Member.setter(name, pos, eSet.substitute(vars), t));
+	}
+	function forwardFunctionTo(target:Expr, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
+		var methodArgs = [],
+			callArgs = [],
+			pos = target.pos;
+			
+		for (arg in args) {
+			callArgs.push(arg.name.resolve(target.pos));
+			methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
 		}
-		function forwardVarTo(target:Expr, name:String, t:ComplexType, read:VarAccess, write:VarAccess) {
-			var pos = target.pos;
-			if (!isAccessible(read, true)) 
-				pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
-			addField(Member.prop(name, t, pos, false, !isAccessible(write, false)));
-			addField(Member.getter(name, pos, target.field(name, pos), t));
-			if (isAccessible(write, false))
-				addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
+		var methodParams = [];
+		for (param in params) 
+			methodParams.push( { name : param.name, constraints : [] } );
+		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, methodParams)));
+	}
+	function isAccessible(a:VarAccess, read:Bool) {
+		return switch(a) {
+			case AccNormal, AccCall(_): true;
+			case AccInline: read;
+			default: false;
 		}
-	#end
+	}
+	function forwardVarTo(target:Expr, name:String, t:ComplexType, read:VarAccess, write:VarAccess) {
+		var pos = target.pos;
+		if (!isAccessible(read, true)) 
+			pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
+		addField(Member.prop(name, t, pos, false, !isAccessible(write, false)));
+		addField(Member.getter(name, pos, target.field(name, pos), t));
+		if (isAccessible(write, false))
+			addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
+	}
 	static function and(a, b) {
 		return function (c) return a(c) && b(c);
 	}
