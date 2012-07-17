@@ -17,7 +17,7 @@ class TestAll {
 		runner.add(new reactive.BindingsTest());
 		runner.add(new markup.FastTest());
 		runner.add(new markup.NodesTest());
-		runner.add(new tween.TweenTest());
+		//runner.add(new tween.TweenTest());
 		runner.add(new ui.MetricsTest());
 		runner.run();
 	}
