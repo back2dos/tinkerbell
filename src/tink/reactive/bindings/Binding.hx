@@ -152,26 +152,29 @@ class Binding<T> implements Cls {
 }
 
 class Signaller {
-	var keyMap:AnyMap<IntHash<Void->Void>>;
+	/**
+	 * TODO: AnyMap is very slow here. Using specific maps can increase throughput by about factor 3 (on flash)
+	 */
+	var keyMap:AnyMap<IntHash<Binding<Dynamic>>>;
 	public function new() {
 		this.keyMap = new AnyMap();
 	}
-	public function bind<A>(key:Dynamic, ?ret:A) {
+	public inline function bind<A>(key:Dynamic, ?ret:A) {
 		watch(key, Binding.current());
 		return ret;
 	}
 	function watch(key:Dynamic, watcher:Binding<Dynamic>) {
 		if (watcher == null) return;
-		var handlers = keyMap.get(key);
-		if (handlers  == null)
-			keyMap.set(key, handlers = new IntHash());
-		handlers.set(watcher.id, watcher.invalidate);
+		var bindings = keyMap.get(key);
+		if (bindings == null)
+			keyMap.set(key, bindings = new IntHash());
+		bindings.set(watcher.id, watcher);//this could be an ObjectMap
 	}
 	public function fire<A>(key:Dynamic, ?ret:A) {
 		if (keyMap.exists(key)) {
-			var handlers = keyMap.get(key); 
+			var bindings = keyMap.get(key); 
 			keyMap.set(key, new IntHash());
-			for (h in handlers) h();
+			for (b in bindings) b.invalidate();
 		}
 		return ret;
 	}
