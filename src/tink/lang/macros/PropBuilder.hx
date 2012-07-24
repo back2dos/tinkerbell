@@ -17,7 +17,7 @@ class PropBuilder {
 	static public inline var READ = ':read';
 	
 	static public function process(ctx) {
-		new PropBuilder(ctx.has, ctx.add, ctx.getCtor()).processMembers(ctx.members);
+		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members);
 	}
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
 		var get = 'get_' + m.name,
@@ -34,11 +34,9 @@ class PropBuilder {
 	}
 	var hasField:String->Bool;
 	var addField:Member->Member;
-	var ctor:Constructor;
-	function new(hasField, addField, ctor) {
+	function new(hasField, addField) {
 		this.hasField = hasField;
 		this.addField = addField;
-		this.ctor = ctor;
 	}
 	function processMembers(members:Array<Member>) {
 		for (member in members)

@@ -14,8 +14,10 @@ class Constructor {
 	var nuStatements:Array<Expr>;
 	var args:Array<FunctionArg>;
 	var pos:Position;
+	var ownerIsInterface:Bool;
 	public var isPublic:Bool;
-	public function new(f:Function, ?isPublic:Null<Bool> = null, ?pos:Position) {
+	public function new(ownerIsInterface:Bool, f:Function, ?isPublic:Null<Bool> = null, ?pos:Position) {
+		this.ownerIsInterface = ownerIsInterface;
 		this.nuStatements = [];
 		this.isPublic = isPublic;
 		this.pos = pos.getPos();
@@ -36,6 +38,7 @@ class Constructor {
 		}
 	}
 	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool, ?t:ComplexType) {
+		if (ownerIsInterface) pos.error('cannot initialize properties on interfaces');
 		if (e == null) {
 			e = name.resolve(pos);
 			args.push( { name : name, opt : def != null, type : null, value : def } );

@@ -19,20 +19,23 @@ typedef ForwardRules = { call:Null<Expr>, get:Null<Expr>, set:Null<Expr> };
 class Forward {
 	static inline var TAG = ":forward";
 	static public function process(ctx:ClassBuildContext) {
-		new Forward(ctx.has, ctx.add).processMembers(ctx.members);
+		new Forward(ctx.has, ctx.add, ctx.cls.isInterface).processMembers(ctx.members);
 	}
 	var hasField:String->Bool;
 	var addField:Member->Member;
-	function new(hasField, addField) {
+	var ownerIsInterface:Bool;
+	function new(hasField, addField, ownerIsInterface) {
 		this.hasField = hasField;
 		this.addField = addField;
+		this.ownerIsInterface = ownerIsInterface;
 	}
 	function processMembers(members:Array<Member>) {
 		for (member in members)
 			
 			switch (member.extractMeta(TAG)) {
 				case Success(tag):
-					//trace(member.kind);
+					if (ownerIsInterface) 
+						tag.pos.error('@:forward not implemented for interfaces');
 					switch (member.kind) {
 						case FVar(t, _):
 							forwardTo(member, t, tag.pos, tag.params);

@@ -41,19 +41,25 @@ class MemberTransformer {
 				var ctor = Context.getLocalClass().get().superClass.t.get().constructor.get();
 				var func = Context.getTypedExpr(ctor.expr()).getFunction().sure();
 				func.expr = "super".resolve().call(func.getArgIdents());
-				constructor = new Constructor(func);
+				constructor = new Constructor(localClass.isInterface, func);
 				if (ctor.isPublic)
 					constructor.publish();
 			}
 			else
-				constructor = new Constructor(null);
+				constructor = new Constructor(localClass.isInterface, null);
 		return constructor;
 	}
 	function prune(a:Array<Member>) {
 		var ret = [];
 		for (m in a) 
-			if (!m.excluded)
+			if (!m.excluded) {
+				if (localClass.isInterface)
+					switch (m.kind) {
+						case FFun(f): f.expr = null;
+						default:
+					}
 				ret.push(m);
+			}
 		return ret;
 	}
 	public function build(plugins:Iterable<ClassBuildContext->Void>) {
@@ -78,7 +84,7 @@ class MemberTransformer {
 			context.members = prune(context.members);
 		}
 			
-		var ret = (constructor == null) ? [] : [constructor.toHaxe()];
+		var ret = (constructor == null || localClass.isInterface) ? [] : [constructor.toHaxe()];
 		for (member in context.members)
 			ret.push(member.toHaxe());
 			
@@ -115,7 +121,7 @@ class MemberTransformer {
 			m.pos.error('duplicate member declaration ' + m.name);
 			
 		if (m.name == 'new') 
-			this.constructor = new Constructor(Enums.enumParameters(m.kind)[0], m.isPublic, m.pos);
+			this.constructor = new Constructor(localClass.isInterface, Enums.enumParameters(m.kind)[0], m.isPublic, m.pos);
 		else {
 			members.set(m.name, m);
 			to.push(m);				
