@@ -20,7 +20,8 @@ private class StringRepMap<T> extends tink.collections.maps.abstract.StringIDMap
 #else
 	private typedef Ints<T> = IntHash<T>
 #end
-class AnyMap<V> implements Map<Dynamic,V>, implements Cls {
+class AnyMap<V> implements Map < Dynamic, V > , implements Cls {
+	//TODO: consider using BoolMap as well
 	var ints:Ints<V>;
 	var strings:Hash<V>;
 	var objs:ObjectMap<Dynamic, V>;
