@@ -2,8 +2,11 @@ package tink.reactive.bindings;
 
 import haxe.Timer;
 import tink.collections.maps.AnyMap;
+import tink.collections.maps.BoolMap;
 import tink.collections.maps.FunctionMap;
+import tink.collections.maps.IntMap;
 import tink.collections.maps.ObjectMap;
+import tink.collections.maps.StringMap;
 import tink.lang.Cls;
 import tink.reactive.Source;
 
@@ -125,7 +128,7 @@ class Binding<T> implements Cls {
 	public function invalidate() {
 		if (valid) {//invalidated bindings don't need to fire really
 			valid = false;
-			this.bindings.fire('value');
+			untyped this.bindings.byString.fire('value');//TODO: this doesn't work because of cyclic dependency
 			for (h in handlers) h();
 		}
 	}
@@ -151,11 +154,39 @@ class Binding<T> implements Cls {
 	}
 }
 
-class Signaller {
-	/**
-	 * TODO: AnyMap is very slow here. Using specific maps can increase throughput by about factor 3 (on flash)
-	 */
-	var keyMap:AnyMap<IntHash<Binding<Dynamic>>>;
+import haxe.rtti.Generic;
+import tink.collections.maps.Map;
+
+private typedef BindingMap = IntHash<Binding<Dynamic>>;
+
+private class SingleSignaller<T, M:Map<T, BindingMap>> implements Generic {
+	var keyMap:M;
+	public function new(keyMap) {
+		this.keyMap = keyMap;
+	}
+	public inline function bind<A>(key:T, ?ret:A) {
+		watch(key, Binding.current());
+		return ret;
+	}
+	function watch(key:T, watcher:Binding<Dynamic>) {
+		if (watcher == null) return;
+		var bindings = keyMap.get(key);
+		if (bindings == null)
+			keyMap.set(key, bindings = new IntHash());
+		bindings.set(watcher.id, watcher);//this could be an ObjectMap
+	}
+	public function fire<A>(key:T, ?ret:A) {
+		if (keyMap.exists(key)) {
+			var bindings = keyMap.get(key); 
+			keyMap.set(key, new IntHash());
+			for (b in bindings) b.invalidate();
+		}
+		return ret;
+	}
+}
+private class UnknownSignaller {
+	//I had to do this, because Dynamic doesn't work with Generic
+	var keyMap:AnyMap<BindingMap>;
 	public function new() {
 		this.keyMap = new AnyMap();
 	}
@@ -178,4 +209,11 @@ class Signaller {
 		}
 		return ret;
 	}
+}
+class Signaller implements Cls {
+	public var byString = new SingleSignaller<String, StringMap<BindingMap>>(new StringMap());
+	public var byInt = new SingleSignaller<Int, IntMap<BindingMap>>(new IntMap());
+	public var byBool = new SingleSignaller<Bool, BoolMap<BindingMap>>(new BoolMap());
+	public var byUnknown = new UnknownSignaller();
+	public function new() {}
 } 

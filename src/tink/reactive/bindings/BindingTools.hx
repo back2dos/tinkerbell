@@ -11,57 +11,61 @@ import tink.macro.tools.AST;
  * ...
  * @author back2dos
  */
-
-class BindingTools {
-	@:macro static public function bindExpr(target:Expr, value:Expr) {
-		var source = makeSource(value);
+class FuncBindings {
+	@:macro static public function bind<A>(func:ExprOf < A->Dynamic > , arg:ExprOf<A>) {
 		var ret:Expr = AST.build({ 
-			var tmpSrc = $source;
-			var tmpUpdate = function () $target(tmpSrc.value);
+			var tmpSrc = $(Helper.makeSource(arg));
+			var tmpUpdate = function () $func(tmpSrc.value);
 			tmpSrc.watch(tmpUpdate);
 			tmpUpdate();
 			tmpSrc.value;//comes from cache so it should be cheap
-		});
-		return 
-			if (ret.typeof().isSuccess()) ret;
-			else 
-				switch (target.expr) {
-					case EField(e, field), EType(e, field):
-						if (target.is(EDITABLE)) {
-							if (!source.is(EDITABLE)) 
-								source.reject('expression is not editable, although required by site property ' + field);
-							else 
-								target.assign(source);
-						}
-						else if (target.is(SOURCE))
-							target.assign(source);
-						else {
-							var link = String.tempName();
-							var init = 
-								if (source.is(EDITABLE)) 
-									AST.build(eval__link.twoway($source))
-								else 
-									AST.build(eval__link.single($source));
-							AST.build({
-								var tmp = $e;
-								var eval__link = tink.reactive.bindings.Binding.Link.by(
-									tmp, 
-									"eval__field"
-								);
-								eval__link.init(
-									function () return $target,
-									function (tmpArg) return $target = tmpArg
-								);
-								$init;
-							});
-						}
-					default:
-						target.reject();
-				}
+		});		
+		return ret;
 	}
-	#if macro
-		static var SOURCE = 'tink.reactive.Source'.asComplexType([TPType('Dynamic'.asComplexType())]);
-		static var EDITABLE = 'tink.reactive.Source.Editable'.asComplexType([TPType('Dynamic'.asComplexType())]);
+}
+class FieldBindings {
+	@:macro static public function bind(owner:ExprOf<{}>, field:Expr, value:Expr) {
+		var field = field.getName().sure(),
+			source = Helper.makeSource(value);
+			
+		var target = owner.field(field);
+		
+		return
+			if (target.is(Helper.EDITABLE)) {
+				if (!source.is(Helper.EDITABLE)) 
+					source.reject('expression is not editable, although required by site property ' + field);
+				else 
+					target.assign(source);
+			}
+			else if (target.is(Helper.SOURCE))
+				target.assign(source);
+			else {
+				var link = String.tempName();
+				var init = 
+					if (source.is(Helper.EDITABLE)) 
+						AST.build(eval__link.twoway($source))
+					else 
+						AST.build(eval__link.single($source));
+				AST.build({
+					var tmp = $owner;
+					var eval__link = tink.reactive.bindings.Binding.Link.by(
+						tmp, 
+						"eval__field"
+					);
+					eval__link.init(
+						function () return $target,
+						function (tmpArg) return $target = tmpArg
+					);
+					$init;
+				});
+			}
+		return target;
+	}
+}
+#if macro
+	private class Helper {
+		static public var SOURCE = 'tink.reactive.Source'.asComplexType([TPType('Dynamic'.asComplexType())]);
+		static public var EDITABLE = 'tink.reactive.Source.Editable'.asComplexType([TPType('Dynamic'.asComplexType())]);
 		
 		static function control(of:Expr) {
 			return
@@ -73,7 +77,7 @@ class BindingTools {
 					of.pos
 				);
 		}
-		static function makeSource(of:Expr):Expr {
+		static public function makeSource(of:Expr):Expr {
 			return
 				if (of.is(SOURCE)) of;
 				else 
@@ -91,5 +95,5 @@ class BindingTools {
 						case Failure(f): f.throwSelf();
 					}
 		}
-	#end
-}
+	}
+#end	

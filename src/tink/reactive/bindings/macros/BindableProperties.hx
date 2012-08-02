@@ -22,16 +22,25 @@ class BindableProperties {
 	static function getter(name:String, pos:Position) {
 		return 
 			AST.build({ 
-				this.bindings.bind("eval__name");
+				this.bindings.byString.bind("eval__name");
 				this.eval__name;
 			}, pos);
 	}
 	static function setter(name:String, pos:Position) {
 		return 
 			AST.build({ 
-				this.bindings.fire("eval__name", this.eval__name = param);
+				this.bindings.byString.fire("eval__name", this.eval__name = param);
 			}, pos);
-	}	
+	}
+	static function makeBinding(on:Expr) {
+		switch (on.typeof().sure().reduce().getID()) {
+			case 'String': return macro this.bindings.byString.bind($on);
+			case 'Int': return macro this.bindings.byInt.bind($on);
+			case 'Bool': return macro this.bindings.byBool.bind($on);
+			default: return macro this.bindings.byUnknown.bind($on);
+		}
+		return on;
+	}
 	static public function make(ctx:ClassBuildContext) {
 		function makeBindable(pos) 
 			if (!ctx.has('bindings')) {
@@ -66,7 +75,8 @@ class BindableProperties {
 						case FFun(f):
 							var body = [];
 							for (key in [name.toExpr(tag.pos)].concat(tag.params))
-								body.push(AST.build(bindings.bind($key), key.pos));
+								//body.push(AST.build(bindings.bind($key), key.pos));
+								body.push(callback(makeBinding, key).bounce(key.pos));
 							body.push(f.expr);
 							f.expr = body.toBlock(tag.pos);
 					}
@@ -121,7 +131,7 @@ class BindableProperties {
 			callback(function (name:String, e:Expr) 
 				return
 					switch (e.expr) {
-						case EReturn(e): AST.build(return this.bindings.fire("eval__name", $e), e.pos);
+						case EReturn(e): AST.build(return this.bindings.byString.fire("eval__name", $e), e.pos);
 						default: e;
 					}
 				,name		
@@ -132,7 +142,7 @@ class BindableProperties {
 			callback(function (name:String, e:Expr) 
 				return
 					switch (e.expr) {
-						case EReturn(e): AST.build(return this.bindings.bind("eval__name", $e), e.pos);
+						case EReturn(e): AST.build(return this.bindings.byString.bind("eval__name", $e), e.pos);
 						default: e;
 					}
 				,name

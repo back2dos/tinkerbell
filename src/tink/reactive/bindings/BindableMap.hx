@@ -17,6 +17,7 @@ private class Entry<V> {
 	}
 }
 class BindableMap<K, V> implements Map<K, V>, implements Cls {
+	//TODO: measure speedup gained by implementing Generic
 	static inline var KEYS = 'KEYS';
 	static inline var VALS = 'VALS';
 	var map:Map<K, V>;
@@ -35,10 +36,10 @@ class BindableMap<K, V> implements Map<K, V>, implements Cls {
 		var exists = map.exists(k);
 		this.map.set(k, v);
 		if (exists) 
-			this.bindings.fire(k);
+			this.bindings.byUnknown.fire(k);
 		else
-			this.bindings.fire(KEYS);
-		this.bindings.fire(VALS);
+			this.bindings.byString.fire(KEYS);
+		this.bindings.byString.fire(VALS);
 		return v;
 	}
 	@:bindable(k) public function exists(k:K):Bool {
@@ -47,8 +48,8 @@ class BindableMap<K, V> implements Map<K, V>, implements Cls {
 	public function remove(k:K):Bool {
 		return
 			if (map.remove(k)) {
-				this.bindings.fire(KEYS);
-				this.bindings.fire(VALS);
+				this.bindings.byString.fire(KEYS);
+				this.bindings.byString.fire(VALS);
 				true;
 			}
 			else false;

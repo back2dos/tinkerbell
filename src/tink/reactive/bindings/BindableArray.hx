@@ -14,8 +14,8 @@ class BindableArray<T> implements Cls {
 		this.data = data == null ? [] : data;
 	}
 	function onChange<T>(value:T) {
-		this.bindings.fire(CHANGE);
-		this.bindings.fire('length');//TODO: temporary fix, because overwriting keys doesn't work just yet for fields/properties
+		this.bindings.byString.fire(CHANGE);
+		this.bindings.byString.fire('length');//TODO: temporary fix, because overwriting keys doesn't work just yet for fields/properties
 		return value;
 	}
 	@:bindable(CHANGE) public function first() {
