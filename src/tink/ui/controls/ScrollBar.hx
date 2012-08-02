@@ -36,7 +36,7 @@ class ScrollBarStyle implements Style, implements Cls {
 	@:bindable var thickness = 16.0;
 	@:bindable var length = Size.Rel(1);
 	public function new() {
-		updateThickness.bindExpr( { horizontal; thickness; length; } );
+		updateThickness.bindArg( { horizontal; thickness; length; } );
 	}
 	function updateThickness(_) {
 		_prev.width = _prev.height = _next.width = _next.height = Const(thickness);
@@ -90,10 +90,10 @@ class ScrollBar extends UIComponent<Sprite, ScrollBarStyle>, implements Cls {
 		var thumbStyle = thumb.style;
 		var self = this;
 		
-		thumbStyle.width.bindExpr(Rel(self.style.horizontal ? self.percentage : 1));
-		thumbStyle.height.bindExpr(Rel(self.style.horizontal ? 1 : self.percentage));
-		thumbStyle.hAlign.bindExpr(self.position);
-		thumbStyle.vAlign.bindExpr(self.position);
+		thumbStyle.bindField(width, Rel(self.style.horizontal ? self.percentage : 1));
+		thumbStyle.bindField(height, Rel(self.style.horizontal ? 1 : self.percentage));
+		thumbStyle.bindField(hAlign, self.position);
+		thumbStyle.bindField(vAlign, self.position);
 	}
 	function wireSignals() {
 		function normalize(x:Float, y:Float)

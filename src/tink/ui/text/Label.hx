@@ -37,8 +37,8 @@ class Label extends UIComponent<TextField, LabelStyle> {
 			h0 = view.height;
 		this.text = param;
 		view.text = if (param == null) '' else param;
-		if (w0 != view.width) this.bindings.fire('hmin');
-		if (h0 != view.height) this.bindings.fire('vmin');
+		if (w0 != view.width) this.bindings.byString.fire('hmin');
+		if (h0 != view.height) this.bindings.byString.fire('vmin');
 		return param;
 	}
 }

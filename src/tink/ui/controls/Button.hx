@@ -135,7 +135,7 @@ class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	@:signal var up:{ x:Float, y:Float, inside:Bool };
 	
 	public function new() {
-		var s = Private.get(container, view);
+		var s = Private.__(container, view);
 		super(s, new ButtonStyle(container.style, label.style));
 		
 		FlashBehavior.wire(s, _click, _down, _drag, _up, set_state);
@@ -155,7 +155,7 @@ class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	function bindSkin() {
 		//TODO: without these locals, some "unbound variable me" problem occurs
 		var self = this;
-		self.container.style.skin.bindExpr(self.calcSkin());
+		self.container.style.bind(skin, self.calcSkin());
 	}
 	function calcSkin():Skin {
 		var states = 

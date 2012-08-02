@@ -73,7 +73,7 @@ class Input extends UIComponent<Sprite, InputStyle> {
 		tf.multiline = false;
 		tf.type = TextFieldType.INPUT;
 		tf.addEventListener(Event.CHANGE, function (_) {
-			bindings.fire('text');
+			bindings.byString.fire('text');
 		});
 		tf.addEventListener(FocusEvent.FOCUS_IN, function (_) focused = true);
 		tf.addEventListener(FocusEvent.FOCUS_OUT, function (_) focused = false);
@@ -82,8 +82,8 @@ class Input extends UIComponent<Sprite, InputStyle> {
 		bindSkin();
 		bindFormat();
 	}
-	function bindFormat() updateFormat.bindExpr(curFormat)
-	function bindSkin() updateSkin.bindExpr(curSkin)
+	function bindFormat() updateFormat.bind(curFormat)
+	function bindSkin() updateSkin.bind(curSkin)
 	
 	function updateFormat(fmt) {
 		tf.defaultTextFormat = fmt;

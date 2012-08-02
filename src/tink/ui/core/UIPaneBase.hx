@@ -39,7 +39,8 @@ class UIPaneBase<S:PaneStyle> extends ResizableComponent<Sprite, S> {
 	function new(style) {
 		super(new Sprite(), style);
 		function updateSkin(_) uponRender(doRender);
-		updateSkin.bindExpr(style.skin);
+		//updateSkin.bind(style.skin);
+		updateSkin.bind(style.skin);
 	}	
 	override function redraw(width:Float, height:Float) {
 		style.skin.draw(view, width, height);

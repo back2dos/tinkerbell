@@ -49,7 +49,7 @@ class SkinTools {
 							inset * thickness;
 						case Empty: 0;
 					}
-				Debug.log(margin, inset, thickness, delta);
+				//Debug.log(margin, inset, thickness, delta);
 				//margin = 0;
 				switch (fill) {
 					case Plain(rgb, alpha): doFill(g, rgb, alpha);

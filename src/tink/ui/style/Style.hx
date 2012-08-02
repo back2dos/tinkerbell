@@ -12,9 +12,9 @@ import tink.ui.style.Skin;
  */
 
 interface Style {
-	var margin(dynamic, null):Frame;
-	var hAlign(dynamic, null):Float;
-	var vAlign(dynamic, null):Float;
+	var margin(get_margin, null):Frame;
+	var hAlign(get_hAlign, null):Float;
+	var vAlign(get_vAlign, null):Float;
 }
 class Frame implements Cls {
 	@:bindable var top = .0;
@@ -32,6 +32,12 @@ class Frame implements Cls {
 			default: throw 'invalid number of values: ' + a.length;
 		}
 		return a;
+	}
+	public inline function offset(h) {
+		return h ? left : top;
+	}
+	public inline function total(h) {
+		return h ? left + right : top + bottom;
 	}
 }
 class ComponentStyle implements Cls, implements Style {
