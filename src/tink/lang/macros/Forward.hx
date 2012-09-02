@@ -90,13 +90,18 @@ class Forward {
 			}
 	}
 	function forwardToType(t:Type, included:ClassFieldFilter, target:Expr, pos:Position) {
+		var dummyName = String.tempName();
+		var dummy = [
+			dummyName.define(t.toComplex()),
+			dummyName.resolve()
+		].toBlock();
 		for (field in t.getFields().sure()) 
 			if (field.isPublic && included(field) && !hasField(field.name)) {
 				switch (field.kind) {
 					case FVar(read, write):
-						forwardVarTo(target, field.name, field.type.toComplex(), read, write);
+						forwardVarTo(target, field.name, dummy.field(field.name).typeof().sure().toComplex(), read, write);
 					case FMethod(_):
-						switch (Context.follow(field.type)) {
+						switch (Context.follow(dummy.field(field.name).typeof().sure())) {
 							case TFun(args, ret):
 								forwardFunctionTo(target, field.name, args, ret, field.params);
 							default: 
