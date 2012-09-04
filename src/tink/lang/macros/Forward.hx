@@ -90,18 +90,13 @@ class Forward {
 			}
 	}
 	function forwardToType(t:Type, included:ClassFieldFilter, target:Expr, pos:Position) {
-		var dummyName = String.tempName();
-		var dummy = [
-			dummyName.define(t.toComplex()),
-			dummyName.resolve()
-		].toBlock();
 		for (field in t.getFields().sure()) 
 			if (field.isPublic && included(field) && !hasField(field.name)) {
 				switch (field.kind) {
 					case FVar(read, write):
-						forwardVarTo(target, field.name, dummy.field(field.name).typeof().sure().toComplex(), read, write);
+						forwardVarTo(target, field.name, field.type.toComplex(), read, write);
 					case FMethod(_):
-						switch (Context.follow(dummy.field(field.name).typeof().sure())) {
+						switch (Context.follow(field.type)) {
 							case TFun(args, ret):
 								forwardFunctionTo(target, field.name, args, ret, field.params);
 							default: 
@@ -115,18 +110,7 @@ class Forward {
 			target = ['this', to.name].drill(pos),
 			included = makeFilter(params);
 			
-		while (t != null) {
-			forwardToType(t, included, target, pos);
-			t = switch (t) {
-				case TInst(c, _):
-					var c = c.get().superClass;
-					if (c == null) 
-						null;
-					else 
-						TInst(c.t, c.params);
-				default: null;
-			}
-		}
+		forwardToType(t, included, target, pos);
 	}
 	function forwardFunctionWith(id:String, callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
 		//TODO: there's a lot of duplication with forwardFunctionTo here
