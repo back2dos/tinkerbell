@@ -128,15 +128,17 @@ class Binding<T> implements Cls {
 	public function invalidate() {
 		if (valid) {//invalidated bindings don't need to fire really
 			valid = false;
-			untyped this.bindings.byString.fire('value');//TODO: this doesn't work because of cyclic dependency
+			untyped this.bindings.byString.fire('value', null);//TODO: this doesn't work because of cyclic dependency
 			for (h in handlers) h();
 		}
 	}
+	public var revision = 0;
 	function doCalc() {
 		if (busy) 
 			throw 'cyclic binding occured';
 		stack.push(this);
 		busy = true;
+		revision += 1;
 		cache = calc();
 		busy = false;
 		valid = true;
@@ -161,8 +163,10 @@ private typedef BindingMap = IntHash<Binding<Dynamic>>;
 
 private class SingleSignaller<T, M:Map<T, BindingMap>> implements Generic {
 	var keyMap:M;
+	var revisions:IntHash<Int>;
 	public function new(keyMap) {
 		this.keyMap = keyMap;
+		this.revisions = new IntHash();
 	}
 	public inline function bind<A>(key:T, ?ret:A) {
 		watch(key, Binding.current());
@@ -174,12 +178,16 @@ private class SingleSignaller<T, M:Map<T, BindingMap>> implements Generic {
 		if (bindings == null)
 			keyMap.set(key, bindings = new IntHash());
 		bindings.set(watcher.id, watcher);//this could be an ObjectMap
+		revisions.set(watcher.id, watcher.revision);
 	}
 	public function fire<A>(key:T, ?ret:A) {
 		if (keyMap.exists(key)) {
 			var bindings = keyMap.get(key); 
 			keyMap.set(key, new IntHash());
-			for (b in bindings) b.invalidate();
+			for (b in bindings) {
+				if (b.revision == revisions.get(b.id))
+					b.invalidate();
+			}
 		}
 		return ret;
 	}
