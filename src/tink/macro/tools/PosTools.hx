@@ -9,6 +9,8 @@ import tink.core.types.Outcome;
  * @author back2dos
  */
 using tink.macro.tools.PosTools;
+using tink.core.types.Outcome;
+
 class PosTools {
 
 	static public function getOutcome < D, F > (pos:Position, outcome:Outcome < D, F > ) {
@@ -18,6 +20,9 @@ class PosTools {
 				case Failure(f): pos.error(f);
 			}
 	}
+	static public function makeBlankType(pos:Position) {
+		return TypeTools.toComplex(Context.typeof(macro null));
+	}	
 	static public inline function getPos(pos:Position) {
 		return 
 			if (pos == null) 

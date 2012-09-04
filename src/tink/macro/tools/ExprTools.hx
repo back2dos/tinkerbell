@@ -34,13 +34,14 @@ class ExprTools {
 				default: e.reject();
 			}
 	}
+
 	static public function getPrivate(e:Expr, field:String, ?pos) {
 		if (pos == null) pos = e.pos;
 		
 		var type = ComplexType.TAnonymous([ { 
 			name: field,
 			access: [APrivate],
-			kind: FProp('default', 'null', 'null'.resolve().typeof().sure().toComplex()),
+			kind: FProp('default', 'null', pos.makeBlankType()),
 			pos: pos
 		}]);
 		return ECheckType(e, type).at(pos).field(field, pos);
