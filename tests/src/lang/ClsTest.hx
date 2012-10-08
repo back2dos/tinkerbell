@@ -2,7 +2,7 @@ package lang;
 
 import haxe.unit.TestCase;
 import tink.lang.Cls;
-
+using Lambda;
 /**
  * ...
  * @author back2dos
@@ -81,6 +81,36 @@ class ClsTest extends TestCase {
 			b.i = Std.random(100);
 			assertEquals(b.h+1, b.i);
 		}
+	}
+	function compareArray<T:Float>(expected:Array<T>, found:Array<T>) {
+		assertEquals(expected.length, found.length);
+		for (i in 0...expected.length) 
+			assertTrue(Math.abs(expected[i] - found[i]) < .0000001);
+	}
+	function testForLoops() {
+		var loop = new SuperLooper();
+		
+		var tenths = [.0, .1, .2, .3, .4, .5, .6, .7, .8, .9];
+		compareArray(loop.floatUp(1, 0, .1), []);
+		compareArray(loop.floatUp(0, 1, .1), tenths);
+		compareArray(loop.floatUp(0, .95, .1), tenths);
+		
+		tenths.reverse();
+		compareArray(loop.floatDown(0, 1, .1), []);
+		compareArray(loop.floatDown(1, 0, .1), tenths);
+		compareArray(loop.floatDown(1, 0.05, .1), tenths);
+		
+		var digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+		var even = digits.filter(function (i) return i % 2 == 0).array();
+		compareArray(loop.intUp(1, 0, 1), []);
+		compareArray(loop.intUp(0, 10, 1), digits);
+		compareArray(loop.intUp(0, 10, 2), even);
+		
+		digits.reverse();
+		even.reverse();
+		compareArray(loop.intDown(0, 1, 1), []);
+		compareArray(loop.intDown(10, 0, 1), digits);
+		compareArray(loop.intDown(10, 0, 2), even);
 	}
 	function testSuperConstructor() {
 		var c = new Child("1", 2);
@@ -161,4 +191,32 @@ class Child extends Base, implements Cls {
 
 class Child2 extends Child {
 
+}
+
+class SuperLooper implements Cls {
+	public function new() { }
+	public function floatUp(min:Float, max:Float, step:Float) {
+		var ret = [];
+		for (i += step in min...max)
+			ret.push(i);
+		return ret;
+	}
+	public function floatDown(min:Float, max:Float, step:Float) {
+		var ret = [];
+		for (i -= step in min...max)
+			ret.push(i);
+		return ret;		
+	}
+	public function intUp(min:Int, max:Int, step:Int) {
+		var ret = [];
+		for (i += step in min...max)
+			ret.push(i);
+		return ret;
+	}
+	public function intDown(min:Int, max:Int, step:Int) {
+		var ret = [];
+		for (i -= step in min...max)
+			ret.push(i);
+		return ret;		
+	}	
 }
