@@ -18,7 +18,7 @@ class Member {
 	public var doc : Null<String>;
 	public var kind : FieldType;
 	public var pos : Position;
-	public var meta:Hash<Meta>;
+	var meta:Hash<Array<Meta>>;
 	
 	public var isOverride:Bool;
 	public var isStatic:Bool;
@@ -41,7 +41,9 @@ class Member {
 			isPublic = true;
 	}
 	public function addMeta(name, pos, ?params) {
-		meta.set(name, {
+		if (!meta.exists(name))
+			meta.set(name, []);
+		meta.get(name).push({
 			name: name,
 			pos: pos,
 			params: if (params == null) [] else params
@@ -49,21 +51,23 @@ class Member {
 	}
 	public function disallowMeta(id:String, master:String) {
 		if (meta.exists(id))
-			meta.get(id).pos.error('cannot use tag ' + id + ' if ' + master + ' is used');
+			meta.get(id)[0].pos.error('cannot use tag ' + id + ' if ' + master + ' is used');
 	}
 	public function extractMeta(name) {
 		return
 			if (meta.exists(name)) {
 				var ret = meta.get(name);
-				meta.remove(name);
-				return Success(ret);
+				if (ret.length == 1)
+					meta.remove(name);
+				return Success(ret.shift());
 			}
 			else return Failure();
 	}
 	public function toString() {
 		var ret = '';
-		for (m in meta)
-			ret += '@' + m.name + Printer.printExprList('', m.params);
+		for (tags in meta)
+			for (tag in tags)
+				ret += '@' + tag.name + Printer.printExprList('', tag.params);
 		if (isStatic) ret += 'static ';
 		if (isPublic == true) ret += 'public ';
 		else if (isPublic == false) ret += 'private ';
@@ -90,7 +94,14 @@ class Member {
 			access : haxeAccess(),
 			kind : kind,
 			pos : pos,
-			meta : meta.array(),			
+			meta : {
+				var res = [];
+				for (tags in meta)
+					for (tag in tags)
+						res.push(tag);
+				//meta.array(),			
+				res;
+			}
 		}
 	}
 	public function getFunction() {
@@ -145,7 +156,7 @@ class Member {
 		ret.kind = f.kind;
 		
 		for (m in f.meta) 
-			ret.meta.set(m.name, m);
+			ret.addMeta(m.name, m.pos, m.params);
 		
 		for (a in f.access) 
 			switch (a) {
