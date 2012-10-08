@@ -15,15 +15,17 @@ using tink.core.types.Outcome;
 class TypeTools {
 	static var types = new IntHash<Type>();
 	static var idCounter = 0;
-	
 	@:macro static public function getType(id:Int):Type {
 		return types.get(id);
 	}
-	static public function getID(t:Type) {
+	static public function getID(t:Type, ?reduced = true) {
+		if (reduced)
+			t = reduce(t);
 		return
-			switch (reduce(t)) {
+			switch (t) {
 				case TInst(t, _): t.toString();
 				case TEnum(t, _): t.toString();
+				case TType(t, _): t.toString();
 				default: null;
 			}
 	}
@@ -38,7 +40,20 @@ class TypeTools {
 				case AccCall(m): m;
 			}		
 	}
-	static function getClassFields(t:ClassType, out:Array<Field>, marker:Hash<Bool>) {
+	static function getDeclaredFields(t:ClassType, out:Array<ClassField>, marker:Hash<Bool>) {
+		for (field in t.fields.get()) 
+			if (!marker.exists(field.name)) {
+				marker.set(field.name, true);
+				out.push(field);
+			}
+		if (t.isInterface)
+			for (t in t.interfaces)
+				getDeclaredFields(t.t.get(), out, marker);
+		else 
+			if (t.superClass != null)
+				getDeclaredFields(t.superClass.t.get(), out, marker);		
+	}
+	static function getBlankFields(t:ClassType, out:Array<Field>, marker:Hash<Bool>) {
 		for (field in t.fields.get()) 
 			if (!marker.exists(field.name)) {
 				var kind = 
@@ -64,14 +79,12 @@ class TypeTools {
 												expr: null,
 												params: []
 											});
-											//null;
 										default: null;
 									}
 							}
 					}
 				if (kind != null) {
 					marker.set(field.name, true);
-					//trace([field.name, acc]);
 					out.push( {
 						name: field.name,
 						pos: field.pos,
@@ -82,31 +95,36 @@ class TypeTools {
 			}
 		if (t.isInterface)
 			for (t in t.interfaces)
-				getClassFields(t.t.get(), out, marker);
+				getBlankFields(t.t.get(), out, marker);
 		else 
 			if (t.superClass != null)
-				getClassFields(t.superClass.t.get(), out, marker);
+				getBlankFields(t.superClass.t.get(), out, marker);
 	}
-	static public function getFields(t:Type) {
+	static public function getFields(t:Type, ?substituteParams = true) {
 		return
 			switch (reduce(t)) {
 				case TInst(c, _): 
-					/**/var c = c.get(),
-						fields = [],
-						fieldMap = new Hash();
-					getClassFields(c, fields, fieldMap);
-					var anon = TAnonymous(fields);
-					var actual = toComplex(t);
-					var merged = Context.typeof(macro {
-						var actual : $actual = null;
-						var anon : $anon = actual;
-						anon;
-					});
-					switch (merged) {
-						case TAnonymous(anon): anon.get().fields.asSuccess();
-						default: throw 'wtf just happened?';
-					}/**/
-					//c.get().fields.get().asSuccess();//TODO: this might need to follow the inheritance chain
+					var c = c.get();
+					if (substituteParams) {
+						var fields = [];
+						getBlankFields(c, fields, new Hash());
+						var anon = TAnonymous(fields);
+						var actual = toComplex(t);
+						var merged = Context.typeof(macro {
+							var actual : $actual = null;
+							var anon : $anon = actual;
+							anon;
+						});
+						switch (merged) {
+							case TAnonymous(anon): anon.get().fields.asSuccess();
+							default: throw 'wtf just happened?';
+						}						
+					}
+					else {
+						var fields = [];
+						getDeclaredFields(c, fields, new Hash());
+						fields.asSuccess();
+					}
 				case TAnonymous(anon): anon.get().fields.asSuccess();
 				default: 'type has no fields'.asFailure();
 			}
@@ -187,8 +205,17 @@ class TypeTools {
 				switch (type) {
 					case TEnum(t, params):
 						baseToComplex(t.get(), params);
-					case TInst(t, params):	
-						baseToComplex(t.get(), params);
+					case TInst(t, params):
+						var t = t.get();
+						switch (t.kind) {
+							case KTypeParameter: asComplexType(t.name);
+							default: baseToComplex(t, params);
+						}
+					case TFun(args, ret):
+						var cArgs = [];
+						for (arg in args)
+							cArgs.push(toComplex(arg.t, true));
+						TFunction(cArgs, toComplex(ret, true));
 					case TType(t, params):
 						baseToComplex(t.get(), params);
 					case TLazy(f):
