@@ -24,9 +24,9 @@ class PropBuilder {
 			set = if (setter == null) 'null' else 'set_' + m.name;
 			
 		if (!hasField(get))	
-			addField(Member.getter(m.name, getter, t)); 	
+			addField(Member.getter(m.name, getter, t)).isStatic = m.isStatic; 	
 		if (setter != null && !hasField(set))
-			addField(Member.setter(m.name, setter, t));
+			addField(Member.setter(m.name, setter, t)).isStatic = m.isStatic;
 		
 		m.kind = FProp(get, set, t, e);
 		m.publish();
@@ -41,11 +41,8 @@ class PropBuilder {
 	function processMembers(members:Array<Member>) {
 		for (member in members)
 			switch (member.kind) {
-				case FVar(t, e):
-					if (member.isStatic) continue;//skipped for now					
-					
-					var meta = member.meta,
-						name = member.name;
+				case FVar(t, e):					
+					var name = member.name;
 					
 					switch (member.extractMeta(READ)) {
 						case Success(tag):
