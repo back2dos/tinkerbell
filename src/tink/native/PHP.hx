@@ -1,7 +1,7 @@
 package tink.native;
 #if macro
-	import tink.macro.tools.AST;
 	import haxe.macro.Expr;
+	using tink.macro.tools.MacroTools;
 #end
 /**
  * ...
@@ -10,7 +10,8 @@ package tink.native;
 
 class PHP {
 	@:macro static public function embed(s:String) {
-		return AST.build(untyped __php__('eval__s'));
+		var s = s.toExpr();
+		return macro untyped __php__($s);
 	}
 	static public function objHash(key:Dynamic):String {
 		if (embed('is_array($key)')) {

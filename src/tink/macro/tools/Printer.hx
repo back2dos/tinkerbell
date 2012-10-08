@@ -141,9 +141,6 @@ class Printer {
 			}
 		return ret;
 	}
-	//@:macro static public function rec(x:Expr):Expr {
-		//return 'printExpr'.resolve().call(['indent'.resolve(), x]);
-	//}
 	static public function print(e:Expr):String {
 		return printExpr('', e);
 	}
