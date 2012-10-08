@@ -26,6 +26,7 @@ class ClassBuilder {
 	}
 	#if macro
 		static var PLUGINS = [
+			LoopSugar.process,
 			Init.process,
 			Forward.process,
 			PropBuilder.process,
