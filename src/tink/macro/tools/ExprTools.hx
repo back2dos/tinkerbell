@@ -86,7 +86,7 @@ class ExprTools {
 				t = i;
 			t;
 		};
-		return e.typeof();
+		return PosTools.at(target.pos, e).typeof();
 	}
 	static function crawl(target:Dynamic, transformer:Expr->Expr, pos:Position) {
 		return

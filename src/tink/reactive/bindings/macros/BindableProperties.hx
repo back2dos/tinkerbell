@@ -23,33 +23,35 @@ class BindableProperties {
 		var str = name.toExpr(pos),
 			field = ['this', name].drill(pos);
 		return 
-			macro {
+			pos.at(macro {
 				this.bindings.byString.bind($str);
 				$field;
-			}
+			});
 	}
 	static function setter(name:String, pos:Position) {
 		var str = name.toExpr(pos),
 			field = ['this', name].drill(pos);
 		return 
-			macro { 
+			pos.at(macro { 
 				this.bindings.byString.fire($str, $field = param);
-			};
+			});
 	}
 	static function makeBinding(on:Expr) {
-		switch (on.typeof().sure().reduce().getID()) {
-			case 'String': return macro this.bindings.byString.bind($on);
-			case 'Int': return macro this.bindings.byInt.bind($on);
-			case 'Bool': return macro this.bindings.byBool.bind($on);
-			default: return macro this.bindings.byUnknown.bind($on);
-		}
-		return on;
+		return
+			on.pos.at(
+				switch (on.typeof().sure().reduce().getID()) {
+					case 'String': macro this.bindings.byString.bind($on);
+					case 'Int': macro this.bindings.byInt.bind($on);
+					case 'Bool': macro this.bindings.byBool.bind($on);
+					default: macro this.bindings.byUnknown.bind($on);
+				}
+			);
 	}
 	static public function make(ctx:ClassBuildContext) {
 		function makeBindable(pos) 
 			if (!ctx.has('bindings')) {
 				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding.Signaller'.asComplexType(), pos));
-				ctx.getCtor().init('bindings', pos, macro new tink.reactive.bindings.Binding.Signaller(), true);
+				ctx.getCtor().init('bindings', pos, pos.at(macro new tink.reactive.bindings.Binding.Signaller()), true);
 			}
 		var setters = new Hash(),
 			getters = new Hash();
@@ -137,7 +139,7 @@ class BindableProperties {
 					switch (e.expr) {
 						case EReturn(e): 
 							var name = name.toExpr(e.pos);
-							macro return this.bindings.byString.fire($name, $e);
+							e.pos.at(macro return this.bindings.byString.fire($name, $e));
 						default: e;
 					}
 				,name		
@@ -150,7 +152,7 @@ class BindableProperties {
 					switch (e.expr) {
 						case EReturn(e): 
 							var name = name.toExpr(e.pos);
-							macro return this.bindings.byString.bind($name, $e);
+							e.pos.at(macro return this.bindings.byString.bind($name, $e));
 						default: e;
 					}
 				,name

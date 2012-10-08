@@ -30,6 +30,11 @@ class PosTools {
 			else
 				pos;
 	}
+	static public function at(pos:Position, e:Expr) {
+		return ExprTools.transform(e, function (e:Expr) {
+			return e;
+		}, pos);
+	}
 	static public function errorExpr(pos:Position, error:Dynamic) {
 		return Bouncer.bounce(function ():Expr {
 			return PosTools.error(pos, error);

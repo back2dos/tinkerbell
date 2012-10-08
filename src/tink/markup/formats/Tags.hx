@@ -86,14 +86,14 @@ class Tags {
 							//TODO: can call to plugin here directly
 							if (s.charAt(0) == '$') {
 								var value = s.substr(1).toExpr(src.pos);
-								yield(macro id = $value);
+								yield(src.pos.at(macro id = $value));
 							}
 							else 
 								cls.push(s);
 								
 							if (cls.length > 0) {
 								var value = cls.join(' ').toExpr(src.pos);
-								yield(macro 'class' = $value);
+								yield(src.pos.at(macro 'class' = $value));
 							}
 								
 							src = null;

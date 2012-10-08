@@ -35,7 +35,7 @@ class Nodes {
 		return ret.resolve();		
 	}
 	public function init(pos:Position):Null<Expr> {
-		return open().define(macro Xml.createDocument());
+		return open().define(pos.at(macro Xml.createDocument()));
 	}
 	public function finalize(pos:Position):Null<Expr> {
 		return close();
@@ -44,7 +44,7 @@ class Nodes {
 		return 'div'.toExpr(pos);
 	}
 	public function postprocess(e:Expr):Expr {
-		return macro $e.firstChild();
+		return e.pos.at(macro $e.firstChild());
 	}
 	function stringifyProp(value:Expr):Expr {
 		return
@@ -61,29 +61,30 @@ class Nodes {
 	public function setProp(attr:String, value:Expr, pos:Position):Expr {
 		value = callback(stringifyProp, value).bounce();
 		var attr = attr.toExpr(pos);
-		return macro $target.set($attr, $value);
+		return pos.at(macro $target.set($attr, $value));
 	}
 	function addChildNode(e:Expr):Expr {
-		return macro $target.addChild($e);
+		return e.pos.at(macro $target.addChild($e));
 	}
 	function doAddChild(target:Expr, e:Expr):Expr {
-		return 
+		return e.pos.at(
 			if (e.is(XML))
-				macro $target.addChild($e);
+				macro $target.addChild($e)
 			else if (e.is(STRING)) 
-				macro $target.addChild(Xml.createPCData($e));
+				macro $target.addChild(Xml.createPCData($e))
 			else
-				macro $target.addChild(Std.string(Xml.createPCData($e)));
+				macro $target.addChild(Std.string(Xml.createPCData($e)))
+		);
 	}
 	public function addChild(e:Expr, ?t:Type):Expr {
 		return callback(doAddChild, target, e).bounce();
 	}
 	public function addString(s:String, pos:Position):Expr {
 		var s = s.toExpr(pos);
-		return macro $target.addChild(Xml.createPCData($s));
+		return pos.at(macro $target.addChild(Xml.createPCData($s)));
 	}
 	public function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr {
-		var ret = [open().define(macro Xml.createElement($nodeName))];
+		var ret = [open().define(pos.at(macro Xml.createElement($nodeName)))];
 		for (p in props)
 			ret.push(yield(p));
 		for (c in children)

@@ -5,6 +5,7 @@ package tink.collections.maps;
  * @author back2dos
  */
 #if macro
+	import haxe.macro.Context;
 	import haxe.macro.Expr;
 	import tink.macro.tools.AST;
 	using tink.macro.tools.MacroTools;
@@ -48,13 +49,13 @@ class MapTools {
 			}
 		var create = ENew( { pack: 'tink.collections.maps'.split('.'), name: map, params: params, sub:null }, []).at(keys.pos);
 		
-		return macro {
+		return Context.currentPos().at(macro {
 			var map = $create,
 				vals = $values.iterator(),
 				keys = $keys;
 			for (key in keys)
 				map.set(key, vals.hasNext() ? vals.next() : null);
 			map;
-		};
+		});
 	}
 }

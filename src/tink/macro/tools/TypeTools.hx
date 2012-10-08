@@ -110,15 +110,17 @@ class TypeTools {
 						getBlankFields(c, fields, new Hash());
 						var anon = TAnonymous(fields);
 						var actual = toComplex(t);
-						var merged = Context.typeof(macro {
+						return Context.currentPos().at(macro {
 							var actual : $actual = null;
 							var anon : $anon = actual;
 							anon;
-						});
-						switch (merged) {
-							case TAnonymous(anon): anon.get().fields.asSuccess();
-							default: throw 'wtf just happened?';
-						}						
+						}).typeof().map(function (t:Type)
+							return
+								switch (t) {
+									case TAnonymous(anon): anon.get().fields;
+									default: throw 'wtf just happened?';
+								}
+						);
 					}
 					else {
 						var fields = [];
@@ -126,7 +128,7 @@ class TypeTools {
 						fields.asSuccess();
 					}
 				case TAnonymous(anon): anon.get().fields.asSuccess();
-				default: 'type has no fields'.asFailure();
+				default: Context.currentPos().makeFailure('type has no fields');
 			}
 	}
 	static public function getStatics(t:Type) {

@@ -79,7 +79,7 @@ package tink.markup.formats;
 		function optimize(target:Expr) {
 			target = target.transform(flatten).transform(unify).transform(print);
 			var f = target.func([tmp.toArg()], false).toExpr();
-			return macro new tink.markup.formats.Fast($f);
+			return target.pos.at(macro new tink.markup.formats.Fast($f));
 		}
 		public function postprocess(e:Expr):Expr {
 			return e.outerTransform(optimize);
@@ -88,7 +88,7 @@ package tink.markup.formats;
 			return out(s.toExpr(here));
 		}
 		static function out(e:Expr):Expr {
-			return macro tink.markup.formats.Fast.add($e);
+			return e.pos.at(macro tink.markup.formats.Fast.add($e));
 		}
 		static var IS_LITERAL = out("eval__lit".toExpr());
 		static var IS_OUT = out("$v".resolve());
