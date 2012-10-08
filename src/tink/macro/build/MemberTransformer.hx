@@ -20,6 +20,7 @@ typedef ClassBuildContext = {
 	members:Array<Member>,
 	getCtor:Void->Constructor,
 	has:String->Bool,
+	get:String->Member,
 	hasOwn:String->Bool,
 	add:Member->Member
 }
@@ -72,6 +73,7 @@ class MemberTransformer {
 			members: fields,
 			getCtor: getConstructor,
 			has: hasMember,
+			get: getOwnMember,
 			hasOwn: hasOwnMember,
 			add: null
 		}
@@ -93,6 +95,14 @@ class MemberTransformer {
 				Context.warning(Printer.printField('', field), field.pos);
 		return ret;
 	}
+	function getOwnMember(name:String) {
+		return 
+			if (hasOwnMember(name)) 
+				members.get(name);
+			else
+				null;
+	}
+	
 	function hasOwnMember(name:String) {
 		return 
 			if (name == 'new')
