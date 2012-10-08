@@ -34,18 +34,24 @@ class LoopSugar {
 		var update = loopVar.define(
 			OpAssignOp(OpAdd).make(loopVar.resolve(), macro __tink__step, step.pos)
 		);
+		var loopVarExpr = loopVar.resolve(start.pos);
 		return [	
 			'__tink__step'.define(step),
 			loopVar.define(start),
-			body,
-			macro for (__tink__counter in 0...(Math.ceil(($end - $start) / __tink__step) - 1)) {
+			'__tink__count'.define(macro Math.ceil(($end - $loopVarExpr) / __tink__step) - 1),
+			macro if (__tink__count > 0) $body,
+			macro for (__tink__counter in 0...__tink__count) {
 				$update;
 				$body;
 			}
 		].toBlock();
 	}
 	static function adjust(e:Expr, pos:Position) {
-		return ECheckType(OpAdd.make(e, '__tink__step'.resolve(pos), pos), e.typeof().sure().toComplex()).at(pos);
+		return macro {
+			var v = $e;
+			v += __tink__step;
+			v;
+		}
 	}
 	static function transformLoop(e:Expr) {
 		switch (AST.match(e, INTERVAL_LOOP_W_STEP)) {
