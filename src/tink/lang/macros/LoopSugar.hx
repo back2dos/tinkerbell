@@ -35,11 +35,22 @@ class LoopSugar {
 			OpAssignOp(OpAdd).make(loopVar.resolve(), macro __tink__step, step.pos)
 		);
 		var loopVarExpr = loopVar.resolve(start.pos);
+		var first = body.transform(function (e:Expr) {
+			return 
+				switch (e.expr) {
+					case EBreak: macro {
+						__tink__count = 0;
+						continue;
+					}
+					default: e;
+				}
+		});
+		first = macro if (__tink__count >= 0) do $first while (false);
 		return [	
 			'__tink__step'.define(step),
 			loopVar.define(start),
 			'__tink__count'.define(macro Math.ceil(($end - $loopVarExpr) / __tink__step) - 1),
-			macro if (__tink__count > 0) $body,
+			first,
 			macro for (__tink__counter in 0...__tink__count) {
 				$update;
 				$body;

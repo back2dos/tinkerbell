@@ -92,23 +92,26 @@ class ClsTest extends TestCase {
 		
 		var tenths = [.0, .1, .2, .3, .4, .5, .6, .7, .8, .9];
 		compareArray(loop.floatUp(1, 0, .1), []);
+		compareArray(loop.floatUp(0, 1, .1, function (_) return true), []);
 		compareArray(loop.floatUp(0, 1, .1), tenths);
 		compareArray(loop.floatUp(0, .95, .1), tenths);
 		
 		tenths.reverse();
 		compareArray(loop.floatDown(0, 1, .1), []);
+		compareArray(loop.floatDown(1, 0, .1, function (_) return true), []);
 		compareArray(loop.floatDown(1, 0, .1), tenths);
 		compareArray(loop.floatDown(1, 0.05, .1), tenths);
 		
 		var digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 		var even = digits.filter(function (i) return i % 2 == 0).array();
 		compareArray(loop.intUp(1, 0, 1), []);
+		compareArray(loop.intUp(0, 10, 1, function (_) return true), []);
 		compareArray(loop.intUp(0, 10, 1), digits);
 		compareArray(loop.intUp(0, 10, 2), even);
-		
 		digits.reverse();
 		even.reverse();
 		compareArray(loop.intDown(0, 1, 1), []);
+		compareArray(loop.intDown(10, 0, 1, function (_) return true), []);
 		compareArray(loop.intDown(10, 0, 1), digits);
 		compareArray(loop.intDown(10, 0, 2), even);
 	}
@@ -195,28 +198,45 @@ class Child2 extends Child {
 
 class SuperLooper implements Cls {
 	public function new() { }
-	public function floatUp(min:Float, max:Float, step:Float) {
+	function getBreaker<A>(b:A->Bool) {
+		return 
+			if (b == null) function (_) return false;
+			else b;
+	}
+	public function floatUp(min:Float, max:Float, step:Float, ?breaker) {
+		breaker = getBreaker(breaker);
 		var ret = [];
-		for (i += step in min...max)
+		for (i += step in min...max) {
+			if (breaker(i)) break;
 			ret.push(i);
+		}
 		return ret;
 	}
-	public function floatDown(min:Float, max:Float, step:Float) {
+	public function floatDown(min:Float, max:Float, step:Float, ?breaker) {
+		breaker = getBreaker(breaker);
 		var ret = [];
-		for (i -= step in min...max)
+		for (i -= step in min...max) {
+			if (breaker(i)) break;
 			ret.push(i);
+		}
 		return ret;		
 	}
-	public function intUp(min:Int, max:Int, step:Int) {
+	public function intUp(min:Int, max:Int, step:Int, ?breaker) {
+		breaker = getBreaker(breaker);
 		var ret = [];
-		for (i += step in min...max)
+		for (i += step in min...max) {
+			if (breaker(i)) break;
 			ret.push(i);
+		}
 		return ret;
 	}
-	public function intDown(min:Int, max:Int, step:Int) {
+	public function intDown(min:Int, max:Int, step:Int, ?breaker) {
+		breaker = getBreaker(breaker);
 		var ret = [];
-		for (i -= step in min...max)
+		for (i -= step in min...max) {
+			if (breaker(i)) break;
 			ret.push(i);
+		}
 		return ret;		
 	}	
 }
