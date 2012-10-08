@@ -17,9 +17,9 @@ class BinopTools {
 					if (Type.enumEq(o, op)) 
 						{ e1: e1, e2:e2, pos:e.pos } .asSuccess();
 					else 
-						e.pos.makeFailure(Std.format('expected $o but found $op'));
+						e.pos.makeFailure('expected ' + o + ' but found ' + op);
 				default: 
-					e.pos.makeFailure(Std.format('expected binary operation $o'));
+					e.pos.makeFailure('expected binary operation ' + o);
 			}
 	}
 	static public function getBinop(e:Expr) {
@@ -44,18 +44,18 @@ class UnopTools {
 					if (postfix != postfix)
 						e.pos.makeFailure(postfix ? 'expected postfix operator' : 'expected prefix operator');
 					else if (!Type.enumEq(o, op)) 
-						e.pos.makeFailure(Std.format('expected $o but found $op'));
+						e.pos.makeFailure('expected ' + o + ' but found ' + op);
 					else
 						{ e: arg, pos:e.pos } .asSuccess();
 				default: 
-					e.pos.makeFailure(Std.format('expected unary operation $o'));
+					e.pos.makeFailure('expected unary operation ' + o);
 			}
 	}
 	static public function getUnop(e:Expr) {
 		return
 			switch (e.expr) {
 				case EUnop(op, postFix, arg):
-					{ op: op, postfix:postFix, e: arg, pos: e.pos } .asSuccess(); 
+					{ op: op, postfix: postFix, e: arg, pos: e.pos } .asSuccess();
 				default:
 					e.pos.makeFailure('expected unary operation but found ' + Type.enumConstructor(e.expr));					
 			}

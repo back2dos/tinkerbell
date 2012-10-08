@@ -20,17 +20,21 @@ class BindableProperties {
 	static public inline var CACHE = ':cache';
 	
 	static function getter(name:String, pos:Position) {
+		var str = name.toExpr(pos),
+			field = ['this', name].drill(pos);
 		return 
-			AST.build({ 
-				this.bindings.byString.bind("eval__name");
-				this.eval__name;
-			}, pos);
+			macro {
+				this.bindings.byString.bind($str);
+				$field;
+			}
 	}
 	static function setter(name:String, pos:Position) {
+		var str = name.toExpr(pos),
+			field = ['this', name].drill(pos);
 		return 
-			AST.build({ 
-				this.bindings.byString.fire("eval__name", this.eval__name = param);
-			}, pos);
+			macro { 
+				this.bindings.byString.fire($str, $field = param);
+			};
 	}
 	static function makeBinding(on:Expr) {
 		switch (on.typeof().sure().reduce().getID()) {
@@ -45,7 +49,7 @@ class BindableProperties {
 		function makeBindable(pos) 
 			if (!ctx.has('bindings')) {
 				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding.Signaller'.asComplexType(), pos));
-				ctx.getCtor().init('bindings', pos, AST.build(new tink.reactive.bindings.Binding.Signaller(), pos), true);
+				ctx.getCtor().init('bindings', pos, macro new tink.reactive.bindings.Binding.Signaller(), true);
 			}
 		var setters = new Hash(),
 			getters = new Hash();
@@ -75,7 +79,6 @@ class BindableProperties {
 						case FFun(f):
 							var body = [];
 							for (key in [name.toExpr(tag.pos)].concat(tag.params))
-								//body.push(AST.build(bindings.bind($key), key.pos));
 								body.push(callback(makeBinding, key).bounce(key.pos));
 							body.push(f.expr);
 							f.expr = body.toBlock(tag.pos);
@@ -103,11 +106,12 @@ class BindableProperties {
 							ctx.getCtor().init(
 								cacheName, 
 								tag.pos, 
-								AST.build(new tink.reactive.bindings.Binding.Watch(function () return $expr), tag.pos), 
+								macro new tink.reactive.bindings.Binding.Watch(function () return $expr), 
 								true,
 								bindingType
 							);
-							ctx.add(Member.getter(name, tag.pos, AST.build(eval__cacheName.value, tag.pos), t));
+							var cache = cacheName.resolve(tag.pos);
+							ctx.add(Member.getter(name, tag.pos, macro $cache.value, t));
 							member.kind = FProp('get_' + name, 'null', t);
 						default: 
 							member.pos.error('');
@@ -131,7 +135,9 @@ class BindableProperties {
 			callback(function (name:String, e:Expr) 
 				return
 					switch (e.expr) {
-						case EReturn(e): AST.build(return this.bindings.byString.fire("eval__name", $e), e.pos);
+						case EReturn(e): 
+							var name = name.toExpr(e.pos);
+							macro return this.bindings.byString.fire($name, $e);
 						default: e;
 					}
 				,name		
@@ -142,7 +148,9 @@ class BindableProperties {
 			callback(function (name:String, e:Expr) 
 				return
 					switch (e.expr) {
-						case EReturn(e): AST.build(return this.bindings.byString.bind("eval__name", $e), e.pos);
+						case EReturn(e): 
+							var name = name.toExpr(e.pos);
+							macro return this.bindings.byString.bind($name, $e);
 						default: e;
 					}
 				,name

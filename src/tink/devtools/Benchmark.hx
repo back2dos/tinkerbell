@@ -43,11 +43,12 @@ class Benchmark {
 	}
 	@:macro static public function measure(msg:String, e:Expr, ?times:Expr):Expr {
 		if (times.getIdent().equals('null')) times = 1.toExpr();
-		return AST.build({
-			var tmpB = new Benchmark($(msg.toExpr()));
-			for (tmp in 0...$times - 1) $e;
-			tmpB.finish($e);
-		});		
-	}
-
+		var msg = msg.toExpr();
+		return macro {
+			var __tink__b = new Benchmark($msg),
+				__tink__times = $times;
+			for (__tink__i in 0...__tink__times - 1) $e;
+			__tink__b.finish($e);
+		};		
+	}	
 }

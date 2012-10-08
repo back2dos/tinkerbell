@@ -24,6 +24,8 @@ class Printer {
 	static public function unoperator(u:Unop)
 		return unops[Type.enumIndex(u)]
 	static public function binop(?indent:String = '', b:Binop, e1:Expr, e2:Expr):String {
+		function rec(e)
+			return printExpr(indent, e);		
 		return '(' + rec(e1) + ' ' + binoperator(b) + ' ' + rec(e2) +')';
 	}
 	static public function printExprList(indent:String, list:Iterable<Expr>, ?sep, ?border:Array<String>):String {
@@ -81,6 +83,9 @@ class Printer {
 		return ret +'}';
 	}
 	static public function printFunction(f:Function, ?name:String, ?indent = '') {
+		function rec(e)
+			return printExpr(indent, e);
+		
 		var ret = 'function ';
 		if (name != null) ret += name;
 		var args = [];
@@ -136,13 +141,15 @@ class Printer {
 			}
 		return ret;
 	}
-	@:macro static public function rec(x:Expr):Expr {
-		return 'printExpr'.resolve().call(['indent'.resolve(), x]);
-	}
+	//@:macro static public function rec(x:Expr):Expr {
+		//return 'printExpr'.resolve().call(['indent'.resolve(), x]);
+	//}
 	static public function print(e:Expr):String {
 		return printExpr('', e);
 	}
 	static public function printExpr(indent:String, e:Expr):String {
+		function rec(e)
+			return printExpr(indent, e);
 		return 
 			if (e == null) '#NULL';
 			else if (e.expr == null) '#MALFORMED';

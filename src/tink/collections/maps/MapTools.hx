@@ -48,12 +48,13 @@ class MapTools {
 			}
 		var create = ENew( { pack: 'tink.collections.maps'.split('.'), name: map, params: params, sub:null }, []).at(keys.pos);
 		
-		return AST.build( {
-			var tmpMap = $create;
-			var tmpVals = $values.iterator();
-			for (tmpKey in $keys)
-				tmpMap.set(tmpKey, tmpVals.hasNext() ? tmpVals.next() : null);
-			tmpMap;
-		});
+		return macro {
+			var map = $create,
+				vals = $values.iterator(),
+				keys = $keys;
+			for (key in keys)
+				map.set(key, vals.hasNext() ? vals.next() : null);
+			map;
+		};
 	}
 }

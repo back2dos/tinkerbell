@@ -34,8 +34,6 @@ class Tags {
 	var plugin:Plugin;
 	public function new(plugin) {
 		this.plugin = plugin;
-		var e1:Expr = AST.build([1, 2, 3, 4]),
-			e2:Expr = AST.build([1, 2, 3, 4]);
 	}
 	public function init(pos:Position):Null<Expr> return plugin.init(pos)
 	public function finalize(pos:Position):Null<Expr> return plugin.finalize(pos)
@@ -86,13 +84,17 @@ class Tags {
 					switch (src.getIdent()) {
 						case Success(s):
 							//TODO: can call to plugin here directly
-							if (s.charAt(0) == '$')
-								yield(AST.build(id = $(s.substr(1).toExpr(src.pos)), src.pos));
+							if (s.charAt(0) == '$') {
+								var value = s.substr(1).toExpr(src.pos);
+								yield(macro id = $value);
+							}
 							else 
 								cls.push(s);
 								
-							if (cls.length > 0)
-								yield(AST.build('class' = $(cls.join(' ').toExpr(src.pos)), src.pos));
+							if (cls.length > 0) {
+								var value = cls.join(' ').toExpr(src.pos);
+								yield(macro 'class' = $value);
+							}
 								
 							src = null;
 						default:

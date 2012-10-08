@@ -79,12 +79,13 @@ class ExprTools {
 		return ret;
 	}
 	static public function getIterType(target:Expr) {
-		var e:Expr = AST.build( {
-			var tmp = null;
-			for (_ in $target)
-				tmp = _;
-			tmp;
-		});
+		var e = macro {
+			var t = null,
+				target = $target;
+			for (i in target)
+				t = i;
+			t;
+		};
 		return e.typeof();
 	}
 	static function crawl(target:Dynamic, transformer:Expr->Expr, pos:Position) {
@@ -107,40 +108,39 @@ class ExprTools {
 						ret;
 				}
 	}
-	@:macro static private function rec(x:Expr, ?ctx:Expr):Expr {
-		return 'map'.resolve().call([x, "f".resolve(), ctx.getIdent().equals('null') ? "ctx".resolve() : ctx, "pos".resolve()]);
-	}	
-	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr
-	{
+
+	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr {
+		function rec(e, ?ctx)
+			return map(e, f, ctx, pos);
 		if (source == null)	return null;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
 		
 		return (switch(mappedSource.expr)
 		{
-			case ECheckType(e, t): ECheckType(e.rec(), t);
-			case ECast(e, t): ECast(e.rec(), t);
-			case EArray(e1, e2): EArray(e1.rec(), e2.rec());
-			case EField(e, field): EField(e.rec(), field);
-			case EParenthesis(e):  EParenthesis(e.rec());
-			case ECall(e, params): ECall(e.rec(), params.mapArray(f, ctx, pos));
-			case EIf(econd, eif, eelse): EIf(econd.rec(), eif.rec(), eelse.rec());
-			case ETernary(econd, eif, eelse): ETernary(econd.rec(), eif.rec(), eelse.rec());
+			case ECheckType(e, t): ECheckType(rec(e), t);
+			case ECast(e, t): ECast(rec(e), t);
+			case EArray(e1, e2): EArray(rec(e1), rec(e2));
+			case EField(e, field): EField(rec(e), field);
+			case EParenthesis(e):  EParenthesis(rec(e));
+			case ECall(e, params): ECall(rec(e), params.mapArray(f, ctx, pos));
+			case EIf(econd, eif, eelse): EIf(rec(econd), rec(eif), rec(eelse));
+			case ETernary(econd, eif, eelse): ETernary(rec(econd), rec(eif), rec(eelse));
 			case EBlock(exprs): EBlock(exprs.mapArray(f, ctx.copy(), pos));
 			case EArrayDecl(exprs): EArrayDecl(exprs.mapArray(f, ctx, pos));
-			case EIn(e1, e2): EIn(e1.rec(), e2.rec());
-			case EWhile(econd, e, normalWhile): EWhile(econd.rec(), e.rec(), normalWhile);
-			case EUntyped(e): EUntyped(e.rec());
-			case EThrow(e): EThrow(e.rec());
-			case EReturn(e): EReturn(e.rec());
-			case EDisplay(e, t): EDisplay(e.rec(), t);
-			case EUnop(op, postFix, e): EUnop(op, postFix, e.rec());
+			case EIn(e1, e2): EIn(rec(e1), rec(e2));
+			case EWhile(econd, e, normalWhile): EWhile(rec(econd), rec(e), normalWhile);
+			case EUntyped(e): EUntyped(rec(e));
+			case EThrow(e): EThrow(rec(e));
+			case EReturn(e): EReturn(rec(e));
+			case EDisplay(e, t): EDisplay(rec(e), t);
+			case EUnop(op, postFix, e): EUnop(op, postFix, rec(e));
 			case ENew(t, params): ENew(t, params.mapArray(f, ctx, pos));
-			case EBinop(op, e1, e2): EBinop(op, e1.rec(), e2.rec());
+			case EBinop(op, e1, e2): EBinop(op, rec(e1), rec(e2));
 			case EObjectDecl(fields):
 				var newFields = [];
 				for (field in fields)
-					newFields.push( { field:field.field, expr:field.expr.rec() } );
+					newFields.push( { field:field.field, expr:rec(field.expr) } );
 				EObjectDecl(newFields);
 			case ESwitch(expr, cases, def):
 				var newCases = [];
@@ -148,7 +148,7 @@ class ExprTools {
 				{
 					var newValues:Array<Expr> = [];
 					for (v in c.values)
-						newValues.push(v.rec());
+						newValues.push(rec(v));
 					
 					switch(newValues[0].expr)
 					{
@@ -162,13 +162,13 @@ class ExprTools {
 									{
 										innerCtx.push( { name:params[arg].getName().sure(), type: args[arg].t.toComplex(), expr: null } );
 									}
-									newCases.push({expr:c.expr.rec(innerCtx), values:newValues});
+									newCases.push({expr:rec(c.expr, innerCtx), values:newValues});
 								default: return Context.error("Expected function but found " +t, i.pos);
 							}
-						default: newCases.push( { expr:c.expr.rec(), values:c.values } );
+						default: newCases.push( { expr:rec(c.expr), values:c.values } );
 					}
 				}
-				ESwitch(expr.rec(), newCases, def.rec());
+				ESwitch(rec(expr), newCases, rec(def));
 			case EFor(it, expr):
 			{
 				switch(it.expr)
@@ -182,7 +182,7 @@ class ExprTools {
 									innerCtx.push( { name:itIdent.getIdent().sure(), type: "Int".asComplexType(), expr:null } );
 								else
 									innerCtx.push( { name:itIdent.getIdent().sure(), type: null, expr:itExpr.field("iterator").call().field("next").call() } );
-								EFor(it, expr.rec(innerCtx));
+								EFor(it, rec(expr, innerCtx));
 							default:
 						}
 					default: return Context.error("Internal error", mappedSource.pos);
@@ -194,14 +194,14 @@ class ExprTools {
 				{
 					var innerCtx = ctx.copy();
 					innerCtx.push({ name:c.name, expr: null, type:c.type });
-					newCatches.push({name:c.name, expr:c.expr.rec(innerCtx), type:c.type});
+					newCatches.push({name:c.name, expr:rec(c.expr, innerCtx), type:c.type});
 				}
-				ETry(e.rec(), newCatches);
+				ETry(rec(e), newCatches);
 			case EFunction(name, func):
 				var innerCtx = ctx.copy();
 				for (arg in func.args)
 					innerCtx.push( { name:arg.name, type:arg.type, expr:null } );
-				func.expr = func.expr.rec(innerCtx);
+				func.expr = rec(func.expr, innerCtx);
 				EFunction(name, func);
 			case EVars(vars):
 				var ret = [];
@@ -222,7 +222,7 @@ class ExprTools {
 	{
 		var ret = [];
 		for (e in source)
-			ret.push(e.rec());
+			ret.push(map(e, f, ctx, pos));
 		return ret;
 	}
 	static public inline function iterate(target:Expr, body:Expr, ?loopVar:String = 'i', ?pos:Position) {
@@ -388,8 +388,7 @@ class ExprTools {
 			}					
 	}
 	///Attempts to extract a function from an expression.
-	static public function getFunction(e:Expr)
-	{
+	static public function getFunction(e:Expr) {
 		return
 			switch (e.expr) {
 				case EFunction(_, f): Success(f);

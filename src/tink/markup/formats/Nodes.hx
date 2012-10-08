@@ -35,7 +35,7 @@ class Nodes {
 		return ret.resolve();		
 	}
 	public function init(pos:Position):Null<Expr> {
-		return open().define(AST.build(Xml.createDocument()), pos);
+		return open().define(macro Xml.createDocument());
 	}
 	public function finalize(pos:Position):Null<Expr> {
 		return close();
@@ -44,7 +44,7 @@ class Nodes {
 		return 'div'.toExpr(pos);
 	}
 	public function postprocess(e:Expr):Expr {
-		return AST.build($e.firstChild(), e.pos);
+		return macro $e.firstChild();
 	}
 	function stringifyProp(value:Expr):Expr {
 		return
@@ -55,33 +55,35 @@ class Nodes {
 					if (value.is(STRING)) 
 						value;
 					else 
-						AST.build(Std.string($value));
+						macro Std.string($value);
 			}
 	}
 	public function setProp(attr:String, value:Expr, pos:Position):Expr {
 		value = callback(stringifyProp, value).bounce();
-		return AST.build($target.set("eval__attr", $value), pos);
+		var attr = attr.toExpr(pos);
+		return macro $target.set($attr, $value);
 	}
 	function addChildNode(e:Expr):Expr {
-		return AST.build($target.addChild($e), e.pos);
+		return macro $target.addChild($e);
 	}
 	function doAddChild(target:Expr, e:Expr):Expr {
 		return 
 			if (e.is(XML))
-				AST.build($target.addChild($e), e.pos);
+				macro $target.addChild($e);
 			else if (e.is(STRING)) 
-				AST.build($target.addChild(Xml.createPCData($e)), e.pos);
+				macro $target.addChild(Xml.createPCData($e));
 			else
-				AST.build($target.addChild(Std.string(Xml.createPCData($e))), e.pos);
+				macro $target.addChild(Std.string(Xml.createPCData($e)));
 	}
 	public function addChild(e:Expr, ?t:Type):Expr {
 		return callback(doAddChild, target, e).bounce();
 	}
 	public function addString(s:String, pos:Position):Expr {
-		return AST.build($target.addChild(Xml.createPCData('eval__s')), pos);
+		var s = s.toExpr(pos);
+		return macro $target.addChild(Xml.createPCData($s));
 	}
 	public function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr {
-		var ret = [open().define(AST.build(Xml.createElement($nodeName), pos))];
+		var ret = [open().define(macro Xml.createElement($nodeName))];
 		for (p in props)
 			ret.push(yield(p));
 		for (c in children)
