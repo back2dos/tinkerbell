@@ -3,16 +3,14 @@ package tink.macro.build;
 import haxe.macro.Expr;
 import tink.macro.tools.ExprTools;
 
-/**
- * ...
- * @author back2dos
- */
 using tink.macro.tools.MacroTools;
 
 class Constructor {
 	var oldStatements:Array<Expr>;
 	var nuStatements:Array<Expr>;
+	var beforeArgs:Array<FunctionArg>;
 	var args:Array<FunctionArg>;
+	var afterArgs:Array<FunctionArg>;
 	var pos:Position;
 	var ownerIsInterface:Bool;
 	public var isPublic:Bool;
@@ -22,12 +20,23 @@ class Constructor {
 		this.isPublic = isPublic;
 		this.pos = pos.getPos();
 		
+		this.args = [];
+		this.beforeArgs = [];
+		this.afterArgs = [];
+		
 		if (f == null) {
-			this.args = [];
 			this.oldStatements = [];
 		}
 		else {
-			this.args = f.args;
+			for (i in 0...f.args.length) {
+				var a = f.args[i];
+				if (a.name == '_') {
+					afterArgs = f.args.slice(i + 1);
+					break;
+				}
+				beforeArgs.push(a);
+			}
+				
 			this.oldStatements =
 				if (f.expr == null) [];
 				else
@@ -67,7 +76,7 @@ class Constructor {
 			doc : null,
 			access : isPublic ? [APublic] : [],
 			kind :  FFun( {
-				args:this.args,
+				args: this.beforeArgs.concat(this.args).concat(this.afterArgs),
 				ret: 'Void'.asComplexType(),
 				expr: toBlock(),
 				params: []
