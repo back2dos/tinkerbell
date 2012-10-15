@@ -82,38 +82,93 @@ class ClsTest extends TestCase {
 			assertEquals(b.h+1, b.i);
 		}
 	}
-	function compareArray<T:Float>(expected:Array<T>, found:Array<T>) {
+	function compareFloatArray(expected:Array<Float>, found:Array<Float>) {
 		assertEquals(expected.length, found.length);
 		for (i in 0...expected.length) 
 			assertTrue(Math.abs(expected[i] - found[i]) < .0000001);
 	}
+	function compareArray<A>(expected:Array<A>, found:Array<A>) {
+		assertEquals(expected.length, found.length);
+		for (i in 0...expected.length) 
+			assertEquals(expected[i], found[i]);
+	}
 	function testForLoops() {
-		var loop = new SuperLooper();
+		var loop = new SuperLooper(),
+			control = new ControlLooper();
 		
-		var tenths = [.0, .1, .2, .3, .4, .5, .6, .7, .8, .9];
-		compareArray(loop.floatUp(1, 0, .1), []);
-		compareArray(loop.floatUp(0, 1, .1, function (_) return true), []);
-		compareArray(loop.floatUp(0, 1, .1), tenths);
-		compareArray(loop.floatUp(0, .95, .1), tenths);
+		function floatUp(start, end, step, ?breaker) {
+			if (breaker == null) breaker = function (_) return false;
+			compareFloatArray(
+				loop.floatUp(start, end, step, breaker),
+				control.floatUp(start, end, step, breaker)
+			);
+		}
+		function floatDown(end, start, step, ?breaker) {
+			if (breaker == null) breaker = function (_) return false;
+			compareFloatArray(
+				loop.floatDown(start, end, step, breaker),
+				control.floatDown(start, end, step, breaker)
+			);
+		}
+		function intUp(start, end, step, ?breaker) {
+			if (breaker == null) breaker = function (_) return false;
+			compareArray(
+				loop.intUp(start, end, step, breaker),
+				control.intUp(start, end, step, breaker)
+			);
+		}
+		function intDown(end, start, step, ?breaker) {
+			if (breaker == null) breaker = function (_) return false;
+			compareArray(
+				loop.intDown(start, end, step, breaker),
+				control.intDown(start, end, step, breaker)
+			);
+		}	
 		
-		tenths.reverse();
-		compareArray(loop.floatDown(0, 1, .1), []);
-		compareArray(loop.floatDown(1, 0, .1, function (_) return true), []);
-		compareArray(loop.floatDown(1, 0, .1), tenths);
-		compareArray(loop.floatDown(1, 0.05, .1), tenths);
+		compareFloatArray(
+			control.floatUp(0.1, 2.9, 0.5, function (_) return false),
+			[0.1, 0.6, 1.1, 1.6, 2.1, 2.6]
+		);
+		compareArray(
+			control.intUp(3, 17, 4, function (_) return false),
+			[3, 7, 11, 15]
+		);
 		
-		var digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-		var even = digits.filter(function (i) return i % 2 == 0).array();
-		compareArray(loop.intUp(1, 0, 1), []);
-		compareArray(loop.intUp(0, 10, 1, function (_) return true), []);
-		compareArray(loop.intUp(0, 10, 1), digits);
-		compareArray(loop.intUp(0, 10, 2), even);
-		digits.reverse();
-		even.reverse();
-		compareArray(loop.intDown(0, 1, 1), []);
-		compareArray(loop.intDown(10, 0, 1, function (_) return true), []);
-		compareArray(loop.intDown(10, 0, 1), digits);
-		compareArray(loop.intDown(10, 0, 2), even);
+		compareFloatArray(
+			control.floatUp(0, 10, .3, function (_) return false),
+			{
+				var a = control.floatDown(10, 0, .3, function (_) return false);
+				a.reverse();
+				a;
+			}
+		);
+		
+		compareArray(
+			control.intUp(0, 100, 3, function (_) return false),
+			{
+				var a = control.intDown(100, 0, 3, function (_) return false);
+				a.reverse();
+				a;
+			}
+		);
+		for (i in 0...50) {
+			floatUp(0, i, .1);
+			floatUp(0, 0.1 * i, .1);
+			var breakAt = (i >>> 1) + Std.random(i);
+			floatUp(0, i, 1.0, function (i) return i >= breakAt);
+			intUp(0, i, 3);
+			intUp(0, 3 * i, 3);
+			var breakAt = (i >>> 1) + Std.random(i);
+			intUp(0, i, 1, function (i) return i >= breakAt);
+			floatDown(0, i, .1);
+			floatDown(0, 0.1 * i, .1);
+			var breakAt = (i >>> 1) + Std.random(i);
+			floatDown(0, i, 1.0, function (i) return i >= breakAt);
+			intDown(0, i, 3);
+			intDown(0, 3 * i, 3);
+			var breakAt = (i >>> 1) + Std.random(i);
+			intDown(0, i, 1, function (i) return i >= breakAt);
+		}
 	}
 	function testSuperConstructor() {
 		var c = new Child("1", 2);
@@ -195,45 +250,74 @@ class Child extends Base, implements Cls {
 class Child2 extends Child {
 
 }
-
+class ControlLooper {
+	public function new() { }
+	public function floatUp(start:Float, end:Float, step:Float, breaker) {
+		var ret = [];
+		for (i in 0...Math.ceil((end - start) / step)) {
+			if (breaker(i)) break;
+			ret.push(i * step + start);
+		}
+		return ret;
+	}
+	public function floatDown(start:Float, end:Float, step:Float, breaker) {
+		var ret = [];
+		var count = Math.ceil((start - end) / step);
+		for (i in 0...count) {
+			var i = count - i - 1;
+			if (breaker(i)) break;
+			ret.push(i * step + end);
+		}
+		return ret;
+	}
+	public function intUp(start:Int, end:Int, step:Int, breaker) {
+		var ret = [];
+		for (i in 0...Math.ceil((end - start) / step)) {
+			if (breaker(i)) break;
+			ret.push(i * step + start);
+		}
+		return ret;
+	}
+	public function intDown(start:Int, end:Int, step:Int, breaker) {
+		var ret = [];
+		var count = Math.ceil((start - end) / step);
+		for (i in 0...count) {
+			var i = count - i - 1;
+			if (breaker(i)) break;
+			ret.push(i * step + end);
+		}
+		return ret;
+	}	
+}
 class SuperLooper implements Cls {
 	public function new() { }
-	function getBreaker<A>(b:A->Bool) {
-		return 
-			if (b == null) function (_) return false;
-			else b;
-	}
-	public function floatUp(min:Float, max:Float, step:Float, ?breaker) {
-		breaker = getBreaker(breaker);
+	public function floatUp(start:Float, end:Float, step:Float, breaker) {
 		var ret = [];
-		for (i += step in min...max) {
+		for (i += step in start...end) {
 			if (breaker(i)) break;
 			ret.push(i);
 		}
 		return ret;
 	}
-	public function floatDown(min:Float, max:Float, step:Float, ?breaker) {
-		breaker = getBreaker(breaker);
+	public function floatDown(start:Float, end:Float, step:Float, breaker) {
 		var ret = [];
-		for (i -= step in min...max) {
+		for (i -= step in start...end) {
 			if (breaker(i)) break;
 			ret.push(i);
 		}
 		return ret;		
 	}
-	public function intUp(min:Int, max:Int, step:Int, ?breaker) {
-		breaker = getBreaker(breaker);
+	public function intUp(start:Int, end:Int, step:Int, breaker) {
 		var ret = [];
-		for (i += step in min...max) {
+		for (i += step in start...end) {
 			if (breaker(i)) break;
 			ret.push(i);
 		}
 		return ret;
 	}
-	public function intDown(min:Int, max:Int, step:Int, ?breaker) {
-		breaker = getBreaker(breaker);
+	public function intDown(start:Int, end:Int, step:Int, breaker) {
 		var ret = [];
-		for (i -= step in min...max) {
+		for (i -= step in start...end) {
 			if (breaker(i)) break;
 			ret.push(i);
 		}
