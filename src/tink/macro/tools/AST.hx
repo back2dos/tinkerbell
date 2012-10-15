@@ -14,90 +14,12 @@ using tink.core.types.Outcome;
 using tink.macro.tools.MacroTools;
 
 class AST {
-	///returns an expression that evaluates to the ast of the given expression, without any substitutions
-	@:macro static public function plain(expr:Expr, ?pos:Expr):ExprRequire<Expr> {
-		return (new Builder(pos, true)).transformExpr(expr);
-	}
 	///returns an expression that evaluates to the ast of the given expression, while performing a number of substitutions
 	@:macro static public function build(expr:Expr, ?pos:Expr):ExprRequire<Expr> {
 		return (new Builder(pos)).transformExpr(expr);
 	}	
-	static public function match(expr:Expr, pattern:Expr) {
-		return new Matcher().match(expr, pattern);
-	}
 }
 
-private class Matcher {
-	var exprs:Dynamic<Expr>;
-	var strings:Dynamic<String>;
-	public function new() {
-		this.exprs = {}
-		this.strings = {}
-	}
-	public function match(expr:Expr, pattern:Expr) {
-		return
-			try {
-				recurse(expr, pattern);
-				{ exprs: exprs, strings: strings }.asSuccess();
-			}
-			catch (e:String) {
-				e.asFailure();
-			}
-	}
-	function matchObject(x1:Dynamic, x2:Dynamic) {
-		if (x2 == null) throw 'mismatch';
-		for (f in Reflect.fields(x1)) 
-			matchAny(Reflect.field(x1, f), Reflect.field(x2, f));
-	}
-	function matchString(s1:String, s2:String) {
-		if (s2 == null) 
-			equal(s1, s2);
-		else if (s2.startsWith('eval__')) 
-			Reflect.setField(strings, s2.substr(6), s1);
-		else
-			equal(s1, s2);
-	}
-	function equal(x1:Dynamic, x2:Dynamic) {
-		if (x1 != x2) throw 'mismatch';
-	}
-	function matchAny(x1:Dynamic, x2:Dynamic) {
-		switch (Type.typeof(x1)) {
-			case TNull, TInt, TFloat, TBool: equal(x1, x2);
-			case TObject: 
-				if (Std.is(x1.expr, ExprDef)) recurse(x1, x2);
-				else matchObject(x1, x2);
-			case TFunction: 
-				throw 'unexpected';
-			case TClass(c):
-				if (c == Array) matchArray(x1, x2);
-				else if (c == String) matchString(x1, x2);
-				else throw 'unexpected';
-			case TEnum(_): matchEnum(x1, x2);
-			case TUnknown:
-		}
-	}
-	function matchArray(a1:Array<Dynamic>, a2:Array<Dynamic>) {
-		equal(a1.length, a2.length);
-		for (i in 0...a1.length)
-			matchAny(a1[i], a2[i]);
-	}
-	function matchEnum(e1:Dynamic, e2:Dynamic) {
-		equal(Type.enumIndex(e1), Type.enumIndex(e2));
-		matchArray(Type.enumParameters(e1), Type.enumParameters(e2));
-	}
-	function recurse(expr:Expr, pattern:Expr) {
-		if (pattern == null) throw 'mismatch';
-		switch (pattern.getIdent()) {
-			case Success(s):
-				if (s.startsWith('$')) 
-					Reflect.setField(exprs, s.substr(1), expr); 
-				else
-					matchEnum(expr.expr, pattern.expr);
-			default: 
-				matchEnum(expr.expr, pattern.expr);
-		}
-	}
-}
 private class Builder {
 	var here:Expr;
 	var varName:String;

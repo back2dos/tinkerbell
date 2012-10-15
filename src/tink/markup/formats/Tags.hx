@@ -2,7 +2,6 @@ package tink.markup.formats;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Format;
-import tink.macro.tools.AST;
 
 /**
  * ...

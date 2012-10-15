@@ -1,10 +1,5 @@
 package tink.macro.tools;
 
-/**
- * ...
- * @author back2dos
- */
-
 import haxe.macro.Expr;
 using Lambda;
 using tink.macro.tools.ExprTools;

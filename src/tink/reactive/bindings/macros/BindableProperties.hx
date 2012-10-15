@@ -3,7 +3,6 @@ package tink.reactive.bindings.macros;
 import tink.lang.macros.PropBuilder;
 import tink.macro.build.Member;
 import tink.macro.build.MemberTransformer;
-import tink.macro.tools.AST;
 import haxe.macro.Expr;
 
 using tink.macro.tools.MacroTools;

@@ -10,7 +10,6 @@ import haxe.PosInfos;
 
 #if macro
 	import haxe.macro.Expr;
-	import tink.macro.tools.AST;
 	
 	using tink.macro.tools.ExprTools;
 	using tink.core.types.Outcome;

@@ -7,7 +7,6 @@ package tink.lang.macros;
 import haxe.macro.Expr;
 import tink.macro.build.Constructor;
 import tink.macro.build.Member;
-import tink.macro.tools.AST;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;

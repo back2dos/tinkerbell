@@ -3,7 +3,6 @@ package tink.markup.formats;
 	import haxe.macro.Context;
 	import haxe.macro.Expr;
 	import haxe.macro.Format;
-	import tink.macro.tools.AST;
 
 	using tink.macro.tools.MacroTools;
 	using tink.core.types.Outcome;
@@ -55,7 +54,7 @@ package tink.markup.formats;
 								ret.push(sOut(s));
 						}
 						for (e in exprs) {
-							switch (AST.match(e, IS_LITERAL)) {
+							switch (e.match(IS_LITERAL)) {
 								case Success(m):
 									buf.add(m.strings.lit);
 								default:
@@ -70,7 +69,7 @@ package tink.markup.formats;
 		}
 		function print(e:Expr) {
 			return
-				switch (AST.match(e, IS_OUT)) {
+				switch (e.match(IS_OUT)) {
 					case Success(m):
 						tmp.resolve().field('add').call([m.exprs.v]);
 					default: e;

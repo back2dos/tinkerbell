@@ -9,6 +9,7 @@ import haxe.PosInfos;
 import tink.core.types.Outcome;
 
 using Lambda;
+using StringTools;
 using tink.macro.tools.PosTools;
 using tink.macro.tools.ExprTools;
 using tink.macro.tools.TypeTools;
@@ -218,8 +219,7 @@ class ExprTools {
 				mappedSource.expr;
 		}).at(mappedSource.pos);
 	}
-	static public function mapArray(source:Array<Expr>, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos)
-	{
+	static public function mapArray(source:Array<Expr>, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos) {
 		var ret = [];
 		for (e in source)
 			ret.push(map(e, f, ctx, pos));
@@ -255,8 +255,8 @@ class ExprTools {
 	static public inline function instantiate(s:String, ?args:Array<Expr>, ?params:Array<TypeParam>, ?pos:Position) {
 		return s.asTypePath(params).instantiate(args, pos);
 	}
-	static public inline function assign(target:Expr, value:Expr, ?pos:Position) {
-		return binOp(target, value, OpAssign, pos);
+	static public inline function assign(target:Expr, value:Expr, ?op:Binop, ?pos:Position) {
+		return binOp(target, value, op == null ? OpAssign : OpAssignOp(op), pos);
 	}
 	///single variable declaration
 	static public inline function define(name:String, ?init:Expr, ?typ:ComplexType, ?pos:Position) {
@@ -401,4 +401,88 @@ class ExprTools {
 	static inline var NOT_A_NAME = "name expected";
 	static inline var NOT_A_FUNCTION = "function expected";
 	static inline var EMPTY_EXPRESSION = "expression expected";	
+	static public function match(expr:Expr, pattern:Expr) {
+		return new Matcher().match(expr, pattern);
+	}
+	
+}
+
+private class Matcher {
+	var exprs:Dynamic<Expr>;
+	var strings:Dynamic<String>;
+	public function new() {
+		this.exprs = {}
+		this.strings = {}
+	}
+	public function match(expr:Expr, pattern:Expr) {
+		return
+			try 
+			{
+				recurse(expr, pattern);
+				{ 
+					exprs: exprs, 
+					strings: strings,//TODO: deprecate
+					names: strings
+				}.asSuccess();
+			}
+			catch (e:String) {
+				e.asFailure();
+			}
+	}
+	function matchObject(x1:Dynamic, x2:Dynamic) {
+		if (x2 == null) throw Std.string(x2) + ' expected but found ' + Std.string(x1);
+		for (f in Reflect.fields(x1)) 
+			matchAny(Reflect.field(x1, f), Reflect.field(x2, f));
+	}
+	function matchString(s1:String, s2:String) {
+		if (s2 == null) 
+			equal(s1, s2);
+		else if (s2.startsWith('eval__') || s2.startsWith('NAME__')) 
+			Reflect.setField(strings, s2.substr(6), s1);
+		else
+			equal(s1, s2);
+	}
+	function equal(x1:Dynamic, x2:Dynamic) {
+		if (x1 != x2) throw Std.string(x2) + ' expected but found ' + Std.string(x1);
+	}
+	function matchAny(x1:Dynamic, x2:Dynamic) {
+		//trace([x1, x2]);
+		switch (Inspect.typeof(x1)) {
+			case TNull, TInt, TFloat, TBool: equal(x1, x2);
+			case TObject: 
+				if (Std.is(x1.expr, ExprDef)) recurse(x1, x2);
+				else matchObject(x1, x2);
+			case TFunction: 
+				throw 'unexpected';
+			case TClass(c):
+				if (c == Array) matchArray(x1, x2);
+				else if (c == String) matchString(x1, x2);
+				else throw 'unexpected';
+			case TEnum(_): matchEnum(x1, x2);
+			case TUnknown:
+		}
+	}
+	function matchArray(a1:Array<Dynamic>, a2:Array<Dynamic>) {
+		equal(a1.length, a2.length);
+		for (i in 0...a1.length)
+			matchAny(a1[i], a2[i]);
+	}
+	function matchEnum(e1:Dynamic, e2:Dynamic) {
+		equal(Inspect.enumConstructor(e1), Inspect.enumConstructor(e2));
+		matchArray(Inspect.enumParameters(e1), Inspect.enumParameters(e2));
+	}
+	function recurse(expr:Expr, pattern:Expr) {
+		if (pattern == null) throw 'nothing expected but found ' + expr.toString();
+		switch (pattern.getIdent()) {
+			case Success(s):
+				if (s.startsWith('$')) 
+					Reflect.setField(exprs, s.substr(1), expr); 
+				else if (s.startsWith('EXPR__')) 
+					Reflect.setField(exprs, s.substr(6), expr); 
+				else
+					matchEnum(expr.expr, pattern.expr);
+			default: 
+				matchEnum(expr.expr, pattern.expr);
+		}
+	}
 }

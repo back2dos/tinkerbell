@@ -7,7 +7,6 @@ package tink.collections.maps;
 #if macro
 	import haxe.macro.Context;
 	import haxe.macro.Expr;
-	import tink.macro.tools.AST;
 	using tink.macro.tools.MacroTools;
 	using tink.core.types.Outcome;
 #end

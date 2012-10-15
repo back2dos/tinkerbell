@@ -20,7 +20,7 @@ class PosTools {
 				case Failure(f): pos.error(f);
 			}
 	}
-	static public function makeBlankType(pos:Position) {
+	static public function makeBlankType(pos:Position):ComplexType {
 		return TypeTools.toComplex(Context.typeof(macro null));
 	}	
 	static public inline function getPos(pos:Position) {

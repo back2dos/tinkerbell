@@ -2,7 +2,6 @@ package tink.markup.formats;
 
 import haxe.macro.Expr;
 import haxe.macro.Format;
-import tink.macro.tools.AST;
 
 using tink.macro.tools.MacroTools;
 //using tink.core.types.Outcome;
