@@ -115,7 +115,7 @@ class LoopSugar {
 				).at()]).toBlock(),
 				true
 			).at()
-		]).toBlock();		
+		]).toBlock().log();		
 	}	
 	static function temp(name:String) {
 		return String.tempName('__tl_' + name);
@@ -131,7 +131,7 @@ class LoopSugar {
 				e.pos.errorExpr('neither Iterable nor Iterator');
 
 	}
-	static function makeCompiledHead(v:LoopVar, init:Array<Expr>, hasNext:Expr, next:Expr, fallback:Null<Expr>, hasMandatory:Bool, ?realNext:Expr):CompiledHead {
+	static function makeCompiledHead(v:LoopVar, init:Array<Expr>, hasNext:Expr, next:Expr, fallback:Null<Expr>, hasMandatory:Bool):CompiledHead {
 		var beforeBody = [],
 			afterBody = [];
 		if (fallback != null) {
@@ -147,12 +147,7 @@ class LoopSugar {
 				next = flag.resolve().cond(next, fallback);							
 			}
 		}
-		if (realNext == null) 
-			beforeBody.push(v.name.define(next));
-		else {
-			beforeBody.push(v.name.define(realNext));
-			afterBody.push(next);
-		}
+		beforeBody.push(v.name.define(next));
 		
 		return {
 			init: init,
@@ -172,11 +167,15 @@ class LoopSugar {
 				default: false;
 			}
 	}
+	static function getIterParts(e:Expr) {
+		
+	}	
 	static var INT = 'Int'.asComplexType();
 	static function compileHead(head:LoopHead, hasMandatory:Bool):CompiledHead {
 		return
 			switch (head.target) {
 				case Any(e):
+					//var parts = getIterParts(e);
 					var target = temp('target');
 					var targetExpr = target.resolve(e.pos);
 					
@@ -213,22 +212,29 @@ class LoopSugar {
 					step = mk(step, 'step');
 					
 					if (intLoop) {
-						end = mk(end, 'end');
 						
-						if (!up && !step.getInt().equals(1)) 
-							start = macro Math.ceil(($start - $end) / $step) * $step + $end;
-						
-						init.push(counterName.define(start));
-						var update = counter.assign(step, up ? OpAdd : OpSub);
+						var counterInit = 
+							if (up) {
+								end = mk(macro $end - $step, 'end');
+								macro $start - $step;
+							}
+							else {
+								end = mk(end, 'end');
+								if (step.getInt().equals(1)) start;
+								else macro Math.ceil(($start - $end) / $step) * $step + $end;//this should be expressed with % for faster evaluation
+							}
+						init.push(counterName.define(counterInit));
 						
 						makeCompiledHead(
 							head.v,
 							init,
 							(up ? OpLt : OpGt).make(counter, end),
-							update,
+							if (up)
+								macro $counter += $step
+							else
+								macro $counter -= $step,
 							head.fallback,
-							hasMandatory,
-							up ? counter : null
+							hasMandatory
 						);			
 					}
 					else {
@@ -245,10 +251,9 @@ class LoopSugar {
 								head.v,
 								init,
 								OpLt.make(counter, counterEnd),
-								counter.assign(macro 1, OpAdd),
+								macro $counter++ * $step + $start,
 								head.fallback, 
-								hasMandatory,
-								macro $counter * $step + $start
+								hasMandatory
 							);
 						}
 						else {
@@ -259,10 +264,9 @@ class LoopSugar {
 								head.v,
 								init,
 								OpGte.make(counter, macro 0),
-								counter.assign(macro 1, OpSub),
+								macro $counter-- * $step + $end,
 								head.fallback, 
-								hasMandatory,
-								macro $counter * $step + $end
+								hasMandatory
 							);							
 						}
 					}

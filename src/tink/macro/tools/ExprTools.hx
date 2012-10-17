@@ -446,7 +446,6 @@ private class Matcher {
 		if (x1 != x2) throw Std.string(x2) + ' expected but found ' + Std.string(x1);
 	}
 	function matchAny(x1:Dynamic, x2:Dynamic) {
-		//trace([x1, x2]);
 		switch (Inspect.typeof(x1)) {
 			case TNull, TInt, TFloat, TBool: equal(x1, x2);
 			case TObject: 

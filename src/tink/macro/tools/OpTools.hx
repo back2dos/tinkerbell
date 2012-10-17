@@ -60,4 +60,7 @@ class UnopTools {
 					e.pos.makeFailure('expected unary operation but found ' + Type.enumConstructor(e.expr));					
 			}
 	}
+	static public function make(op:Unop, e:Expr, ?postFix = false, ?pos) {
+		return EUnop(op, postFix, e).at(pos);
+	}
 }
