@@ -2,10 +2,12 @@ package tink.lang.macros;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import haxe.macro.Type;
 import tink.macro.build.MemberTransformer;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
+using StringTools;
 
 class LoopSugar {
 	static public function process(ctx:ClassBuildContext) {
@@ -110,12 +112,12 @@ class LoopSugar {
 				head.beforeBody.concat([
 				EWhile(
 					macro false,
-					[body].concat(head.afterBody).toBlock(),
+					body,
 					false
 				).at()]).toBlock(),
 				true
 			).at()
-		]).toBlock().log();		
+		]).toBlock();
 	}	
 	static function temp(name:String) {
 		return String.tempName('__tl_' + name);
@@ -132,8 +134,7 @@ class LoopSugar {
 
 	}
 	static function makeCompiledHead(v:LoopVar, init:Array<Expr>, hasNext:Expr, next:Expr, fallback:Null<Expr>, hasMandatory:Bool):CompiledHead {
-		var beforeBody = [],
-			afterBody = [];
+		var beforeBody = [];
 		if (fallback != null) {
 			if (hasMandatory) {
 				next = macro $hasNext ? $next : $fallback;
@@ -152,7 +153,6 @@ class LoopSugar {
 		return {
 			init: init,
 			beforeBody: beforeBody,
-			afterBody: afterBody,
 			condition: hasNext
 		}			
 	}
@@ -167,27 +167,176 @@ class LoopSugar {
 				default: false;
 			}
 	}
-	static function getIterParts(e:Expr) {
-		
+	static var fastIters = initFastIters();
+	static function addMeta(className:String, params) {
+		return
+			switch (Context.getType(className).reduce()) {
+				case TInst(t, _):
+					var m = t.get().meta;
+					if (m.has(':tink_for'))
+						m.remove(':tink_for');
+					m.add(':tink_for', params, t.get().pos);
+				default:
+			}
+	}
+	static function initFastIters() {
+		if (Context.defined('neko')) {
+			addMeta('Array', [
+				macro { var i = 0, l = this.length, a = neko.NativeArray.ofArrayRef(this); },
+				macro i < l,
+				macro a[i++]
+			]);
+			addMeta('IntHash', [
+				macro {
+					var h = untyped this.h,
+						i = 0;
+					var c = untyped __dollar__hcount(h);
+					var a = untyped __dollar__amake(c);
+					untyped __dollar__hiter(h, function (_, v) a[i++] = v);
+					i = 0;
+				},
+				macro i < c,
+				macro a[i++]
+			]);
+		}
+		else addMeta('Array', [
+			macro { var i = 0, l = this.length; },
+			macro i < l,
+			macro this[i++]
+		]);
+		addMeta('List', [
+			macro { var h:Dynamic = untyped this.h, x; },
+			macro h != null,
+			macro {
+				x = h[0];
+				h = h[1];
+				x;
+			}
+		]);
+		return new Hash<CustomIter>();
+	}
+	static function processRule(init:Expr, hasNext:Expr, next:Expr):CustomIter {
+		var init = 
+			switch (init.expr) {
+				case EBlock(exprs):
+					exprs;
+				default:
+					init.reject('must be a block');
+			}
+		return {
+			init: init,
+			hasNext: hasNext,
+			next: next
+		};
+	}
+	static function fastIterForClass(c:ClassType):CustomIter {
+		if (c.isInterface) 
+			return null;
+		var id = c.module + '/' + c.name;
+		if (id.startsWith('haxe.FastList')) {
+			return {
+				init: [macro var h = this.head, x],
+				hasNext: macro h != null,
+				next: macro {
+					x = h.elt;
+					h = h.next;
+					x;
+				}
+			}
+		}
+		if (!fastIters.exists(id)) {
+			var m = c.meta.get().getValues(':tink_for');
+			switch (m.length) {
+				case 0: fastIters.set(id, null);
+				case 1: 
+					var m = m[0];
+					if (m.length != 3)
+						c.pos.error('@:tink_for must have 3 arguments exactly');
+					fastIters.set(id, processRule(m[0], m[1], m[2]));
+				case 2: c.pos.error('can only declare one @:tink_for');
+			}
+		}
+		return fastIters.get(id);
+	}
+	static function standardIter(e:Expr) {
+		var target = temp('target');
+		var targetExpr = target.resolve(e.pos);
+		return {
+			init: [target.define(makeIterator(e), e.pos)], 
+			hasNext: macro $targetExpr.hasNext(), 
+			next: macro $targetExpr.next()
+		}
+	}
+	static function getIterParts(e:Expr):CustomIter {
+		var ret = 
+			switch (e.typeof().sure().reduce()) {
+				case TInst(c, _):
+					var f = fastIterForClass(c.get());
+					if (f != null) {
+						var vars:Dynamic<Expr> = { },
+							varNames = new Hash();
+						function add(name:String) {
+							var n = temp(name);
+							Reflect.setField(vars, name, n.resolve());
+							varNames.set(name, n);
+							return n;
+						}
+						var tVar = add('this');
+						for (e in f.init) {
+							switch (e.expr) {
+								case EVars(vars):
+									for (v in vars) 
+										add(v.name);
+								default:
+							}
+						}
+						var init = [tVar.define(e)];
+						
+						for (e in f.init)
+							init.push(e.substitute(vars).transform(
+								function (e:Expr) {
+									switch (e.expr) {
+										case EVars(vars):
+											for (v in vars) 
+												add(v.name = varNames.get(v.name));												
+										default:
+									}
+									return e;
+								}
+							));
+						
+						{
+							init: init,
+							hasNext: f.hasNext.substitute(vars),
+							next: f.next.substitute(vars)
+						}
+					}
+					else 
+						null;
+				default: 
+					null;
+			}
+		return
+			if (ret == null) standardIter(e);
+			else ret;
 	}	
 	static var INT = 'Int'.asComplexType();
 	static function compileHead(head:LoopHead, hasMandatory:Bool):CompiledHead {
+		inline function make(init:Array<Expr>, hasNext:Expr, next:Expr)
+			return makeCompiledHead(
+				head.v, 
+				init,
+				hasNext,
+				next,
+				head.fallback, 
+				hasMandatory
+			);
+			
 		return
 			switch (head.target) {
 				case Any(e):
-					//var parts = getIterParts(e);
-					var target = temp('target');
-					var targetExpr = target.resolve(e.pos);
-					
-					makeCompiledHead(
-						head.v, 
-						[target.define(makeIterator(e), e.pos)], 
-						macro $targetExpr.hasNext(), 
-						macro $targetExpr.next(), 
-						head.fallback, 
-						hasMandatory
-					);
-					
+					var parts = getIterParts(e);
+					make(parts.init, parts.hasNext, parts.next);
 				case Numeric(start, end, step, up):
 					var intLoop = step.is(INT);
 						
@@ -225,16 +374,13 @@ class LoopSugar {
 							}
 						init.push(counterName.define(counterInit));
 						
-						makeCompiledHead(
-							head.v,
+						make(
 							init,
 							(up ? OpLt : OpGt).make(counter, end),
 							if (up)
 								macro $counter += $step
 							else
-								macro $counter -= $step,
-							head.fallback,
-							hasMandatory
+								macro $counter -= $step
 						);			
 					}
 					else {
@@ -247,36 +393,17 @@ class LoopSugar {
 							init.push(counterName.define(macro 0));
 							init.push(counterEndName.define(macro Math.ceil(($end - $start) / $step)));
 							
-							makeCompiledHead(
-								head.v,
-								init,
-								OpLt.make(counter, counterEnd),
-								macro $counter++ * $step + $start,
-								head.fallback, 
-								hasMandatory
-							);
+							make(init, OpLt.make(counter, counterEnd), macro $counter++ * $step + $start);
 						}
 						else {
 							end = mk(end, 'end');
 							
 							init.push(counterName.define(macro Math.ceil(($start - $end) / $step) - 1));
-							makeCompiledHead(
-								head.v,
-								init,
-								OpGte.make(counter, macro 0),
-								macro $counter-- * $step + $end,
-								head.fallback, 
-								hasMandatory
-							);							
+							
+							make(init, OpGte.make(counter, macro 0), macro $counter-- * $step + $end);
 						}
 					}
 			}
-	}
-	static function join(conditions:Array<Expr>, op:Binop) {
-		var ret = conditions.shift();
-		for (c in conditions)
-			ret = op.make(ret, c);
-		return ret;		
 	}
 	static function compileHeads(heads:Array<LoopHead>):CompiledHead {
 		var hasMandatory = false;
@@ -288,23 +415,20 @@ class LoopSugar {
 			
 		var condition = hasMandatory.toExpr(),
 			init = [],
-			beforeBody = [],
-			afterBody = [];
+			beforeBody = [];
 			
 		for (head in heads) {
 			var c = compileHead(head, hasMandatory);
 			
 			init = init.concat(c.init);
 			beforeBody = beforeBody.concat(c.beforeBody);
-			afterBody = afterBody.concat(c.afterBody);
 			
 			if (hasMandatory) {
 				if (head.fallback == null) 
 					condition = OpBoolAnd.make(condition, c.condition);
 			}
-			else {
+			else 
 				condition = OpBoolOr.make(condition, c.condition);
-			}
 		}
 		if (!hasMandatory) {
 			beforeBody.push(macro if (!$condition) break);
@@ -313,7 +437,6 @@ class LoopSugar {
 		return {
 			init: init,
 			beforeBody: beforeBody,
-			afterBody: afterBody,
 			condition: condition
 		}
 	}
@@ -327,10 +450,14 @@ class LoopSugar {
 	}
 	
 }
+typedef CustomIter = {
+	init: Array<Expr>,
+	hasNext: Expr,
+	next: Expr
+}
 typedef CompiledHead = {
 	init: Array<Expr>,
 	beforeBody: Array<Expr>,
-	afterBody: Array<Expr>,//this might as well be an array for simplicity
 	condition: Expr
 }
 typedef Loop = {
