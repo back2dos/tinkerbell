@@ -89,6 +89,7 @@ class TypeTools {
 						name: field.name,
 						pos: field.pos,
 						kind: kind,
+						meta: field.meta.get(),
 						access: field.isPublic ? [APublic] : [APrivate]
 					});					
 				}
