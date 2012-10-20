@@ -90,34 +90,48 @@ class LoopSugar {
 			}
 	}
 	static function transform(it:Expr, expr:Expr) {
-		var loopFlag = temp('loop');
+		var loopFlag = temp('loop'),
+			hasJump = false;
 		
 		var head = compileHeads(parseHead(it)),
 			body = expr.transform(function (e:Expr) 
 				return
 					switch (e.expr) {
 						case EBreak:
+							hasJump = true;
 							[
 								loopFlag.resolve().assign(macro false),
 								macro continue,
 							].toBlock();
+						case EContinue:
+							hasJump = true;
+							e;
 						default: e;
 					}
 			);
 			
-		return head.init.concat([
-			loopFlag.define(macro true),
-			EWhile(
-				OpBoolAnd.make(loopFlag.resolve(), head.condition),
-				head.beforeBody.concat([
-				EWhile(
-					macro false,
-					body,
-					false
-				).at()]).toBlock(),
-				true
-			).at()
-		]).toBlock();
+		return 
+			if (hasJump) 
+				head.init.concat([
+					loopFlag.define(macro true),
+						EWhile(
+							OpBoolAnd.make(loopFlag.resolve(), head.condition),
+							head.beforeBody.concat([
+							EWhile(
+								macro false,
+								body,
+								false
+							).at()]).toBlock(),
+							true
+						).at()
+				]).toBlock();
+			else head.init.concat([
+					EWhile(
+						head.condition,
+						head.beforeBody.concat([body]).toBlock(),
+						true
+					).at()
+				]).toBlock();
 	}	
 	static function temp(name:String) {
 		return String.tempName('__tl_' + name);
@@ -180,7 +194,23 @@ class LoopSugar {
 			}
 	}
 	static function initFastIters() {
-		if (Context.defined('neko')) {
+		if (Context.defined('php')) {
+			addMeta('Array', [
+				macro { var i = 0, l = this.length, a = php.Lib.toPhpArray(this); },
+				macro i < l,
+				macro a[i++]
+			]);			
+			addMeta('IntHash', [
+				macro { 
+					var i = 0;
+					var a = untyped __call__('array_values', this.h);
+					var l = untyped __call__('count', a);
+				},
+				macro i < l,
+				macro a[i++]
+			]);			
+		}
+		else if (Context.defined('neko')) {
 			addMeta('Array', [
 				macro { var i = 0, l = this.length, a = neko.NativeArray.ofArrayRef(this); },
 				macro i < l,
@@ -204,15 +234,16 @@ class LoopSugar {
 			macro i < l,
 			macro this[i++]
 		]);
-		addMeta('List', [
-			macro { var h:Dynamic = untyped this.h, x; },
-			macro h != null,
-			macro {
-				x = h[0];
-				h = h[1];
-				x;
-			}
-		]);
+		if (!Context.defined('php'))
+			addMeta('List', [
+				macro { var h:Dynamic = untyped this.h, x; },
+				macro h != null,
+				macro {
+					x = h[0];
+					h = h[1];
+					x;
+				}
+			]);
 		return new Hash<CustomIter>();
 	}
 	static function processRule(init:Expr, hasNext:Expr, next:Expr):CustomIter {
@@ -298,7 +329,8 @@ class LoopSugar {
 									switch (e.expr) {
 										case EVars(vars):
 											for (v in vars) 
-												add(v.name = varNames.get(v.name));												
+												if (varNames.exists(v.name))
+													v.name = varNames.get(v.name);												
 										default:
 									}
 									return e;
