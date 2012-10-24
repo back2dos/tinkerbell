@@ -210,7 +210,7 @@ class TypeTools {
 						var t = t.get();
 						if(t.isPrivate)
 							return toComplex(type, false);
-						baseToComplex(t.get(), params);
+						baseToComplex(t, params);
 					case TInst(t, params):
 						var t = t.get();
 						if(t.isPrivate)
