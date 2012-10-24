@@ -168,6 +168,7 @@ class TypeTools {
 		if (parts.length > 0 && parts[parts.length - 1].charCodeAt(0) < 0x5B) {
 			sub = name;
 			name = parts.pop();
+			if(sub == name) sub = null;
 		}
 		return {
 			name: name,
