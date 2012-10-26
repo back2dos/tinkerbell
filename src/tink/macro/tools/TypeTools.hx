@@ -190,6 +190,7 @@ class TypeTools {
 		if (parts.length > 0 && parts[parts.length - 1].charCodeAt(0) < 0x5B) {
 			sub = name;
 			name = parts.pop();
+			if(sub == name) sub = null;
 		}
 		return {
 			name: name,
@@ -229,9 +230,14 @@ class TypeTools {
 			if (pretty) {
 				switch (type) {
 					case TEnum(t, params):
-						baseToComplex(t.get(), params);
+						var t = t.get();
+						if(t.isPrivate)
+							return toComplex(type, false);
+						baseToComplex(t, params);
 					case TInst(t, params):
 						var t = t.get();
+						if(t.isPrivate)
+							return toComplex(type, false);
 						switch (t.kind) {
 							case KTypeParameter: asComplexType(t.name);
 							default: baseToComplex(t, params);
@@ -242,7 +248,10 @@ class TypeTools {
 							cArgs.push(toComplex(arg.t, true));
 						TFunction(cArgs, toComplex(ret, true));
 					case TType(t, params):
-						baseToComplex(t.get(), params);
+						var t = t.get();
+						if(t.isPrivate)
+							return toComplex(type, false);
+						baseToComplex(t, params);
 					case TLazy(f):
 						toComplex(f(), true);
 					//TODO: check TDynamic here
