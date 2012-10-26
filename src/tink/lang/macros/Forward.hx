@@ -31,11 +31,10 @@ class Forward {
 	}
 	function processMembers(members:Array<Member>) {
 		for (member in members)
-			
 			switch (member.extractMeta(TAG)) {
 				case Success(tag):
-					if (ownerIsInterface) 
-						tag.pos.error('@:forward not implemented for interfaces');
+					//if (ownerIsInterface) 
+						//tag.pos.error('@:forward not implemented for interfaces');
 					switch (member.kind) {
 						case FVar(t, _):
 							forwardTo(member, t, tag.pos, tag.params);
@@ -159,7 +158,7 @@ class Forward {
 		var methodParams = [];
 		for (param in params) 
 			methodParams.push( { name : param.name, constraints : [] } );
-		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, methodParams)));
+		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, ret.toComplex(), methodParams)));
 	}
 	function isAccessible(a:VarAccess, read:Bool) {
 		return switch(a) {

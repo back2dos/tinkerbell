@@ -155,12 +155,8 @@ class Printer {
 						}
 					case EVars(vars):
 						var ret = [];
-						for (v in vars) {
-							ret.push(v.name
-								+ (if (v.type == null) '' else ' : ' + printType(indent, v.type))
-								+ (if (v.expr == null) '' else ' = ' + rec(v.expr))
-							);
-						}
+						for (v in vars) 
+							ret.push(v.name + typify(indent, v.type) + printInitializer(indent, v.expr));
 						'var ' + ret.join(', ');
 					case ECheckType(e, t): '(' + rec(e) + '/* ' + typify(indent, t) + ' */)';
 					case ECast(e, t):
@@ -192,7 +188,7 @@ class Printer {
 						if (normalWhile)
 							'while (' + rec(econd) + ') ' + rec(e);
 						else 
-							'do ' + rec(e) + '\nwhile (' + rec(econd) + ')';
+							'do ' + rec(e) + '\n' + indent + 'while (' + rec(econd) + ')';
 					case EBreak: 'break';
 					case EContinue: 'continue';
 					case EUntyped(e): '(untyped ' + rec(e) + ')';

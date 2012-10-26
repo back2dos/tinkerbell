@@ -3,20 +3,18 @@ package tink.lang.macros;
 import haxe.macro.Expr;
 import tink.macro.build.Constructor;
 import tink.macro.build.Member;
-/**
- * ...
- * @author back2dos
- */
+import tink.macro.build.MemberTransformer;
+
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class Init {
 	static public function process(ctx) {
-		new Init(ctx.getCtor()).init(ctx.members);
+		new Init(ctx).init(ctx.members);
 	}
-	var constructor:Constructor;
-	function new(constructor) {
-		this.constructor = constructor;
+	var ctx:ClassBuildContext;
+	function new(ctx) {
+		this.ctx = ctx;
 	}
 	function getType(t:Null<ComplexType>, inferFrom:Expr) {
 		return
@@ -31,12 +29,12 @@ class Init {
 				switch (member.kind) {
 					case FVar(t, e):
 						if (e != null) {
-							member.kind = FVar(t = getType(t, e));
+							member.kind = FVar(t = getType(t, e), null);
 							initMember(member, t, e);
 						}
 					case FProp(get, set, t, e):
 						if (e != null) {
-							member.kind = FProp(get, set, t = getType(t, e));
+							member.kind = FProp(get, set, t = getType(t, e), null);
 							initMember(member, t, e);
 						}						
 					default:
@@ -44,6 +42,12 @@ class Init {
 		}
 	}
 	function initMember(member:Member, t:ComplexType, e:Expr) {
+		if (ctx.cls.isInterface) 
+			member.addMeta(':default', e.pos, [ECheckType(e, t).at(e.pos)]);
+		else 
+			field(this.ctx.getCtor(), member.name, t, e);
+	}
+	static public function field(ctor:Constructor, name, t:ComplexType, e:Expr) {
 		var init = null,
 			def = null;
 		if (!e.isWildcard())
@@ -51,6 +55,6 @@ class Init {
 				case EParenthesis(e): def = e;
 				default: init = e;
 			}
-		this.constructor.init(member.name, e.pos, init, def, t);		
+		ctor.init(name, e.pos, init, def, t);							
 	}
 }

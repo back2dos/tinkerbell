@@ -16,6 +16,10 @@ using tink.macro.tools.TypeTools;
 using tink.core.types.Outcome;
 
 typedef VarDecl = { name : String, type : ComplexType, expr : Null<Expr> };
+typedef ParamSubst = {
+	var exists(default, null):String->Bool;
+	var get(default, null):String->ComplexType;
+}
 
 class ExprTools {
 
@@ -69,14 +73,28 @@ class ExprTools {
 			if (e.getIdent().equals('null')) fallback;
 			else e;
 	}
-
-	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr {
-		return crawl(source, transformer, pos);
+	static public function substParams(source:Expr, subst:ParamSubst, ?pos):Expr {
+		return crawl(
+			source, 
+			function (e) return e, 
+			function (c:ComplexType) 
+				return
+					switch (c) {
+						case TPath(p):
+							if (p.pack.length == 0 && subst.exists(p.name)) 
+								subst.get(p.name);
+							else c;
+						default: c;
+					}
+			, pos);
 	}
-	static function crawlArray(a:Array<Dynamic>, transformer:Expr->Expr, pos:Position):Dynamic {
+	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr {
+		return crawl(source, transformer, function (t) return t, pos);
+	}
+	static function crawlArray(a:Array<Dynamic>, transformer:Expr->Expr, retyper:ComplexType->ComplexType, pos:Position):Array<Dynamic> {
 		var ret = [];
 		for (v in a)
-			ret.push(crawl(v, transformer, pos));
+			ret.push(crawl(v, transformer, retyper, pos));
 		return ret;
 	}
 	static public function getIterType(target:Expr) {
@@ -89,19 +107,22 @@ class ExprTools {
 		};
 		return PosTools.at(target.pos, e).typeof();
 	}
-	static function crawl(target:Dynamic, transformer:Expr->Expr, pos:Position) {
+	static function crawl(target:Dynamic, transformer:Expr->Expr, retyper:ComplexType->ComplexType, pos:Position):Dynamic {
 		return
 			if (Std.is(target, Array)) 
-				crawlArray(target, transformer, pos);
+				crawlArray(target, transformer, retyper, pos);
 			else
 				switch (Inspect.typeof(target)) {
 					case TNull, TInt, TFloat, TBool, TFunction, TUnknown, TClass(_): target;
-					case TEnum(e): 
-						Inspect.createEnumIndex(e, Inspect.enumIndex(target), crawlArray(Inspect.enumParameters(target), transformer, pos));
+				case TEnum(e): 
+						var ret:Dynamic = Inspect.createEnumIndex(e, Inspect.enumIndex(target), crawlArray(Inspect.enumParameters(target), transformer, retyper, pos));
+						return
+							if (Inspect.getEnum(ret) == ComplexType) retyper(ret);
+							else ret;
 					case TObject:
 						var ret:Dynamic = { };
 						for (field in Reflect.fields(target))
-							Reflect.setField(ret, field, crawl(Reflect.field(target, field), transformer, pos));
+							Reflect.setField(ret, field, crawl(Reflect.field(target, field), transformer, retyper, pos));
 						if (Std.is(ret.expr, ExprDef)) {
 							ret = transformer(ret);
 							if (pos != null) ret.pos = pos;

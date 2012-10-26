@@ -154,9 +154,9 @@ class Member {
 		ret.doc = f.doc;
 		ret.pos = f.pos;
 		ret.kind = f.kind;
-		
-		for (m in f.meta) 
-			ret.addMeta(m.name, m.pos, m.params);
+		if (f.meta != null)
+			for (m in f.meta) 
+				ret.addMeta(m.name, m.pos, m.params);
 		
 		for (a in f.access) 
 			switch (a) {

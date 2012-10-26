@@ -29,7 +29,7 @@ class TypeTools {
 				default: null;
 			}
 	}
-	static function varAccessToName(v:VarAccess) {
+	static public function accessToName(v:VarAccess) {
 		return
 			switch (v) {
 				case AccNormal, AccInline: 'default';
@@ -53,15 +53,31 @@ class TypeTools {
 			if (t.superClass != null)
 				getDeclaredFields(t.superClass.t.get(), out, marker);		
 	}
-	static function getBlankFields(t:ClassType, out:Array<Field>, marker:Hash<Bool>) {
+	static function getBlankFields(t:ClassType, params:Array<Type>, out:Array<Field>, marker:Hash<Bool>) {
+		var subst = new Hash<ComplexType>();
+		for (i in 0...t.params.length) 
+			subst.set(
+				t.params[i].name,
+				switch (params[i]) {
+					case TInst(c, _):
+						var c = c.get();
+						if (c.kind == KTypeParameter) 
+							asComplexType(c.name);
+						else 
+							toComplex(params[i]);
+					default:
+						toComplex(params[i]);
+				}
+			);
+		
 		for (field in t.fields.get()) 
 			if (!marker.exists(field.name)) {
 				var kind = 
 					switch (field.kind) {
-						case FVar(read, write): null;
+						case FVar(read, write): 
 							FProp(
-								varAccessToName(read), 
-								varAccessToName(write), 
+								accessToName(read), 
+								accessToName(write), 
 								field.pos.makeBlankType()
 							);
 						case FMethod(k): 
@@ -89,26 +105,32 @@ class TypeTools {
 						name: field.name,
 						pos: field.pos,
 						kind: kind,
-						meta: field.meta.get(),
+						meta: {
+							var res = field.meta.get();//this hopefully creates a copy
+							for (m in res)
+								for (i in 0...m.params.length)
+									m.params[i] = m.params[i].substParams(subst);
+							res;
+						},
 						access: field.isPublic ? [APublic] : [APrivate]
 					});					
 				}
 			}
 		if (t.isInterface)
 			for (t in t.interfaces)
-				getBlankFields(t.t.get(), out, marker);
+				getBlankFields(t.t.get(), t.params, out, marker);
 		else 
 			if (t.superClass != null)
-				getBlankFields(t.superClass.t.get(), out, marker);
+				getBlankFields(t.superClass.t.get(), t.superClass.params, out, marker);
 	}
 	static public function getFields(t:Type, ?substituteParams = true) {
 		return
 			switch (reduce(t)) {
-				case TInst(c, _): 
+				case TInst(c, params): 
 					var c = c.get();
-					if (substituteParams) {
+					if (substituteParams) {//TODO: take a shortcut when the type has no parameters
 						var fields = [];
-						getBlankFields(c, fields, new Hash());
+						getBlankFields(c, params, fields, new Hash());
 						var anon = TAnonymous(fields);
 						var actual = toComplex(t);
 						return Context.currentPos().at(macro {

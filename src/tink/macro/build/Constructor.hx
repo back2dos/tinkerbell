@@ -47,7 +47,7 @@ class Constructor {
 		}
 	}
 	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool, ?t:ComplexType) {
-		if (ownerIsInterface) pos.error('cannot initialize properties on interfaces');
+		//if (ownerIsInterface) pos.error('cannot initialize properties on interfaces');
 		if (e == null) {
 			e = name.resolve(pos);
 			args.push( { name : name, opt : def != null, type : null, value : def } );

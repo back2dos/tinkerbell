@@ -32,10 +32,11 @@ class ClassBuilder {
 			PropBuilder.process,
 			#if tink_reactive //probably shouldn't be here but it's very convenient for now
 				tink.reactive.bindings.macros.BindableProperties.make,
-				tink.reactive.signals.macros.SignalBuilder.make
+				tink.reactive.signals.macros.SignalBuilder.make,
 			#else
-				noBindings
+				noBindings,
 			#end
+			PartialImpl.process,
 		];	
 	#end
 }

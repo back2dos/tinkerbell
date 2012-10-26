@@ -54,11 +54,11 @@ class MemberTransformer {
 		var ret = [];
 		for (m in a) 
 			if (!m.excluded) {
-				if (localClass.isInterface)
+				/*if (localClass.isInterface)
 					switch (m.kind) {
 						case FFun(f): f.expr = null;
 						default:
-					}
+					}*/
 				ret.push(m);
 			}
 		return ret;
