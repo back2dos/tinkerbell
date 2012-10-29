@@ -99,7 +99,6 @@ class Member {
 				for (tags in meta)
 					for (tag in tags)
 						res.push(tag);
-				//meta.array(),			
 				res;
 			}
 		}

@@ -87,8 +87,15 @@ class MemberTransformer {
 		}
 			
 		var ret = (constructor == null || localClass.isInterface) ? [] : [constructor.toHaxe()];
-		for (member in context.members)
+		for (member in context.members) {
+			if (member.isBound)
+				switch (member.kind) {
+					case FVar(_, _): if (!member.isStatic) member.isBound = null;
+					case FProp(_, _, _, _): member.isBound = null;
+					default:
+				}
 			ret.push(member.toHaxe());
+		}
 			
 		if (verbose) 
 			for (field in ret) 

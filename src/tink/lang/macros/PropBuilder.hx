@@ -21,11 +21,15 @@ class PropBuilder {
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
 		var get = 'get_' + m.name,
 			set = if (setter == null) 'null' else 'set_' + m.name;
-			
+		function mk(gen:Member) {
+			addField(gen);
+			gen.isStatic = m.isStatic;
+			gen.isBound = m.isBound;
+		}
 		if (!hasField(get))	
-			addField(Member.getter(m.name, getter, t)).isStatic = m.isStatic; 	
+			mk(Member.getter(m.name, getter, t));
 		if (setter != null && !hasField(set))
-			addField(Member.setter(m.name, setter, t)).isStatic = m.isStatic;
+			mk(Member.setter(m.name, setter, t));
 		
 		m.kind = FProp(get, set, t, e);
 		m.publish();

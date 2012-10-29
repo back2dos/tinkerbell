@@ -88,16 +88,16 @@ class Forward {
 				}
 			}
 	}
-	function forwardToType(t:Type, included:ClassFieldFilter, target:Expr, pos:Position) {
+	function forwardToType(t:Type, included:ClassFieldFilter, target:Expr, pos:Position, bound:Null<Bool>) {
 		for (field in t.getFields().sure()) 
 			if (field.isPublic && included(field) && !hasField(field.name)) {
 				switch (field.kind) {
 					case FVar(read, write):
-						forwardVarTo(target, field.name, field.type.toComplex(), read, write);
+						forwardVarTo(target, field.name, field.type.toComplex(), read, write, bound);
 					case FMethod(_):
 						switch (Context.follow(field.type)) {
 							case TFun(args, ret):
-								forwardFunctionTo(target, field.name, args, ret, field.params);
+								forwardFunctionTo(target, field.name, args, ret, field.params, bound);
 							default: 
 								pos.error('wtf?');
 						}
@@ -109,7 +109,7 @@ class Forward {
 			target = ['this', to.name].drill(pos),
 			included = makeFilter(params);
 			
-		forwardToType(t, included, target, pos);
+		forwardToType(t, included, target, pos, to.isBound);
 	}
 	function forwardFunctionWith(id:String, callExpr:Expr, pos:Position, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
 		//TODO: there's a lot of duplication with forwardFunctionTo here
@@ -146,7 +146,7 @@ class Forward {
 		if (write)
 			addField(Member.setter(name, pos, eSet.substitute(vars), t));
 	}
-	function forwardFunctionTo(target:Expr, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>) {
+	function forwardFunctionTo(target:Expr, name:String, args:Array<{ name : String, opt : Bool, t : Type }>, ret : Type, params: Array<{ name : String, t : Type }>, bound:Null<Bool>) {
 		var methodArgs = [],
 			callArgs = [],
 			pos = target.pos;
@@ -158,7 +158,7 @@ class Forward {
 		var methodParams = [];
 		for (param in params) 
 			methodParams.push( { name : param.name, constraints : [] } );
-		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, ret.toComplex(), methodParams)));
+		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, ret.toComplex(), methodParams))).isBound = bound;
 	}
 	function isAccessible(a:VarAccess, read:Bool) {
 		return switch(a) {
@@ -167,12 +167,12 @@ class Forward {
 			default: false;
 		}
 	}
-	function forwardVarTo(target:Expr, name:String, t:ComplexType, read:VarAccess, write:VarAccess) {
+	function forwardVarTo(target:Expr, name:String, t:ComplexType, read:VarAccess, write:VarAccess, bound:Null<Bool>) {
 		var pos = target.pos;
 		if (!isAccessible(read, true)) 
 			pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
-		addField(Member.prop(name, t, pos, false, !isAccessible(write, false)));
-		addField(Member.getter(name, pos, target.field(name, pos), t));
+		addField(Member.prop(name, t, pos, false, !isAccessible(write, false))).isBound = bound;
+		addField(Member.getter(name, pos, target.field(name, pos), t)).isBound = bound;
 		if (isAccessible(write, false))
 			addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
 	}

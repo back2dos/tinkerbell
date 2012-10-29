@@ -25,6 +25,7 @@ class Init {
 	}
 	function init(members:Array<Member>) {
 		for (member in members) {
+			
 			if (!member.isStatic)
 				switch (member.kind) {
 					case FVar(t, e):
