@@ -1,10 +1,5 @@
 package tink.collections.maps.abstract;
 
-/**
- * ...
- * @author back2dos
- */
-
 class StringIDMap<K, V> implements tink.collections.maps.Map<K, V> {
 	var keyMap:Hash<K>;
 	var valMap:Hash<V>;

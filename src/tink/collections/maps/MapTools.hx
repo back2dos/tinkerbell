@@ -48,13 +48,13 @@ class MapTools {
 			}
 		var create = ENew( { pack: 'tink.collections.maps'.split('.'), name: map, params: params, sub:null }, []).at(keys.pos);
 		
-		return Context.currentPos().at(macro {
+		return (macro {
 			var map = $create,
 				vals = $values.iterator(),
 				keys = $keys;
 			for (key in keys)
 				map.set(key, vals.hasNext() ? vals.next() : null);
 			map;
-		});
+		}).finalize();
 	}
 }

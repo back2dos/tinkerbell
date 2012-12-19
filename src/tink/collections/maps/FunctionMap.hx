@@ -1,10 +1,5 @@
 package tink.collections.maps;
 
-/**
- * ...
- * @author back2dos
- */
-
 #if (flash9 || php)
 	class FunctionMap < K, V > extends ObjectMap < K, V > { }
 #elseif (js || flash)

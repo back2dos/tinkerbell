@@ -1,10 +1,6 @@
 package tink.collections.maps;
-import tink.lang.Cls;
 
-/**
- * ...
- * @author back2dos
- */
+import tink.lang.Cls;
 
 private class StringRepMap<T> extends tink.collections.maps.abstract.StringIDMap < Dynamic, T > {
 	override function transform(k:Dynamic) {
@@ -89,7 +85,7 @@ class AnyMap<V> implements Map < Dynamic, V > , implements Cls {
 	public function iterator():Iterator<V> {
 		return group(untyped [ints.iterator(), strings.iterator(), objs.iterator(), misc.iterator(), funcs.iterator()]);		
 	}
-	function group<A>(a:Iterable<Iterator<A>>) {//TODO: it might make sense extracting this
+	function group<A>(a:Iterable<Iterator<A>>):Iterator<A> {//TODO: it might make sense extracting this
 		var i = Lambda.filter(a, function (iter) return iter.hasNext()).iterator();
 		return 
 			if (i.hasNext()) {
