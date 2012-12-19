@@ -126,8 +126,9 @@ class Printer {
 	}
 	static public function printField(indent:String, field:Field) {
 		var ret = '';
-		for (a in field.access)
-			ret += Type.enumConstructor(a).substr(1).toLowerCase() + ' ';
+		if (field.access != null)
+			for (a in field.access)
+				ret += Type.enumConstructor(a).substr(1).toLowerCase() + ' ';
 		ret +=
 			switch (field.kind) {
 				case FVar(t, e): 'var ' + field.name + typify(indent, t) + printInitializer(indent, e);
@@ -195,11 +196,11 @@ class Printer {
 					case EThrow(e): 'throw ' + rec(e);
 					case EReturn(e): 'return' + if (e == null) '' else (' ' + rec(e));
 					case EDisplay(e, isCall):
-						return '><';
+						rec(e) + (isCall ? '(/*DISPLAY*/)' : '/*.DISPLAY*/');
 					case EDisplayNew(t):
-						return '><';
+						'new ' + printPath(indent, t) + '(/*DISPLAY*/)';
 					case ETernary(econd, eif, eelse):
-						return '((' + rec(econd) + ') ? ' + rec(eif) + ' : ' + rec(eelse) + ')';
+						'((' + rec(econd) + ') ? ' + rec(eif) + ' : ' + rec(eelse) + ')';
 					case ESwitch(e, cases, edef):
 						var ret = [];
 						for (c in cases)
@@ -234,6 +235,7 @@ class Printer {
 						printList(ret, '{}'.split(''));
 					case EFunction(name, f): 
 						printFunction(f, name, indent);
+					default: '#UNSUPPORTED_' + Type.enumConstructor(e.expr);
 			}
 	}		
 }
