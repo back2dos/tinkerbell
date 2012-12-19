@@ -1,10 +1,5 @@
 package tink.devtools;
 
-/**
- * ...
- * @author back2dos
- */
-
 import haxe.Log;
 import haxe.PosInfos;
 
@@ -17,8 +12,13 @@ import haxe.PosInfos;
 class Benchmark {
 	var msg:String;
 	var last:Float;
-	public function new(?msg) {
+	var log:String->Float->PosInfos->Dynamic;
+	public function new(?msg, ?log) {
 		this.next(msg);
+		this.log = log == null ? defaultLog : log;
+	}
+	function defaultLog(msg:String, duration:Float, pos:PosInfos) {
+		Log.trace(this.msg + ' took ' + duration, pos);
 	}
 	inline function stamp() {
 		return
@@ -30,9 +30,8 @@ class Benchmark {
 	}
 	public function next(?msg:String, ?pos:PosInfos) {
 		var now = stamp();
-		if (this.msg != null) {
-			Log.trace(this.msg + ' took ' + (now - last), pos);
-		}
+		if (this.msg != null) 
+			log(this.msg, now - last, pos);
 		this.last = now;
 		this.msg = msg;
 	}
