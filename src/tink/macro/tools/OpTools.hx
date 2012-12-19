@@ -1,13 +1,9 @@
 package tink.macro.tools;
 
 import haxe.macro.Expr;
+
 using tink.core.types.Outcome;
 using tink.macro.tools.MacroTools;
-
-/**
- * ...
- * @author back2dos
- */
 
 class BinopTools {
 	static public function get(o:Binop, e:Expr) {
@@ -41,7 +37,7 @@ class UnopTools {
 		return
 			switch (e.expr) {
 				case EUnop(op, postFix, arg):
-					if (postfix != postfix)
+					if (postFix != postfix)
 						e.pos.makeFailure(postfix ? 'expected postfix operator' : 'expected prefix operator');
 					else if (!Type.enumEq(o, op)) 
 						e.pos.makeFailure('expected ' + o + ' but found ' + op);
