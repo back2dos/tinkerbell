@@ -1,10 +1,6 @@
 package tink.macro.tools;
 
-#if (macro || neko)
-/**
- * ...
- * @author back2dos
- */
+#if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import tink.core.types.Outcome;
