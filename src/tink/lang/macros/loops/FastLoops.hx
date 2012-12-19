@@ -182,7 +182,6 @@ class FastLoops {
 			case ECall(callee, _):
 				switch (callee.expr) {
 					case EField(owner, fieldName), EType(owner, fieldName):
-						owner.log();
 						for (field in owner.pos.getOutcome(owner.typeof().sure().getFields(false))) 
 							if (field.name == fieldName) {
 								var m = field.meta.get().getValues(':tink_for');
@@ -203,11 +202,7 @@ class FastLoops {
 					default:
 				}
 			default:
-				//var iter = (macro $e.iterator()).finalize(e.pos);
-				//if (iter.typeof().isSuccess())
-					//return fastIter(iter);
 		}
-		throw ('no match ' + e.expr);
 		return null;
 	}	
 }

@@ -401,7 +401,6 @@ class LoopSugar {
 								function (e:Expr)
 									return (macro $outputVar.push($e)).finalize(e.pos);
 						}
-					trace(output.typeof());
 					return [
 						outputVarName.define(output, output.pos),
 						transform(
@@ -409,7 +408,7 @@ class LoopSugar {
 							yield(expr, doYield)
 						),
 						outputVar
-					].toBlock(e.pos).log();
+					].toBlock(e.pos);
 				default:
 			}
 		return	
