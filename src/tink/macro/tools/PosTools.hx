@@ -4,16 +4,12 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import tink.core.types.Outcome;
 
-/**
- * ...
- * @author back2dos
- */
 using tink.macro.tools.PosTools;
 using tink.core.types.Outcome;
 
 class PosTools {
 
-	static public function getOutcome < D, F > (pos:Position, outcome:Outcome < D, F > ) {
+	static public function getOutcome < D, F > (pos:Position, outcome:Outcome < D, F > ):D {
 		return 
 			switch (outcome) {
 				case Success(d): d;
@@ -30,11 +26,11 @@ class PosTools {
 			else
 				pos;
 	}
-	static public function at(pos:Position, e:Expr) {
-		return ExprTools.transform(e, function (e:Expr) {
-			return e;
-		}, pos);
-	}
+	//static public function at(pos:Position, e:Expr) {
+		//return ExprTools.transform(e, function (e:Expr) {
+			//return e;
+		//}, pos);
+	//}
 	static public function errorExpr(pos:Position, error:Dynamic) {
 		return Bouncer.bounce(function ():Expr {
 			return PosTools.error(pos, error);
