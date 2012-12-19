@@ -332,9 +332,11 @@ class LoopSugar {
 			condition: condition
 		}
 	}
+	static var COMPREHENSION_FOLD = macro for (NAME__result = EXPR__init) for (EXPR__it) EXPR__expr;
 	static var COMPREHENSION = macro [for (EXPR__it) EXPR__expr];
 	static var COMPREHENSION_TO_CALL = macro EXPR__output(for (EXPR__it) EXPR__expr);
 	static var COMPREHENSION_INTO = macro [for (EXPR__it) EXPR__expr] in EXPR__output;
+	
 	static function yield(e:Expr, doYield:Expr->Expr) {
 		function reject(feature)
 			return e.reject(feature + ' not supported here');
@@ -378,6 +380,24 @@ class LoopSugar {
 	}
 	static var FIELD = (macro EXPR__owner.NAME__field);
 	static public function transformLoop(e:Expr) {
+		switch (e.match(COMPREHENSION_FOLD)) {
+			case Success(match): 
+				var it = match.exprs.it,
+					expr = match.exprs.expr,
+					init = match.exprs.init,
+					result = match.names.result;
+				var resultVar = result.resolve(match.pos);
+				
+				return [
+					result.define(init, init.pos),
+					transform(
+						it, 
+						yield(expr, function (e:Expr) return resultVar.assign(e, e.pos))
+					),					
+					resultVar
+				].toBlock(e.pos);
+			default:
+		}
 		for (pattern in [COMPREHENSION, COMPREHENSION_TO_CALL, COMPREHENSION_INTO]) 
 			switch (e.match(pattern)) {
 				case Success(match):
