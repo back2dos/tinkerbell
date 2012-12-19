@@ -1,11 +1,8 @@
-package tink.lang.macros;
+package tink.lang.macros.node;
+
 import haxe.macro.Context;
 import tink.macro.build.MemberTransformer;
 using tink.macro.tools.MacroTools;
-/**
- * ...
- * @author back2dos
- */
 
 @:macro class ExtBuilder {
 	static public function buildFields():Array<haxe.macro.Expr.Field> {

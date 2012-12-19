@@ -1,13 +1,11 @@
-package tink.lang.macros;
+package tink.lang.macros.node;
 
-/**
- * ...
- * @author back2dos
- */
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
+
 import haxe.macro.Expr;
 import tink.macro.build.Member;
+
 class NodeEvent {
 	static public function process(targetName:String, t:ComplexType, ctx:{ members:Array<Member> }) {
 		var handlerName = 'handler';

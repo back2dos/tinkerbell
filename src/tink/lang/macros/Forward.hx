@@ -1,4 +1,5 @@
 package tink.lang.macros;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -9,13 +10,10 @@ using tink.macro.tools.MacroTools;
 using StringTools;
 using Lambda;
 using tink.core.types.Outcome;
-/**
- * ...
- * @author back2dos
- */
 
 typedef ClassFieldFilter = ClassField->Bool;
 typedef ForwardRules = { call:Null<Expr>, get:Null<Expr>, set:Null<Expr> };
+
 class Forward {
 	static inline var TAG = ":forward";
 	static public function process(ctx:ClassBuildContext) {
@@ -75,7 +73,7 @@ class Forward {
 			if (field.isPublic && filter(field) && !hasField(field.name)) {
 				switch (field.kind) {
 					case FVar(read, write):
-						forwardVarWith(id, rules.get, rules.set, isAccessible(read, true), isAccessible(read, false), field.name, field.type.toComplex(), pos);
+						forwardVarWith(id, rules.get, rules.set, isAccessible(read, true), isAccessible(write, false), field.name, field.type.toComplex(), pos);
 					case FMethod(_):
 						if (rules.call != null) {
 							switch (Context.follow(field.type)) {
@@ -122,7 +120,7 @@ class Forward {
 		}
 		var methodParams = [];
 		for (param in params) 
-			methodParams.push( { name : param.name, constraints : [] } );
+			methodParams.push( { name : param.name, constraints: [] } );
 			
 		var call = callExpr.substitute( { 
 			"$args": callArgs.toArray(),
@@ -157,7 +155,7 @@ class Forward {
 		}
 		var methodParams = [];
 		for (param in params) 
-			methodParams.push( { name : param.name, constraints : [] } );
+			methodParams.push( { name : param.name, constraints: [] } );
 		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, ret.toComplex(), methodParams))).isBound = bound;
 	}
 	function isAccessible(a:VarAccess, read:Bool) {
@@ -204,7 +202,7 @@ class Forward {
 		var r = new EReg(r, opt);
 		return function (field) return r.match(field.name);
 	}
-	static function makeFieldFilter(e:Expr):ClassFieldFilter {
+	static public function makeFieldFilter(e:Expr):ClassFieldFilter {
 		return
 			switch (e.expr) {
 				case EArrayDecl(exprs): one(exprs.map(makeFieldFilter));

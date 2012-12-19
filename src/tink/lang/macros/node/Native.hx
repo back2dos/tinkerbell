@@ -1,12 +1,9 @@
-package tink.lang.macros;
+package tink.lang.macros.node;
 
-/**
- * ...
- * @author back2dos
- */
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import tink.macro.build.Member;
+
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 

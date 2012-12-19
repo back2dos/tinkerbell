@@ -4,6 +4,7 @@ import haxe.macro.Expr;
 import tink.macro.build.Constructor;
 import tink.macro.build.Member;
 import tink.macro.build.MemberTransformer;
+import tink.macro.tools.Printer;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
@@ -25,7 +26,6 @@ class Init {
 	}
 	function init(members:Array<Member>) {
 		for (member in members) {
-			
 			if (!member.isStatic)
 				switch (member.kind) {
 					case FVar(t, e):

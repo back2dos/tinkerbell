@@ -1,4 +1,4 @@
-package tink.lang.macros;
+package tink.lang.macros.loops;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -8,29 +8,23 @@ import tink.macro.build.MemberTransformer;
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 using StringTools;
+using Lambda;
 
 class LoopSugar {
-	static public function process(ctx:ClassBuildContext) {
+	static public function process(ctx:ClassBuildContext) 
 		for (member in ctx.members)
 			switch (member.getFunction()) {
 				case Success(f):
 					f.expr = f.expr.transform(transformLoop);
 				default:
 			}
-	}
-	static function getVar(v:Expr):LoopVar {
-		return {
-			name: v.getIdent().sure(),
-			pos: v.pos
-		}
-	}	
-	static function makeHead(v:LoopVar, target:LoopTarget, fallback:Null<Expr>):LoopHead {
-		return {
-			v: v,
-			target: target,
-			fallback: fallback
-		}
-	}
+	
+	static function getVar(v:Expr):LoopVar 
+		return { name: v.getIdent().sure(), pos: v.pos }	
+		
+	static function makeHead(v:LoopVar, target:LoopTarget, fallback:Null<Expr>):LoopHead 
+		return { v: v, target: target, fallback: fallback }
+	
 	static var W_FALLBACK = (macro EXPR__v in EXPR__target || EXPR__fallback);
 	static var INTERVAL_MATCHERS = [
 		[
@@ -109,7 +103,6 @@ class LoopSugar {
 						default: e;
 					}
 			);
-			
 		return 
 			if (hasJump) 
 				head.init.concat([
@@ -133,25 +126,45 @@ class LoopSugar {
 					).at()
 				]).toBlock();
 	}	
-	static function temp(name:String) {
+	static public function temp(name:String) {
 		return String.tempName('__tl_' + name);
 	}	
 	static function makeIterator(e:Expr) {
 		function any() return [TPType(e.pos.makeBlankType())];
 		return 
 			if (e.is('Iterable'.asComplexType(any()))) 
-				e.pos.at(macro $e.iterator());
+				(macro $e.iterator()).finalize(e.pos);
 			else if (e.is('Iterator'.asComplexType(any()))) 
 				e;
 			else 
 				e.pos.errorExpr('neither Iterable nor Iterator');
-
+	}
+	
+	static function doInit(v:Expr, to:Expr) {
+		var hasJump = false;
+		v.transform(function (e) {
+			if (e.expr == EContinue || e.expr == EBreak) hasJump = true;
+			return e;
+		});
+		return
+			if (to == null) null;
+			else if (hasJump) v.assign(to);
+			else 
+				switch (to.expr) {
+					case EBlock(exprs):
+						exprs.push(doInit(v, exprs.pop()));
+						to;
+					case EIf(econd, eif, eelse), ETernary(econd, eif, eelse):
+						EIf(econd, doInit(v, eif), doInit(v, eelse)).at(to.pos);
+					default:
+						v.assign(to);
+				}
 	}
 	static function makeCompiledHead(v:LoopVar, init:Array<Expr>, hasNext:Expr, next:Expr, fallback:Null<Expr>, hasMandatory:Bool):CompiledHead {
 		var beforeBody = [];
 		if (fallback != null) {
 			if (hasMandatory) {
-				next = macro $hasNext ? $next : $fallback;
+				next = hasNext.cond(next, fallback);
 				hasNext = macro true;//actually the condition pretty much doesn't matter here
 			}
 			else {
@@ -162,8 +175,8 @@ class LoopSugar {
 				next = flag.resolve().cond(next, fallback);							
 			}
 		}
-		beforeBody.push(v.name.define(next));
-		
+		beforeBody.push(v.name.define(v.t));
+		beforeBody.push(doInit(v.name.resolve(), next));
 		return {
 			init: init,
 			beforeBody: beforeBody,
@@ -181,114 +194,6 @@ class LoopSugar {
 				default: false;
 			}
 	}
-	static var fastIters = initFastIters();
-	static function addMeta(className:String, params) {
-		return
-			switch (Context.getType(className).reduce()) {
-				case TInst(t, _):
-					var m = t.get().meta;
-					if (m.has(':tink_for'))
-						m.remove(':tink_for');
-					m.add(':tink_for', params, t.get().pos);
-				default:
-			}
-	}
-	static function initFastIters() {
-		if (Context.defined('php')) {
-			addMeta('Array', [
-				macro { var i = 0, l = this.length, a = php.Lib.toPhpArray(this); },
-				macro i < l,
-				macro a[i++]
-			]);			
-			addMeta('IntHash', [
-				macro { 
-					var i = 0;
-					var a = untyped __call__('array_values', this.h);
-					var l = untyped __call__('count', a);
-				},
-				macro i < l,
-				macro a[i++]
-			]);			
-		}
-		else if (Context.defined('neko')) {
-			addMeta('Array', [
-				macro { var i = 0, l = this.length, a = neko.NativeArray.ofArrayRef(this); },
-				macro i < l,
-				macro a[i++]
-			]);
-			addMeta('IntHash', [
-				macro {
-					var h = untyped this.h,
-						i = 0;
-					var c = untyped __dollar__hcount(h);
-					var a = untyped __dollar__amake(c);
-					untyped __dollar__hiter(h, function (_, v) a[i++] = v);
-					i = 0;
-				},
-				macro i < c,
-				macro a[i++]
-			]);
-		}
-		else addMeta('Array', [
-			macro { var i = 0, l = this.length; },
-			macro i < l,
-			macro this[i++]
-		]);
-		if (!Context.defined('php'))
-			addMeta('List', [
-				macro { var h:Dynamic = untyped this.h, x; },
-				macro h != null,
-				macro {
-					x = h[0];
-					h = h[1];
-					x;
-				}
-			]);
-		return new Hash<CustomIter>();
-	}
-	static function processRule(init:Expr, hasNext:Expr, next:Expr):CustomIter {
-		var init = 
-			switch (init.expr) {
-				case EBlock(exprs):
-					exprs;
-				default:
-					init.reject('must be a block');
-			}
-		return {
-			init: init,
-			hasNext: hasNext,
-			next: next
-		};
-	}
-	static function fastIterForClass(c:ClassType):CustomIter {
-		if (c.isInterface) 
-			return null;
-		var id = c.module + '/' + c.name;
-		if (id.startsWith('haxe.FastList')) {
-			return {
-				init: [macro var h = this.head, x],
-				hasNext: macro h != null,
-				next: macro {
-					x = h.elt;
-					h = h.next;
-					x;
-				}
-			}
-		}
-		if (!fastIters.exists(id)) {
-			var m = c.meta.get().getValues(':tink_for');
-			switch (m.length) {
-				case 0: fastIters.set(id, null);
-				case 1: 
-					var m = m[0];
-					if (m.length != 3)
-						c.pos.error('@:tink_for must have 3 arguments exactly');
-					fastIters.set(id, processRule(m[0], m[1], m[2]));
-				case 2: c.pos.error('can only declare one @:tink_for');
-			}
-		}
-		return fastIters.get(id);
-	}
 	static function standardIter(e:Expr) {
 		var target = temp('target');
 		var targetExpr = target.resolve(e.pos);
@@ -299,60 +204,15 @@ class LoopSugar {
 		}
 	}
 	static function getIterParts(e:Expr):CustomIter {
-		var ret = 
-			switch (e.typeof().sure().reduce()) {
-				case TInst(c, _):
-					var f = fastIterForClass(c.get());
-					if (f != null) {
-						var vars:Dynamic<Expr> = { },
-							varNames = new Hash();
-						function add(name:String) {
-							var n = temp(name);
-							Reflect.setField(vars, name, n.resolve());
-							varNames.set(name, n);
-							return n;
-						}
-						var tVar = add('this');
-						for (e in f.init) {
-							switch (e.expr) {
-								case EVars(vars):
-									for (v in vars) 
-										add(v.name);
-								default:
-							}
-						}
-						var init = [tVar.define(e)];
-						
-						for (e in f.init)
-							init.push(e.substitute(vars).transform(
-								function (e:Expr) {
-									switch (e.expr) {
-										case EVars(vars):
-											for (v in vars) 
-												if (varNames.exists(v.name))
-													v.name = varNames.get(v.name);												
-										default:
-									}
-									return e;
-								}
-							));
-						
-						{
-							init: init,
-							hasNext: f.hasNext.substitute(vars),
-							next: f.next.substitute(vars)
-						}
-					}
-					else 
-						null;
-				default: 
-					null;
-			}
-		return
-			if (ret == null) standardIter(e);
-			else ret;
-	}	
-	static var INT = 'Int'.asComplexType();
+		#if display
+			return standardIter(e);
+		#else
+			var ret = FastLoops.iter(e);
+			return
+				if (ret == null) standardIter(e);
+				else ret;
+		#end
+	}
 	static function compileHead(head:LoopHead, hasMandatory:Bool):CompiledHead {
 		inline function make(init:Array<Expr>, hasNext:Expr, next:Expr)
 			return makeCompiledHead(
@@ -368,13 +228,14 @@ class LoopSugar {
 			switch (head.target) {
 				case Any(e):
 					var parts = getIterParts(e);
+					head.v.t = e.getIterType().sure().toComplex();
 					make(parts.init, parts.hasNext, parts.next);
-				case Numeric(start, end, step, up):
-					var intLoop = step.is(INT);
+				case Numeric(start, end, step, up): //TODO: factor out this code
+					var intLoop = step.is(macro : Int);
 						
 					if (intLoop)
 						for (e in [start, end])
-							if (!e.is(INT))
+							if (!e.is(macro : Int))
 								e.reject('should be Int');
 								
 					var counterName = temp('counter');						
@@ -386,14 +247,13 @@ class LoopSugar {
 							if (isConstNum(e)) e;
 							else {
 								name = temp(name);
-								init.push(name.define(e, e.pos));
+								init.push(name.define(e, intLoop ? macro : Int : macro : Float, e.pos));
 								name.resolve(e.pos);
 							}
 					
 					step = mk(step, 'step');
 					
 					if (intLoop) {
-						
 						var counterInit = 
 							if (up) {
 								end = mk(macro $end - $step, 'end');
@@ -472,21 +332,96 @@ class LoopSugar {
 			condition: condition
 		}
 	}
-	static function transformLoop(e:Expr) {
+	static var COMPREHENSION = macro [for (EXPR__it) EXPR__expr];
+	static var COMPREHENSION_TO_CALL = macro EXPR__output(for (EXPR__it) EXPR__expr);
+	static var COMPREHENSION_INTO = macro [for (EXPR__it) EXPR__expr] in EXPR__output;
+	static function yield(e:Expr, doYield:Expr->Expr) {
+		function reject(feature)
+			return e.reject(feature + ' not supported here');
+		function rec(e)
+			return yield(e, doYield);
 		return
+			if (e == null) null;
+			else 
+				switch (e.expr) {
+					case EIf(econd, eif, eelse), ETernary(econd, eif, eelse):
+						econd.cond(rec(eif), rec(eelse), e.pos);
+					case EBreak, EContinue: 
+						reject('break and continue');
+					case EReturn(_):
+						reject('return');
+					case EBlock(exprs):
+						if (exprs.length == 0) e;
+						else
+							exprs.slice(0, -1).concat([rec(exprs[exprs.length - 1])]).toBlock(e.pos);
+					case EFor(it, expr):
+						EFor(it, rec(expr)).at(e.pos);
+					case EWhile(cond, body, normal):
+						EWhile(cond, rec(body), normal).at(e.pos);
+					case EFunction(_, _):
+						reject('function expressions');
+					case EVars(_):
+						reject('variable declarations');
+					case ESwitch(e, cases, edef):
+						cases = Reflect.copy(cases);
+						for (c in cases)
+							c.expr = rec(c.expr);
+						ESwitch(e, cases, rec(edef)).at(e.pos);
+					case ETry(unsafe, catches):
+						catches = Reflect.copy(catches);
+						for (c in catches) 
+							c.expr = rec(c.expr);
+						ETry(rec(unsafe), catches).at(e.pos);
+					default:
+						doYield(e);
+				}
+	}
+	static var FIELD = (macro EXPR__owner.NAME__field);
+	static public function transformLoop(e:Expr) {
+		for (pattern in [COMPREHENSION, COMPREHENSION_TO_CALL, COMPREHENSION_INTO]) 
+			switch (e.match(pattern)) {
+				case Success(match):
+					if (match.exprs.output == null)
+						match.exprs.output = [].toArray(e.pos);
+					var it = match.exprs.it,
+						expr = match.exprs.expr,
+						output = match.exprs.output;
+						
+					var outputVarName = temp('output');
+					var outputVar = outputVarName.resolve(output.pos);
+					
+					var doYield = 
+						switch (output.match(FIELD)) {
+							case Success(match):
+								output = match.exprs.owner;
+								var out = outputVar.field(match.names.field, match.pos);
+								function (e:Expr)
+									return out.call([e], e.pos);
+							default:
+								function (e:Expr)
+									return (macro $outputVar.push($e)).finalize(e.pos);
+						}
+					trace(output.typeof());
+					return [
+						outputVarName.define(output, output.pos),
+						transform(
+							it, 
+							yield(expr, doYield)
+						),
+						outputVar
+					].toBlock(e.pos).log();
+				default:
+			}
+		return	
 			switch (e.expr) {
 				case EFor(it, expr):
-					callback(transform, it, expr).bounce(e.pos);
-				default: return e;
+					transform(it, expr);
+				default: e;
 			}
 	}
 	
 }
-typedef CustomIter = {
-	init: Array<Expr>,
-	hasNext: Expr,
-	next: Expr
-}
+
 typedef CompiledHead = {
 	init: Array<Expr>,
 	beforeBody: Array<Expr>,

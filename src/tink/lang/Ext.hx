@@ -1,9 +1,4 @@
 package tink.lang;
 
-/**
- * ...
- * @author back2dos
- */
-
-@:autoBuild(tink.lang.macros.ExtBuilder.buildFields()) interface Ext<T> {
+@:autoBuild(tink.lang.macros.node.ExtBuilder.buildFields()) interface Ext<T> {
 }
