@@ -1,10 +1,6 @@
 package tink.reactive.signals;
-import tink.collections.maps.FunctionMap;
 
-/**
- * ...
- * @author back2dos
- */
+import tink.collections.maps.FunctionMap;
 
 interface Signal<T> {
 	function on(handler:T->Dynamic):Void;

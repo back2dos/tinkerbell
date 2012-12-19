@@ -9,12 +9,6 @@ import tink.collections.maps.ObjectMap;
 import tink.collections.maps.StringMap;
 import tink.lang.Cls;
 import tink.reactive.Source;
-
-/**
- * ...
- * @author back2dos
- */
-
  
 class Watch<T> extends Binding<T>, implements Source<T> {
 	public var value(get_value, null):T;
@@ -115,7 +109,6 @@ class Binding<T> implements Cls {
 	var cache:T;
 	var busy:Bool;
 	var handlers = new FunctionMap<Cb, Cb>();
-	
 	function new(calc) {
 		this.calc = calc;
 	}
@@ -177,7 +170,7 @@ private class SingleSignaller<T, M:Map<T, BindingMap>> implements Generic {
 		var bindings = keyMap.get(key);
 		if (bindings == null)
 			keyMap.set(key, bindings = new IntHash());
-		bindings.set(watcher.id, watcher);//this could be an ObjectMap
+		bindings.set(watcher.id, watcher);
 		revisions.set(watcher.id, watcher.revision);
 	}
 	public function fire<A>(key:T, ?ret:A) {
@@ -207,7 +200,7 @@ private class UnknownSignaller {
 		var bindings = keyMap.get(key);
 		if (bindings == null)
 			keyMap.set(key, bindings = new IntHash());
-		bindings.set(watcher.id, watcher);//this could be an ObjectMap
+		bindings.set(watcher.id, watcher);
 	}
 	public function fire<A>(key:Dynamic, ?ret:A) {
 		if (keyMap.exists(key)) {

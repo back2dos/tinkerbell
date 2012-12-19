@@ -8,10 +8,6 @@ import haxe.macro.Expr;
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 using Lambda;
-/**
- * ...
- * @author back2dos
- */
 
 class BindableProperties {
 	static public inline var IS_BINDABLE = 'bindable';
@@ -22,35 +18,34 @@ class BindableProperties {
 		var str = name.toExpr(pos),
 			field = ['this', name].drill(pos);
 		return 
-			pos.at(macro {
+			(macro {
 				this.bindings.byString.bind($str);
 				$field;
-			});
+			}).finalize(pos);
 	}
 	static function setter(name:String, pos:Position) {
 		var str = name.toExpr(pos),
 			field = ['this', name].drill(pos);
 		return 
-			pos.at(macro { 
+			(macro { 
 				this.bindings.byString.fire($str, $field = param);
-			});
+			}).finalize(pos);
 	}
 	static function makeBinding(on:Expr) {
-		return
-			on.pos.at(
-				switch (on.typeof().sure().reduce().getID()) {
+		return 
+			(switch (on.typeof().sure().reduce().getID()) {
 					case 'String': macro this.bindings.byString.bind($on);
 					case 'Int': macro this.bindings.byInt.bind($on);
 					case 'Bool': macro this.bindings.byBool.bind($on);
 					default: macro this.bindings.byUnknown.bind($on);
 				}
-			);
+			).finalize(on.pos);
 	}
 	static public function make(ctx:ClassBuildContext) {
 		function makeBindable(pos) 
 			if (!ctx.has('bindings')) {
 				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding.Signaller'.asComplexType(), pos));
-				ctx.getCtor().init('bindings', pos, pos.at(macro new tink.reactive.bindings.Binding.Signaller()), true);
+				ctx.getCtor().init('bindings', pos, (macro new tink.reactive.bindings.Binding.Signaller()).finalize(pos), true);
 			}
 		var setters = new Hash(),
 			getters = new Hash();
@@ -58,14 +53,13 @@ class BindableProperties {
 			switch (member.extractMeta(BINDABLE)) {
 				case Success(tag):
 					makeBindable(tag.pos);
-					if (member.isPublic == null) 
-						member.publish();
+					member.publish();
 					member.addMeta(IS_BINDABLE, tag.pos);
 					var name = member.name;
 					switch (member.kind) {
 						case FVar(t, _):
 							PropBuilder.make(member, t, getter(name, tag.pos), setter(name, tag.pos), ctx.has, ctx.add);
-						case FProp(get, set, t, _):
+						case FProp(get, set, _, _):
 							var nonCustom = 'default,never,null'.split(',');
 							if (nonCustom.has(get)) 
 								tag.pos.error('cannot make non-custom read access bindable');
@@ -94,9 +88,11 @@ class BindableProperties {
 					var name = member.name;
 					switch (member.kind) {
 						case FVar(t, _):
+							if (t == null)
+								t = member.pos.makeBlankType();
+							
 							var cacheName = '__tink_reactive_cache__' + name,
 								bindingType = 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]);
-								
 							ctx.add(Member.plain(cacheName, bindingType, tag.pos));
 							var expr = 
 								switch (tag.params.length) {
@@ -115,7 +111,7 @@ class BindableProperties {
 							ctx.add(Member.getter(name, tag.pos, macro $cache.value, t));
 							member.kind = FProp('get_' + name, 'null', t);
 						default: 
-							member.pos.error('');
+							member.pos.error('cache only works on variables');
 					}
 				default:
 			}
@@ -131,6 +127,7 @@ class BindableProperties {
 			}
 		}
 	}
+	//TODO: these will have to compete with outer bounces from LoopSugar
 	static function injectFire(name:String) {
 		return
 			callback(function (name:String, e:Expr) 
@@ -138,7 +135,7 @@ class BindableProperties {
 					switch (e.expr) {
 						case EReturn(e): 
 							var name = name.toExpr(e.pos);
-							e.pos.at(macro return this.bindings.byString.fire($name, $e));
+							(macro return this.bindings.byString.fire($name, $e)).finalize(e.pos);
 						default: e;
 					}
 				,name		
@@ -151,7 +148,7 @@ class BindableProperties {
 					switch (e.expr) {
 						case EReturn(e): 
 							var name = name.toExpr(e.pos);
-							e.pos.at(macro return this.bindings.byString.bind($name, $e));
+							(macro return this.bindings.byString.bind($name, $e)).finalize(e.pos);
 						default: e;
 					}
 				,name

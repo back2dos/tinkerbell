@@ -1,11 +1,7 @@
 package tink.reactive;
+
 import tink.collections.maps.FunctionMap;
 import tink.lang.Cls;
-
-/**
- * ...
- * @author back2dos
- */
 
 interface Source<T> {
 	var value(get_value, null):T;
