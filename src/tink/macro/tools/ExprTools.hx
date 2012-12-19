@@ -212,17 +212,19 @@ class ExprTools {
 	}
 
 	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr {
+		//trace(pos);
 		if (ctx == null) 
 			if (context == null) ctx = [];
 			else ctx = context;
+		
 		function rec(e, ?inner)
 			return map(e, f, inner == null ? ctx : inner, pos);
 		if (source == null)	return null;
+		//if (pos == null) pos = source.pos;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
-		if (pos == null) pos = source.pos;
-		return (switch(mappedSource.expr)
-		{
+		
+		var ret = switch(mappedSource.expr) {
 			case ECheckType(e, t): ECheckType(rec(e), t);
 			case ECast(e, t): ECast(rec(e), t);
 			case EArray(e1, e2): EArray(rec(e1), rec(e2));
@@ -343,7 +345,8 @@ class ExprTools {
 				EVars(ret);
 			default:
 				mappedSource.expr;
-		}).at(pos);
+		}
+		return ret.at(pos == null ? source.pos : pos);
 	}
 	
 	static public function mapArray(source:Array<Expr>, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos) {
