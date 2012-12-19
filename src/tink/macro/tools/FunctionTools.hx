@@ -18,7 +18,7 @@ class FunctionTools {
 			value: value
 		};
 	}
-	static public inline function func(e:Expr, ?args, ?ret, ?params, ?makeReturn = true):Function {
+	static public inline function func(e:Expr, ?args:Array<FunctionArg>, ?ret:ComplexType, ?params, ?makeReturn = true):Function {
 		return {
 			args: args == null ? [] : args,
 			ret: ret,
@@ -26,8 +26,7 @@ class FunctionTools {
 			expr: if (makeReturn) EReturn(e).at(e.pos) else e
 		}		
 	}
-	static public function getArgIdents(f:Function):Array<Expr>
-	{
+	static public function getArgIdents(f:Function):Array<Expr> {
 		var ret = [];
 		for (arg in f.args)
 			ret.push(arg.name.resolve());
