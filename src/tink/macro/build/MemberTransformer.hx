@@ -10,11 +10,6 @@ import tink.macro.tools.Printer;
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
-/**
- * ...
- * @author back2dos
- */
-
 typedef ClassBuildContext = {
 	cls:ClassType,
 	members:Array<Member>,
@@ -39,12 +34,17 @@ class MemberTransformer {
 	function getConstructor() {
 		if (constructor == null) 
 			if (localClass.superClass != null && localClass.superClass.t.get().constructor != null) {
-				var ctor = Context.getLocalClass().get().superClass.t.get().constructor.get();
-				var func = Context.getTypedExpr(ctor.expr()).getFunction().sure();
-				func.expr = "super".resolve().call(func.getArgIdents());
-				constructor = new Constructor(localClass.isInterface, func);
-				if (ctor.isPublic)
-					constructor.publish();
+				try {
+					var ctor = Context.getLocalClass().get().superClass.t.get().constructor.get();
+					var func = Context.getTypedExpr(ctor.expr()).getFunction().sure();
+					func.expr = "super".resolve().call(func.getArgIdents());
+					constructor = new Constructor(localClass.isInterface, func);
+					if (ctor.isPublic)
+						constructor.publish();					
+				}
+				catch (e:Dynamic) {//fails for unknown reason
+					constructor = new Constructor(localClass.isInterface, null);
+				}
 			}
 			else
 				constructor = new Constructor(localClass.isInterface, null);
