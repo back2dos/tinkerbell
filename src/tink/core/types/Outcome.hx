@@ -1,10 +1,5 @@
 package tink.core.types;
 
-/**
- * ...
- * @author back2dos
- */
-
 enum Outcome<Data, Failure> {
 	Success(data:Data);
 	Failure(?failure:Failure);
@@ -61,7 +56,7 @@ class OutcomeTools {
 		return 
 			switch (outcome) {
 				case Success(data): data == to;
-				case Failure(failure): false;
+				case Failure(_): false;
 			}
 	}
 	static public inline function map < A, B, F > (outcome: Outcome < A, F > , transform: A->B) {
