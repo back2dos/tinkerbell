@@ -6,11 +6,7 @@ package tink.markup.formats;
 
 	using tink.macro.tools.MacroTools;
 	using tink.core.types.Outcome;
-	/**
-	 * ...
-	 * @author back2dos
-	 */
-
+	
 	class Fast {
 		var here:Position;
 		var tmp:String;
@@ -78,7 +74,7 @@ package tink.markup.formats;
 		function optimize(target:Expr) {
 			target = target.transform(flatten).transform(unify).transform(print);
 			var f = target.func([tmp.toArg()], false).toExpr();
-			return target.pos.at(macro new tink.markup.formats.Fast($f));
+			return (macro new tink.markup.formats.Fast($f)).finalize(target.pos);
 		}
 		public function postprocess(e:Expr):Expr {
 			return e.outerTransform(optimize);
@@ -87,7 +83,7 @@ package tink.markup.formats;
 			return out(s.toExpr(here));
 		}
 		static function out(e:Expr):Expr {
-			return e.pos.at(macro tink.markup.formats.Fast.add($e));
+			return (macro tink.markup.formats.Fast.add($e)).finalize(e.pos);
 		}
 		static var IS_LITERAL = out("eval__lit".toExpr());
 		static var IS_OUT = out("$v".resolve());
@@ -133,7 +129,7 @@ package tink.markup.formats;
 			out(buf);
 			return buf;
 		}
-		public function toString() {
+		public function toString():String {
 			return printTo(new StringBuf()).toString();
 		}
 		static public function add(d:Dynamic):Void {

@@ -7,11 +7,6 @@ package tink.markup;
 	import tink.markup.formats.TreeCrawler;	
 #end
 
-/**
- * ...
- * @author back2dos
- */
-
 @:macro class Build {
 	static public function fast(e) {
 		return TreeCrawler.build(e, new Tags(new Fast()));

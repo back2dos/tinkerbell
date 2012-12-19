@@ -1,12 +1,9 @@
 package tink.markup.formats;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Format;
 
-/**
- * ...
- * @author back2dos
- */
 using tink.macro.tools.MacroTools;
 using StringTools;
 using tink.core.types.Outcome;
@@ -85,14 +82,14 @@ class Tags {
 							//TODO: can call to plugin here directly
 							if (s.charAt(0) == '$') {
 								var value = s.substr(1).toExpr(src.pos);
-								yield(src.pos.at(macro id = $value));
+								yield((macro id = $value).finalize(src.pos));
 							}
 							else 
 								cls.push(s);
 								
 							if (cls.length > 0) {
 								var value = cls.join(' ').toExpr(src.pos);
-								yield(src.pos.at(macro 'class' = $value));
+								yield((macro 'class' = $value).finalize(src.pos));
 							}
 								
 							src = null;

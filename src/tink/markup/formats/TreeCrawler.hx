@@ -4,11 +4,6 @@ import haxe.macro.Expr;
 using Lambda;
 using tink.macro.tools.MacroTools;
 
-/**
- * ...
- * @author back2dos
- */
-
 private typedef Plugin = {
 	function init(pos:Position):Null<Expr>;
 	function finalize(pos:Position):Null<Expr>;
@@ -43,6 +38,10 @@ class TreeCrawler {
 						EFor(it, yield(expr)).at(e.pos);
 					case EWhile(cond, body, normal):
 						EWhile(cond, yield(body), normal).at(e.pos);
+					case EBlock(exprs):
+						if (exprs.length > 0)
+							exprs[exprs.length - 1] = yield(exprs[exprs.length - 1]);
+						EBlock(exprs).at(e.pos);
 					default:
 						plugin.transform(e, yield);
 				}

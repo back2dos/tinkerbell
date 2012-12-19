@@ -34,7 +34,7 @@ class Nodes {
 		return ret.resolve();		
 	}
 	public function init(pos:Position):Null<Expr> {
-		return open().define(pos.at(macro Xml.createDocument()));
+		return open().define((macro Xml.createDocument()).finalize(pos));
 	}
 	public function finalize(pos:Position):Null<Expr> {
 		return close();
@@ -43,7 +43,7 @@ class Nodes {
 		return 'div'.toExpr(pos);
 	}
 	public function postprocess(e:Expr):Expr {
-		return e.pos.at(macro $e.firstChild());
+		return (macro $e.firstChild()).finalize(e.pos);
 	}
 	function stringifyProp(value:Expr):Expr {
 		return
@@ -60,30 +60,30 @@ class Nodes {
 	public function setProp(attr:String, value:Expr, pos:Position):Expr {
 		value = callback(stringifyProp, value).bounce();
 		var attr = attr.toExpr(pos);
-		return pos.at(macro $target.set($attr, $value));
+		return (macro $target.set($attr, $value)).finalize(pos);
 	}
 	function addChildNode(e:Expr):Expr {
-		return e.pos.at(macro $target.addChild($e));
+		return (macro $target.addChild($e)).finalize(e.pos);
 	}
 	function doAddChild(target:Expr, e:Expr):Expr {
-		return e.pos.at(
+		return (
 			if (e.is(XML))
 				macro $target.addChild($e)
 			else if (e.is(STRING)) 
 				macro $target.addChild(Xml.createPCData($e))
 			else
-				macro $target.addChild(Std.string(Xml.createPCData($e)))
-		);
+				macro $target.addChild(Xml.createPCData(Std.string($e)))
+		).finalize(e.pos);
 	}
 	public function addChild(e:Expr, ?t:Type):Expr {
 		return callback(doAddChild, target, e).bounce();
 	}
 	public function addString(s:String, pos:Position):Expr {
 		var s = s.toExpr(pos);
-		return pos.at(macro $target.addChild(Xml.createPCData($s)));
+		return (macro $target.addChild(Xml.createPCData($s))).finalize(pos);
 	}
 	public function buildNode(nodeName:Expr, props:Array<Expr>, children:Array<Expr>, pos:Position, yield:Expr->Expr):Expr {
-		var ret = [open().define(pos.at(macro Xml.createElement($nodeName)))];
+		var ret = [open().define((macro Xml.createElement($nodeName)).finalize(pos), pos)];
 		for (p in props)
 			ret.push(yield(p));
 		for (c in children)
