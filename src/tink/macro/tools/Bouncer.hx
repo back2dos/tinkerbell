@@ -1,9 +1,5 @@
 package tink.macro.tools;
 
-/**
- * ...
- * @author back2dos
- */
 #if macro
 	import haxe.macro.Context;
 	import haxe.macro.Expr;
