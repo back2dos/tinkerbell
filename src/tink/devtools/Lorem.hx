@@ -1,12 +1,8 @@
 package tink.devtools;
 
-/**
- * ...
- * @author back2dos
- */
-
 
 class Lorem {
+	static public var randFloat = Math.random;
 	static public function html(?paragraphs = 3, ?sentences = 5, ?words = 10) {
 		return '<p>' + ipsum('</p><p>', paragraphs, sentences, words) + '</p>';
 	}
@@ -22,11 +18,15 @@ class Lorem {
 	);
 }
 private class Randomness {
+	
+	function randInt(x:Int) return Std.int(randFloat() * x)
+	function randFloat():Float return Lorem.randFloat()
+	
 	function rnd(from:Array<String>) {
-		return from[Std.random(from.length)];
+		return from[randInt(from.length)];
 	}
 	function randomize(value) {
-		value = Std.int(value * (.5 + Math.random()));
+		value = Std.int(value * (.5 + randFloat()));
 		if (value < 1) value = 1;
 		return value;
 	}
@@ -59,7 +59,7 @@ class RandomPerson extends Randomness {
 				case Male: firstNamesM;
 				case Female: firstNamesF;
 				case Any: 
-					if (Math.random() < .5) firstNamesF;
+					if (randFloat() < .5) firstNamesF;
 					else firstNamesM;
 			}
 			
@@ -105,7 +105,7 @@ class RandomText extends Randomness {
 	public function word(?ucFrequency) {
 		var ret = rnd(words);
 		if (Math.isNaN(ucFrequency)) ucFrequency = this.ucFrequency;
-		if (Math.random() < ucFrequency) ret = ucFirst(ret);
+		if (randFloat() < ucFrequency) ret = ucFirst(ret);
 		return ret;
 	}
 	
