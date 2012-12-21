@@ -18,16 +18,12 @@ class PartialImpl {
 				case 2: f.pos.error('multiple defaults defined');
 			}
 	}
-	
 	static public function process(ctx:ClassBuildContext) {
 		if (ctx.cls.isInterface) 
 			for (m in ctx.members) 
 				switch (m.kind) {
 					case FFun(f):
 						if (f.expr != null) {
-							//if (ctx.cls.params.length > 0)
-								//f.expr.reject('default implementations not implemented for generics');
-							
 							m.addMeta(':default', f.expr.pos, [EFunction(null, Reflect.copy(f)).at(f.expr.pos)]);
 							f.expr = null;
 						}
