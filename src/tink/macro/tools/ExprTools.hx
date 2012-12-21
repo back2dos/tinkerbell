@@ -140,10 +140,10 @@ class ExprTools {
 				return
 					switch (e.getIdent()) {
 						case Success(name):
-								if (Reflect.hasField(vars, name)) 
-									Reflect.field(vars, name);
-								else
-									e;
+							if (Reflect.hasField(vars, name)) 
+								Reflect.field(vars, name);
+							else
+								e;
 						default: e;
 					}
 			}, pos)
