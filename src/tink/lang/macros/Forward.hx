@@ -151,7 +151,7 @@ class Forward {
 			
 		for (arg in args) {
 			callArgs.push(arg.name.resolve(target.pos));
-			methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
+			methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(true), value : null } );
 		}
 		var methodParams = [];
 		for (param in params) 
