@@ -333,6 +333,7 @@ class LoopSugar {
 		}
 	}
 	static var COMPREHENSION_FOLD = macro for (NAME__result = EXPR__init) for (EXPR__it) EXPR__expr;
+	static var COMPREHENSION_FOLD_VAR = macro var NAME__result = EXPR__init = for (EXPR__it) EXPR__expr;
 	static var COMPREHENSION = macro [for (EXPR__it) EXPR__expr];
 	static var COMPREHENSION_TO_CALL = macro EXPR__output(for (EXPR__it) EXPR__expr);
 	static var COMPREHENSION_INTO = macro [for (EXPR__it) EXPR__expr] in EXPR__output;
@@ -380,46 +381,61 @@ class LoopSugar {
 	}
 	static var FIELD = (macro EXPR__owner.NAME__field);
 	static public function transformLoop(e:Expr) {
-		switch (e.match(COMPREHENSION_FOLD)) {
-			case Success(match): 
-				var it = match.exprs.it,
-					expr = match.exprs.expr,
-					init = match.exprs.init,
-					result = match.names.result;
-				var resultVar = result.resolve(match.pos);
-				
-				return [
-					result.define(init, init.pos),
-					transform(
-						it, 
-						yield(expr, function (e:Expr) return resultVar.assign(e, e.pos))
-					),					
-					resultVar
-				].toBlock(e.pos);
-			default:
-		}
+		for (pattern in [COMPREHENSION_FOLD, COMPREHENSION_FOLD_VAR])
+			switch (e.match(pattern)) {
+				case Success(match): 
+					var it = match.exprs.it,
+						expr = match.exprs.expr,
+						init = match.exprs.init,
+						result = match.names.result;
+					var resultVar = result.resolve(match.pos);
+					
+					var ret = [
+						result.define(init, init.pos),
+						transform(
+							it, 
+							yield(expr, function (e:Expr) return resultVar.assign(e, e.pos))
+						),					
+						resultVar
+					].toBlock(e.pos);
+					return 
+						if (pattern == COMPREHENSION_FOLD_VAR)
+							result.define(ret, ret.pos);
+						else
+							ret;
+				default:
+			}
 		for (pattern in [COMPREHENSION, COMPREHENSION_TO_CALL, COMPREHENSION_INTO]) 
 			switch (e.match(pattern)) {
 				case Success(match):
 					if (match.exprs.output == null)
-						match.exprs.output = [].toArray(e.pos);
+						match.exprs.output = (macro [].push).finalize(e.pos);
 					var it = match.exprs.it,
 						expr = match.exprs.expr,
 						output = match.exprs.output;
 						
 					var outputVarName = temp('output');
 					var outputVar = outputVarName.resolve(output.pos);
-					
+					function getParams(e:Expr)
+						return 
+							switch (e.expr) {
+								case ECall(callee, params):
+									if (callee.getIdent().equals('$')) params;
+									else [e];
+								default: [e];
+							}
+					var returnOutput = false;		
 					var doYield = 
 						switch (output.match(FIELD)) {
 							case Success(match):
 								output = match.exprs.owner;
+								returnOutput = true;
 								var out = outputVar.field(match.names.field, match.pos);
-								function (e:Expr)
-									return out.call([e], e.pos);
+								function (e:Expr) 
+									return out.call(getParams(e), e.pos);
 							default:
 								function (e:Expr)
-									return (macro $outputVar.push($e)).finalize(e.pos);
+									return outputVar.call(getParams(e), e.pos);
 						}
 					return [
 						outputVarName.define(output, output.pos),
@@ -427,7 +443,7 @@ class LoopSugar {
 							it, 
 							yield(expr, doYield)
 						),
-						outputVar
+						returnOutput ? outputVar : [].toBlock()
 					].toBlock(e.pos);
 				default:
 			}
