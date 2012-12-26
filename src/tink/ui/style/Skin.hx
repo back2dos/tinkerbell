@@ -30,7 +30,6 @@ class SkinTools {
 	static public function draw(skin:Skin, surface:Sprite, w:Float, h:Float) {
 		var g = surface.graphics;
 		g.clear();
-		//trace(surface.localToGlobal(new Point()));
 		switch (skin) {
 			case None:
 			case Draw(fill, stroke, thickness, inset, corner):
@@ -49,8 +48,6 @@ class SkinTools {
 							inset * thickness;
 						case Empty: 0;
 					}
-				//Debug.log(margin, inset, thickness, delta);
-				//margin = 0;
 				switch (fill) {
 					case Plain(rgb, alpha): doFill(g, rgb, alpha);
 					case Linear(colors, alphas, ratios, angle):

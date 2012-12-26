@@ -5,10 +5,7 @@ import haxe.Timer;
 import tink.collections.maps.ObjectMap;
 import tink.lang.Cls;
 import tink.tween.plugins.Plugin;
-/**
- * ...
- * @author back2dos
- */
+
 typedef TweenCallback = Void->Void;
 typedef TweenComponent = Float->Null<TweenCallback>;
 typedef TweenAtom<T> = T->TweenComponent;
@@ -24,8 +21,8 @@ class Tween<T> {
 	
 	var cue:Cue<T>;
 	var cueIndex:Int;
-	var onDone:Void->Dynamic;
-	var onStarve:Void->Dynamic;
+	var onDone:Void->Void;
+	var onStarve:Void->Void;
 	var easing:Float->Float;
 	var components:Array<TweenComponent>;
 	var properties:Array<String>;
@@ -120,13 +117,13 @@ class TweenParams<T> implements Cls {
 	var properties = new Array<String>();
 	var atoms = new Array<TweenAtom<T>>();
 	var cue = new Cue<T>();
-	public var onDone:Tween<T>->Dynamic;
-	public var onStarve:Tween<T>->Dynamic;
+	public var onDone:Tween<T>->Void;
+	public var onStarve:Tween<T>->Void;
 	public var duration = 1.0;
 	public var easing = Tween.defaultEasing;
 	
 	public function new() {}
-	static function ignore():Void { }
+	static function ignore() { }
 	
 	public function start(group, target:T):Tween<T> {
 		var ret = RealTween.get();
@@ -139,20 +136,22 @@ class TweenParams<T> implements Cls {
 			propMap.exists, 
 			duration, 
 			easing, 
-			onDone == null ? ignore : callback(onDone, ret),
-			onStarve == null ? ignore : callback(onStarve, ret)
+			onDone == null ? ignore : onDone.callback(ret),
+			onStarve == null ? ignore : onStarve.callback(ret)
 		);
 		return ret;
 	}
 	public function addCuePoint(mark, handler:Tween<T>->Bool->Void) {
 		if (cue.length == 0 || cue[cue.length-1].mark <= mark)
 			this.cue.push(new CuePoint(mark, handler));	
-		else
+		else {
 			for (i in 0...cue.length+1)
 				if (cue[i].mark > mark) {
 					cue.insert(i, new CuePoint(mark, handler));
 					break;
 				}
+			5;
+		}
 	}
 	public function addAtom(name:String, atom:TweenAtom<T>):Void {
 		if (!this.propMap.exists(name)) {

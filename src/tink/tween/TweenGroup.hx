@@ -5,29 +5,22 @@ import haxe.Timer;
 import tink.devtools.Debug;
 import tink.lang.Cls;
 
-/**
- * ...
- * @author back2dos
- */
-
 private typedef Tweens = FastList<Tween<Dynamic>>; 
 private typedef Handlers = Array<Void->Void>;
 
 class TweenGroup implements Cls {
 	public var speed = 1.0;
 	
-	var active = new Tweens();
+	var active:Tweens = new Tweens();
 	var before = new Handlers();
 	var after = new Handlers();
 	var last = Math.NaN;
 	var unhook:Void->Void;
 	
-	public function new() {
-		this.active = new Tweens();
-	}
+	public function new() {}
 	public function addTween<A>(tween:Tween<A>):Tween<A> {
 		Debug.assert(tween != null, tween.group == this);
-		this.active.add(tween);
+		this.active.add(cast tween);
 		return tween;
 	}
 	public inline function beforeHeartbeat(f:Void->Void) { if (f != null) before.push(f); }

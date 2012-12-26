@@ -1,18 +1,14 @@
 package util;
+
 import haxe.unit.TestCase;
 import tink.reflect.Property;
-
-/**
- * ...
- * @author back2dos
- */
 
 class PropertyTest extends TestCase {
 
 	public function new() {
 		super();
 	}
-	function testProperty() {
+	public function testProperty() {
 		var a = new A(5);
 		assertEquals(Property.get(a, 'test'), a.test);
 		assertEquals(Property.get(a, '_test'), Reflect.field(a, '_test'));

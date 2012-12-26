@@ -1,9 +1,5 @@
 package tink.lang.macros;
 
-/**
- * ...
- * @author back2dos
- */
 import haxe.macro.Expr;
 import tink.macro.build.Constructor;
 import tink.macro.build.Member;
@@ -15,9 +11,9 @@ class PropBuilder {
 	static public inline var FULL = ':prop';
 	static public inline var READ = ':read';
 	
-	static public function process(ctx) {
-		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members);
-	}
+	static public function process(ctx) 
+		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members)
+	
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
 		var get = 'get_' + m.name,
 			set = if (setter == null) 'null' else 'set_' + m.name;
@@ -67,9 +63,11 @@ class PropBuilder {
 								field = ['this', name].drill(tag.pos);
 							switch (tag.params.length) {
 								case 0:
+									member.addMeta(':isVar', tag.pos);
 									getter = field;
 									setter = field.assign('param'.resolve());
-								case 1: 
+								case 1:
+									member.addMeta(':isVar', tag.pos);
 									getter = field;
 									setter = field.assign(tag.params[0], tag.params[0].pos);
 								case 2: 

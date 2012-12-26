@@ -17,10 +17,7 @@ import tink.ui.style.Skin;
 
 using tink.reactive.bindings.BindingTools;
 using tink.ui.style.Skin;
-/**
- * ...
- * @author back2dos
- */
+
 class DisabledInputStyle implements Cls {
 	@:bindable var skin = Draw(
 		Linear([0xDDDDDD, 0xCCCCCC], [1, 1], [0x00, 0xFF], -Math.PI / 4 * 3), 
@@ -58,7 +55,7 @@ class Input extends UIComponent<Sprite, InputStyle> {
 	@:bindable @:prop(tf.text, tf.text = param == null ? '' : param) var text:String;
 	
 	var tf = new TextField();
-	
+	@:prop(tf.restrict, tf.restrict = param) var restrict:String;
 	@:bindable private var focused = false;
 	@:bindable private var hovered = false;
 	
@@ -66,7 +63,7 @@ class Input extends UIComponent<Sprite, InputStyle> {
 	
 	@:cache(enabled ? focused ? style.focus : hovered ? style.hover : style.normal : style.disabled.skin) private var curSkin:Skin;
 	@:cache(enabled ? style.toNative() : style.disabled.toNative()) private var curFormat:TextFormat;
-	
+	@:signal var focus:Bool;
 	public function new() {
 		super(new Sprite(), new InputStyle());
 		view.addChild(tf);
@@ -81,6 +78,7 @@ class Input extends UIComponent<Sprite, InputStyle> {
 		view.addEventListener(MouseEvent.ROLL_OUT, function (_) hovered = false);
 		bindSkin();
 		bindFormat();
+		this._focus.fire.bind(focused);
 	}
 	function bindFormat() updateFormat.bind(curFormat)
 	function bindSkin() updateSkin.bind(curSkin)
@@ -90,6 +88,12 @@ class Input extends UIComponent<Sprite, InputStyle> {
 		tf.setTextFormat(fmt);
 	}
 	function updateSkin(_) uponRender(doRender)
+	public function acquireFocus() {
+		if (view.stage != null) {
+			view.stage.focus = this.tf;
+			this.tf.setSelection(this.tf.text.length, this.tf.text.length);
+		}
+	}
 	override function calcHMin() return ResizableComponent.calcMin(style.width)
 	override function calcHWeight() return ResizableComponent.calcWeight(style.width)
 	override function calcVMin() {

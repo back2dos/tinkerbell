@@ -1,6 +1,6 @@
 package tink.macro.tools;
 
-private typedef Enums = Type;
+import Type in Enums;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -22,6 +22,7 @@ class TypeTools {
 			t = reduce(t);
 		return
 			switch (t) {
+				case TAbstract(t, _): t.toString();
 				case TInst(t, _): t.toString();
 				case TEnum(t, _): t.toString();
 				case TType(t, _): t.toString();

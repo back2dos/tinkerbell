@@ -1,6 +1,6 @@
 package tink.macro.tools;
 
-private typedef Inspect = Type;
+import Type in Inspect;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -57,7 +57,7 @@ class ExprTools {
 							for (v in vars) 
 								v.name = replace(v.name);
 							e;
-						case EField(owner, field), EType(owner, field):
+						case EField(owner, field):
 							if (skipFields) e;
 							else owner.field(replace(field), e.pos);
 						case EFunction(_, f):
@@ -90,7 +90,7 @@ class ExprTools {
 			e.transform(function (e:Expr) 
 				return
 					switch (e.expr) {
-						case EField(owner, field), EType(owner, field):
+						case EField(owner, field):
 							getPrivate(owner, field, e.pos);
 						default: e;
 					}
@@ -426,13 +426,9 @@ class ExprTools {
 		
 	static public function drill(parts:Array<String>, ?pos) {
 		var first = parts.shift();
-		var ret = at(EConst(isUC(first) ? CType(first) : CIdent(first)), pos);
+		var ret = at(EConst(CIdent(first)), pos);
 		for (part in parts)
-			ret = 
-				if (isUC(part)) 
-					at(EType(ret, part), pos);
-				else 
-					field(ret, part, pos);
+			ret = field(ret, part, pos);
 		return ret;		
 	}
 	
@@ -466,7 +462,7 @@ class ExprTools {
 				expr.pos.makeFailure(e);
 			}				
 	}	
-	static public inline function cond(cond:ExprRequire<Bool>, cons:Expr, ?alt:Expr, ?pos) 
+	static public inline function cond(cond:ExprOf<Bool>, cons:Expr, ?alt:Expr, ?pos) 
 		return EIf(cond, cons, alt).at(pos)
 		
 	static public function isWildcard(e:Expr) 
@@ -507,7 +503,7 @@ class ExprTools {
 			switch (e.expr) {
 				case EConst(c):
 					switch (c) {
-						case CIdent(id), CType(id): Success(id);
+						case CIdent(id): Success(id);
 						default: e.pos.makeFailure(NOT_AN_IDENT);
 					}
 				default: 
@@ -519,7 +515,7 @@ class ExprTools {
 			switch (e.expr) {
 				case EConst(c):
 					switch (c) {
-						case CString(s), CIdent(s), CType(s): Success(s);
+						case CString(s), CIdent(s): Success(s);
 						default: e.pos.makeFailure(NOT_A_NAME);
 					}
 				default: e.pos.makeFailure(NOT_A_NAME);

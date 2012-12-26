@@ -58,6 +58,7 @@ class BindableProperties {
 					var name = member.name;
 					switch (member.kind) {
 						case FVar(t, _):
+							member.addMeta(':isVar', tag.pos);
 							PropBuilder.make(member, t, getter(name, tag.pos), setter(name, tag.pos), ctx.has, ctx.add);
 						case FProp(get, set, _, _):
 							var nonCustom = 'default,never,null'.split(',');
@@ -74,7 +75,7 @@ class BindableProperties {
 						case FFun(f):
 							var body = [];
 							for (key in [name.toExpr(tag.pos)].concat(tag.params))
-								body.push(callback(makeBinding, key).bounce(key.pos));
+								body.push(makeBinding.callback(key).bounce(key.pos));
 							body.push(f.expr);
 							f.expr = body.toBlock(tag.pos);
 					}
@@ -127,10 +128,9 @@ class BindableProperties {
 			}
 		}
 	}
-	//TODO: these will have to compete with outer bounces from LoopSugar
 	static function injectFire(name:String) {
 		return
-			callback(function (name:String, e:Expr) 
+			function (e:Expr) 
 				return
 					switch (e.expr) {
 						case EReturn(e): 
@@ -138,12 +138,10 @@ class BindableProperties {
 							(macro return this.bindings.byString.fire($name, $e)).finalize(e.pos);
 						default: e;
 					}
-				,name		
-			);
 	}
 	static function injectBind(name:String) {
 		return
-			callback(function (name:String, e:Expr) 
+			function (e:Expr) 
 				return
 					switch (e.expr) {
 						case EReturn(e): 
@@ -151,8 +149,6 @@ class BindableProperties {
 							(macro return this.bindings.byString.bind($name, $e)).finalize(e.pos);
 						default: e;
 					}
-				,name
-			);		
 	}
 	
 }

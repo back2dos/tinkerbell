@@ -1,10 +1,5 @@
 package tink.tween;
 
-/**
- * ...
- * @author back2dos
- */
-
 #if macro
 	using tink.macro.tools.MacroTools;
 #end

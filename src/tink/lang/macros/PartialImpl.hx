@@ -15,7 +15,7 @@ class PartialImpl {
 			switch (tags.length) {
 				case 0: null;
 				case 1: tags[0][0];
-				case 2: f.pos.error('multiple defaults defined');
+				default: f.pos.error('multiple defaults defined');
 			}
 	}
 	static public function process(ctx:ClassBuildContext) {

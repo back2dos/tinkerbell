@@ -8,10 +8,6 @@ import tink.ui.style.Style;
 
 using tink.ui.style.Skin;
 using tink.reactive.bindings.BindingTools;
-/**
- * ...
- * @author back2dos
- */
 
 class ResizableComponent<V:DisplayObject, S:ResizableStyle> extends UIComponent<V, S> {
 	function new(view, style) {

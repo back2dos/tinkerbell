@@ -8,14 +8,16 @@ import tink.core.types.Outcome;
 using StringTools;
 using tink.core.types.Outcome;
 using tink.macro.tools.MacroTools;
+#end
 
 class AST {
 	///returns an expression that evaluates to the ast of the given expression, while performing a number of substitutions
-	@:macro static public function build(expr:Expr, ?pos:Expr):ExprRequire<Expr> {
+	@:macro static public function build(expr:Expr, ?pos:Expr):ExprOf<Expr> {
 		return (new Builder(pos)).transformExpr(expr);
 	}	
 }
 
+#if macro
 private class Builder {
 	var here:Expr;
 	var varName:String;

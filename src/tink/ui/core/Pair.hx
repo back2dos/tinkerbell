@@ -1,10 +1,6 @@
 package tink.ui.core;
 
-/**
- * ...
- * @author back2dos
- */
-
+import tink.reactive.bindings.Binding;
 interface Pair<T> {
 	function get(h:Bool):T;
 }
@@ -25,7 +21,6 @@ class PlainPair<T> implements Pair<T> {
 		return value;
 	}
 }
-import tink.reactive.bindings.Binding;
 class BindingPair<T> implements Pair<T> {
 	var h:Watch<T>;
 	var v:Watch<T>;

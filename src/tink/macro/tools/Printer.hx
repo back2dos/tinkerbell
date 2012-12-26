@@ -24,7 +24,7 @@ class Printer {
 		return '(' + rec(e1) + ' ' + binoperator(b) + ' ' + rec(e2) +')';
 	}
 	static public function printExprList(indent:String, list:Iterable<Expr>, ?sep, ?border:Array<String>):String {
-		return printList(list.map(callback(printExpr, indent)), sep, border);
+		return printList(list.map(printExpr.callback(indent)), sep, border);
 	}
 	static public function printList(list:Iterable<String>, ?sep = ', ', ?border:Array<String>) {
 		if (border == null) border = '()'.split('');
@@ -58,7 +58,7 @@ class Printer {
 					printPath(indent, p);
 				case TFunction(args, ret):
 					if (args.length == 0) 'Void -> ' + printType(indent, ret);
-					else args.concat([ret]).map(callback(printType, indent)).array().join(' -> '); 
+					else args.concat([ret]).map(printType.callback(indent)).array().join(' -> '); 
 				case TAnonymous(fields): 
 					printFields(indent, fields);
 				case TParent(t): 
@@ -95,13 +95,13 @@ class Printer {
 		for (p in f.params) {
 			var constraints = [];
 			for (c in p.constraints)
-				constraints.push(printType(indent, c));//haXe doesn't actually support constraints as of yet, but the syntax exists
+				constraints.push(printType(indent, c));
 			var ret = p.name;
 			ret +=
 				switch (constraints.length) {
 					case 0: '';
 					case 1: ':' + constraints[0];
-					case 2: ':(' + constraints.join(', ') + ')';
+					default: ':(' + constraints.join(', ') + ')';
 				}
 			params.push(ret);
 		}
@@ -150,7 +150,7 @@ class Printer {
 				switch (e.expr) {
 					case EConst(c):
 						switch (c) {
-							case CInt(s), CFloat(s), CIdent(s), CType(s): s;
+							case CInt(s), CFloat(s), CIdent(s): s;
 							case CString(s): '"' + s + '"';
 							case CRegexp(r, opt): '~/' + r + '/' + opt;
 						}
@@ -164,7 +164,7 @@ class Printer {
 						'cast(' + rec(e) + ((t == null) ? '' : ', ' + printType(indent, t)) + ')';
 					case EArray(e1, e2): 
 						rec(e1) + '[' + rec(e2) + ']';
-					case EField(e, field), EType(e, field):
+					case EField(e, field):
 						rec(e) + '.' + field;
 					case EParenthesis(e):
 						'(' + rec(e) + ')';
@@ -235,7 +235,9 @@ class Printer {
 						printList(ret, '{}'.split(''));
 					case EFunction(name, f): 
 						printFunction(f, name, indent);
-					default: '#UNSUPPORTED_' + Type.enumConstructor(e.expr);
+					case EMeta(s, e):
+						'@' + s.name + ' ' + rec(e);
+					//default: '#UNSUPPORTED_' + Type.enumConstructor(e.expr);
 			}
 	}		
 }

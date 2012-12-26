@@ -2,13 +2,13 @@ package tink.collections.maps;
 
 import tink.lang.Cls;
 
-private class StringRepMap<T> extends tink.collections.maps.abstract.StringIDMap < Dynamic, T > {
+private class StringRepMap<T> extends tink.collections.maps.base.StringIDMap < Dynamic, T > {
 	override function transform(k:Dynamic) {
 		return Std.string(k); 
 	}
 }
 #if js
-	private class Ints<T> extends tink.collections.maps.abstract.IntIDMap < Int, T > {
+	private class Ints<T> extends tink.collections.maps.base.IntIDMap < Int, T > {
 		override function transform(k:Int) {
 			return k;
 		}
@@ -80,7 +80,8 @@ class AnyMap<V> implements Map < Dynamic, V > , implements Cls {
 	}
 	//TODO: the untyped statement is uggly but I'm not sure there's an equally concise alternative
 	public function keys():Iterator<Dynamic> {
-		return group(untyped [ints.keys(), strings.keys(), objs.keys(), misc.keys(), funcs.keys()]);
+		var a = new Array<Dynamic>();
+		return group(untyped [untyped ints.keys(), strings.keys(), objs.keys(), misc.keys(), funcs.keys()]);
 	}
 	public function iterator():Iterator<V> {
 		return group(untyped [ints.iterator(), strings.iterator(), objs.iterator(), misc.iterator(), funcs.iterator()]);		

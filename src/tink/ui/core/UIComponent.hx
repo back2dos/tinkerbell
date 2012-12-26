@@ -10,11 +10,6 @@ import tink.ui.core.Metrics;
 
 using tink.ui.core.Metrics;
 
-/**
- * ...
- * @author back2dos
- */
-
 typedef NativeView = flash.display.DisplayObject;
 
 class UIComponent<V:NativeView, S:Style> implements Cls, implements UILeaf {

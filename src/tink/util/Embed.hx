@@ -1,17 +1,13 @@
 package tink.util;
 
-#if neko
+#if macro
 	import haxe.io.Bytes;
 	import haxe.macro.Context;
-	import neko.FileSystem;
-	import neko.io.File;
+	import sys.FileSystem;
+	import sys.io.File;
 
 	using tink.macro.tools.MacroTools;
 #end
-/**
- * ...
- * @author back2dos
- */
 
 class Embed {
 	@:macro static public function filePath(file:String) {

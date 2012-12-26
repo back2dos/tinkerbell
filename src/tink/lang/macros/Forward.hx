@@ -118,7 +118,7 @@ class Forward {
 			callArgs.push(arg.name.resolve(pos));
 			methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(), value : null } );
 		}
-		var methodParams = [];
+		var methodParams = [].toBlock().func().params;//TODO: be less lazy
 		for (param in params) 
 			methodParams.push( { name : param.name, constraints: [] } );
 			
@@ -153,7 +153,7 @@ class Forward {
 			callArgs.push(arg.name.resolve(target.pos));
 			methodArgs.push( { name : arg.name, opt : arg.opt, type : arg.t.toComplex(true), value : null } );
 		}
-		var methodParams = [];
+		var methodParams = [].toBlock().func().params;//TODO: be less lazy
 		for (param in params) 
 			methodParams.push( { name : param.name, constraints: [] } );
 		addField(Member.method(name, target.field(name, pos).call(callArgs, pos).func(methodArgs, ret.toComplex(), methodParams))).isBound = bound;
@@ -208,7 +208,7 @@ class Forward {
 				case EArrayDecl(exprs): one(exprs.map(makeFieldFilter));
 				case EConst(c): 
 					switch (c) {
-						case CIdent(s), CType(s):
+						case CIdent(s):
 							if (s.startsWith('$')) 
 								switch (s.substr(1)) {
 									case 'var': function (field:ClassField) return field.isVar();

@@ -6,14 +6,8 @@ import tink.devtools.Debug;
 import tink.reactive.bindings.BindableArray;
 import tink.ui.core.Metrics;
 import tink.ui.style.Style;
-//import tink.ui.UIComponent;
 
 using tink.ui.core.Metrics;
-using tink.ui.style.Skin;
-/**
- * ...
- * @author back2dos
- */
  
 class UIContainer extends UIPaneBase<ContainerStyle> {
 	var children = new BindableArray<UILeaf>();	
@@ -23,7 +17,7 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 			a.push(c.getMetrics());
 		a;
 	}) 
-	var childMetrics:Array<Metrics>;	
+	private var childMetrics:Array<Metrics>;	
 	public function new() {
 		super(new ContainerStyle());
 	}
@@ -36,7 +30,7 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 			pos = 0;
 		else if (pos > children.length) 
 			pos = children.length;
-		view.addChild(child.getView());
+		view.addChildAt(child.getView(), pos);
 		children.insert(pos, child);
 	}
 	public function removeChild(child:UILeaf) {
@@ -47,7 +41,7 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 		for (c in children) c.getMetrics().getAlign(h);
 		return childMetrics.min(isLong(h), h, style.spacing);
 	}
-	
+	public function iterator() return children.iterator()
 	override function calcHMin() 
 		return Math.max(super.calcHMin(), style.padding.left + style.padding.right + getMin(true))
 		
@@ -59,7 +53,7 @@ class UIContainer extends UIPaneBase<ContainerStyle> {
 			switch (style.flow) {
 				case East: h;
 				case South: !h;
-				case Stack: false;
+				case Layers: false;
 			}		
 	}
 	override function setDim(h:Bool, dim:Float) {

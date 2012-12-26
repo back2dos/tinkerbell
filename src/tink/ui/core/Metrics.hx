@@ -3,10 +3,8 @@ package tink.ui.core;
 import tink.collections.maps.ObjectMap;
 import tink.lang.Cls;
 
-/**
- * ...
- * @author back2dos
- */
+using tink.ui.core.Metrics.MetricsTools;
+
 class Metrics {
 	var min:Pair<Float>;
 	var align:Pair<Float>;
@@ -40,7 +38,6 @@ class Metrics {
 	}
 }
 
-using tink.ui.core.Metrics.MetricsTools;
 
 class MetricsTools {
 	static public inline function min(group:Array<Metrics>, long:Bool, h:Bool, spacing:Float) {

@@ -9,7 +9,8 @@ import tink.collections.maps.ObjectMap;
 import tink.collections.maps.StringMap;
 import tink.lang.Cls;
 import tink.reactive.Source;
- 
+import tink.collections.maps.Map;
+
 class Watch<T> extends Binding<T>, implements Source<T> {
 	public var value(get_value, null):T;
 	#if (cpp || php) //works around haXe issue #699
@@ -149,12 +150,10 @@ class Binding<T> implements Cls {
 	}
 }
 
-import haxe.rtti.Generic;
-import tink.collections.maps.Map;
 
 private typedef BindingMap = IntHash<Binding<Dynamic>>;
 
-private class SingleSignaller<T, M:Map<T, BindingMap>> implements Generic {
+@:generic private class SingleSignaller<T, M:Map<T, BindingMap>> {
 	var keyMap:M;
 	var revisions:IntHash<Int>;
 	public function new(keyMap) {

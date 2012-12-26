@@ -228,7 +228,7 @@ class Built implements Cls {
 	@:read(2 * e) var e:Int = 2;
 	@:prop var f:Int = 5;
 	@:prop(param << 1) var g:Int = 6;
-	@:prop(h >>> 1, h = param << 1) var h:Int = 14;
+	@:isVar @:prop(h >>> 1, h = param << 1) var h:Int = 14;
 	@:prop(h+1, h = param-1) var i:Int;
 	public function new() {}
 }

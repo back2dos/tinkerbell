@@ -20,7 +20,7 @@ class PlainSource<T> implements Source<T>, implements Editable<T>, implements Cl
 		handlers.set(handler, handler);
 	}		
 	
-	public var value(get_value, set_value):T = _;
+	@:isVar public var value(get_value, set_value):T = _;
 	function get_value() return value
 	function set_value(param) {
 		value = param;

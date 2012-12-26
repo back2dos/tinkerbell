@@ -2,11 +2,8 @@ package markup;
 import haxe.unit.TestCase;
 import markup.MarkupTestBase;
 import tink.markup.Build;
+
 using DateTools;
-/**
- * ...
- * @author back2dos
- */
 
 class FastTest extends MarkupTestBase {
 	override function printTown(town:Town):String {

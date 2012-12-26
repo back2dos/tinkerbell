@@ -73,7 +73,7 @@ class Tags {
 		var cls = new List();
 		while (src != null) 
 			switch (src.expr) {
-				case EField(e, f), EType(e, f): 
+				case EField(e, f):
 					cls.push(f);
 					src = e;
 				default:
@@ -107,13 +107,13 @@ class Tags {
 				switch (e.expr) {
 					case EParenthesis(e), EUntyped(e): 
 						getKind(e);
-					case EIf(cond, cons, alt), ETernary(cond, cons, alt):
+					case EIf(_, cons, alt), ETernary(_, cons, alt):
 						unify(getKind(cons), getKind(alt)); 
-					case EFor(it, expr):
+					case EFor(_, expr):
 						getKind(expr);
-					case EWhile(cond, body, normal):
+					case EWhile(_, body, _):
 						getKind(body);
-					case ESwitch(e, cases, edef):
+					case ESwitch(_, cases, edef):
 						var ret = getKind(edef);
 						for (c in cases)
 							ret = unify(ret, getKind(c.expr));

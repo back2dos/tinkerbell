@@ -12,7 +12,7 @@ import haxe.PosInfos;
 class Benchmark {
 	var msg:String;
 	var last:Float;
-	var log:String->Float->PosInfos->Dynamic;
+	var log:String->Float->PosInfos->Void;
 	public function new(?msg, ?log) {
 		this.next(msg);
 		this.log = log == null ? defaultLog : log;
@@ -22,8 +22,8 @@ class Benchmark {
 	}
 	inline function stamp() {
 		return
-			#if neko
-				neko.Sys.cpuTime();
+			#if sys
+				Sys.cpuTime();
 			#else
 				haxe.Timer.stamp();
 			#end

@@ -1,12 +1,10 @@
 package tween;
+
 import haxe.unit.TestCase;
 import tink.tween.Tween;
 import tink.tween.Tweener;
+
 using tink.tween.Tweener;
-/**
- * ...
- * @author back2dos
- */
 
 class TweenTest extends TestCase {
 	var _x:Float;
@@ -27,6 +25,7 @@ class TweenTest extends TestCase {
 		var d1 = false,
 			d2 = false;
 		assertEquals(_x, 2);
+		//this.tween(x = 5, y = 6, $duration = 2, $easing = linear, $onDone = (d1 = true));
 		this.tween(x = 5, y = 6, $duration = 2, $easing = linear, $onDone = (d1 = true));
 		Tweener.group.heartbeat(1);
 		this.tween(y = 0, $duration = 1, $easing = linear, $onDone = (d2 = true));

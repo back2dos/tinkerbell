@@ -1,18 +1,21 @@
 package tink.ui.text;
 
+import flash.filters.BitmapFilter;
 import flash.filters.DropShadowFilter;
+import flash.text.Font;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
 import flash.text.TextFormat;
 
 import tink.ui.core.UIComponent;
 import tink.ui.style.Style;
-/**
- * ...
- * @author back2dos
- */
 
-typedef LabelStyle = ComponentStyle;
+using tink.reactive.bindings.BindingTools;
+
+class LabelStyle extends ComponentStyle {
+	@:forward var textStyle = new TextStyle();
+	@:bindable var bevel = 1.0;
+}
 
 class Label extends UIComponent<TextField, LabelStyle> {
 	public var text(default, set_text):String;
@@ -21,14 +24,21 @@ class Label extends UIComponent<TextField, LabelStyle> {
 		super(new TextField(), new LabelStyle());
 		view.autoSize = TextFieldAutoSize.LEFT;
 		view.selectable = false;
-		view.defaultTextFormat = new TextFormat('_sans', 12, 0x222222);
-		view.filters = [
-			//new DropShadowFilter(1, 225, 0x000000, .25, 1, 1, 1, 3),
-			new DropShadowFilter(1, 45, 0xFFFFFF, 1, 1, 1, 1, 3),
-		];
 		this.text = text;
+		
+		view.bind(filters, calcFilters());
+		updateFormat.bind(style.toNative());
+		//view.bind(embedFonts, style.embed);
 	}
-	
+	function updateFormat(t:TextFormat) {
+		view.setTextFormat(view.defaultTextFormat = t);
+	}
+	function calcFilters():Array<BitmapFilter> {
+		return [
+			new DropShadowFilter(this.style.bevel, 45, 0xFFFFFF, 1, 1, 1, this.style.bevel, 3),
+			new DropShadowFilter(this.style.bevel, 225, 0, .1, 1, 1, this.style.bevel, 3)
+		];
+	}
 	@:bindable('hmin') override private function calcHMin() return view.width
 	@:bindable('vmin') override private function calcVMin() return view.height
 	

@@ -20,7 +20,7 @@ using tink.reactive.bindings.BindingTools;
  */
 
 class ScrollBarStyle implements Style, implements Cls {
-	@:forward("margin*", "*Align") var container:ContainerStyle = _;
+	@:forward(margin, "*Align") var container:ContainerStyle = _;
 	
 	var _prev:ButtonStyle = _;
 	var _next:ButtonStyle = _;

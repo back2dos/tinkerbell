@@ -3,12 +3,10 @@ package tink.ui.core;
 import flash.display.Stage;
 import flash.events.Event;
 import flash.Lib;
-import tink.reactive.bindings.Binding;
+import tink.ui.style.Flow;
 
-/**
- * ...
- * @author back2dos
- */
+import tink.ui.style.Style;
+import tink.reactive.bindings.Binding;
 
 class UILayoutRoot extends UIContainer {
 	var stage:Stage;
@@ -28,6 +26,8 @@ class UILayoutRoot extends UIContainer {
 		});
 		watch.watch(callback(uponRender, handleResize));
 		handleResize();
+		style.flow = Flow.Layers;
+		//style.skin = PaneStyle.LIGHT_SKIN;
 	}
 	function doRenderJobs() {
 		var todo = UIComponent.renderTodos;
@@ -36,8 +36,8 @@ class UILayoutRoot extends UIContainer {
 	}
 	function handleResize() {
 		watch.value;
-		var w = Math.max(stage.stageWidth - 40, _hMin),
-			h = Math.max(stage.stageHeight - 40, _vMin);
+		var w = Math.max(stage.stageWidth, _hMin),
+			h = Math.max(stage.stageHeight, _vMin);
 			
 		setPos(true, Math.round(.5 * (stage.stageWidth - w)));
 		setPos(false, Math.round(.5 * (stage.stageHeight - h)));

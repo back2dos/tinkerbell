@@ -6,10 +6,6 @@ import flash.geom.Rectangle;
 import tink.lang.Cls;
 import tink.ui.core.Pair;
 import tink.ui.style.Skin;
-/**
- * ...
- * @author back2dos
- */
 
 interface Style {
 	var margin(get_margin, null):Frame;
@@ -60,7 +56,9 @@ class PaneSkin extends BitmapData {
 	static public var SKIN = new PaneSkin(100, 100);
 }
 class PaneStyle extends ResizableStyle {
-	@:bindable var skin = Draw(Plain(0xF0F0F0, 1), Plain(0xBBBBBB, 1), .5, 0);
+	static public var LIGHT_SKIN = Draw(Plain(0xF0F0F0, 1), Plain(0xBBBBBB, 1), .5, 0);
+	static public var DARK_SKIN = Draw(Plain(0xD8D8D8, 1), Plain(0xBBBBBB, 1), .5, 0);
+	@:bindable var skin = None;
 	//@:bindable var skin = Draw(
 		//Linear([0xEEEEEE, 0xCCCCCC], [1, 1], [0x00, 0xFF], -Math.PI / 4 * 3), 
 		//Linear([0xBBBBBB, 0xAAAAAA, 0x999999, 0x888888], [1, 1, 1, 1], [0x00, 0x10, 0xEF, 0xFF], -Math.PI / 4 * 7),

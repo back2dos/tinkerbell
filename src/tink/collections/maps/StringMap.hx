@@ -6,7 +6,7 @@ import tink.lang.Cls;
  * @author back2dos
  */
 #if macro
-	class StringMap<T> extends tink.collections.maps.abstract.StringIDMap<String, T> {
+	class StringMap<T> extends tink.collections.maps.base.StringIDMap<String, T> {
 		override function transform(k:String) {
 			return k;
 		}

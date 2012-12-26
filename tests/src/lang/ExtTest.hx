@@ -1,13 +1,11 @@
 package lang;
+
 import haxe.unit.TestCase;
 import tink.lang.Ext;
 
-/**
- * ...
- * @author back2dos
- */
 using lang.ExtTest;
 using Lambda;
+
 class ExtTest extends TestCase {
 
 	public function new() {

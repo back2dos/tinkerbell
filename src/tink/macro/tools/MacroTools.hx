@@ -2,8 +2,8 @@ package tink.macro.tools;
 
 #if macro
 	typedef Poses = PosTools;
-	typedef Funcs = FunctionTools;
 	typedef Exprs = ExprTools;
+	typedef Funcs = FunctionTools;
 	typedef Metas = MetadataTools;
 	typedef Bounce = Bouncer;
 	typedef Types = TypeTools;

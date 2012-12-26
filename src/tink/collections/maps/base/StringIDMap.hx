@@ -1,4 +1,4 @@
-package tink.collections.maps.abstract;
+package tink.collections.maps.base;
 
 class StringIDMap<K, V> implements tink.collections.maps.Map<K, V> {
 	var keyMap:Hash<K>;
@@ -8,7 +8,7 @@ class StringIDMap<K, V> implements tink.collections.maps.Map<K, V> {
 		this.valMap = new Hash();
 	}
 	function transform(key:K):String {
-		return throw "abstract";
+		return throw "base";
 	}
 	public inline function get(key:K):Null<V> {
 		return valMap.get(transform(key));

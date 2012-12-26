@@ -7,7 +7,7 @@ import tink.lang.Cls;
  */
 
 #if macro
-	class IntMap<T> extends tink.collections.maps.abstract.IntIDMap<Int, T> {
+	class IntMap<T> extends tink.collections.maps.base.IntIDMap<Int, T> {
 		override function transform(k:Int) {
 			return k;
 		}

@@ -1,4 +1,4 @@
-package tink.collections.maps.abstract;
+package tink.collections.maps.base;
 
 /**
 * ...
@@ -13,7 +13,7 @@ class KVPairMap < K, V > implements Map < K, V > {
 		this.valList = [];
 	}
 	function equals(k1:K, k2:K):Bool {
-		return throw 'abstract';
+		return throw 'base';
 	}
 	function indexOf(k:K):Int {
 		for (i in 0...keyList.length)

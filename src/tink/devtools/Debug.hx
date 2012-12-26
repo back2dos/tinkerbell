@@ -5,13 +5,8 @@ package tink.devtools;
 	using tink.macro.tools.MacroTools;
 #end
 
-/**
- * ...
- * @author back2dos
- */
-
 class Debug {
-	@:macro static public function assert(exprs:Array<ExprRequire<Bool>>) {
+	@:macro static public function assert(exprs:Array<ExprOf<Bool>>) {
 		var nop = [].toBlock();
 		#if debug
 			function fail(e:Expr) {

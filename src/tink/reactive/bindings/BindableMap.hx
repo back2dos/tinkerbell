@@ -17,7 +17,7 @@ private class Entry<V> {
 	}
 }
 class BindableMap<K, V> implements Map<K, V>, implements Cls {
-	//TODO: measure speedup gained by implementing Generic
+	//TODO: measure speedup gained by @:generic
 	static inline var KEYS = 'KEYS';
 	static inline var VALS = 'VALS';
 	var map:Map<K, V>;
@@ -27,7 +27,7 @@ class BindableMap<K, V> implements Map<K, V>, implements Cls {
 			else map;
 	}
 	public function entry(k:K): { var value(get_value, set_value):V; } {
-		return new Entry(callback(get, k), callback(set, k));
+		return new Entry(get.callback(k), set.callback(k));
 	}
 	@:bindable(k) public function get(k:K):Null<V> {
 		return map.get(k);

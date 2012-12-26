@@ -181,7 +181,7 @@ class FastLoops {
 		switch (e.expr) {
 			case ECall(callee, _):
 				switch (callee.expr) {
-					case EField(owner, fieldName), EType(owner, fieldName):
+					case EField(owner, fieldName):
 						for (field in owner.pos.getOutcome(owner.typeof().sure().getFields(false))) 
 							if (field.name == fieldName) {
 								var m = field.meta.get().getValues(':tink_for');
@@ -196,7 +196,7 @@ class FastLoops {
 												target: owner,
 												iter: processRule(m[0], m[1], m[2])
 											}
-										case 2: field.pos.error('can only declare one @:tink_for');
+										default: field.pos.error('can only declare one @:tink_for');
 									}								
 							}
 					default:

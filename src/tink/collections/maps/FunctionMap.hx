@@ -3,7 +3,7 @@ package tink.collections.maps;
 #if (flash9 || php)
 	class FunctionMap < K, V > extends ObjectMap < K, V > { }
 #elseif (js || flash)
-	class FunctionMap < K, V > extends tink.collections.maps.abstract.StringIDMap < K, V > { 
+	class FunctionMap < K, V > extends tink.collections.maps.base.StringIDMap < K, V > { 
 		static var idCounter = 0;
 		function objID(o:Dynamic):String untyped {			
 			var id = o.__getID;
@@ -28,7 +28,7 @@ package tink.collections.maps;
 	}	
 #else
 	//TODO: optimize for both neko and c++ - depends on the ability do decompose a method closure to it's components or have another way to get a unique ID for method closures
-	class FunctionMap < K, V > extends tink.collections.maps.abstract.KVPairMap < K, V > {
+	class FunctionMap < K, V > extends tink.collections.maps.base.KVPairMap < K, V > {
 		override function equals(k1:K, k2:K):Bool {
 			return Reflect.compareMethods(k1, k2);
 		}

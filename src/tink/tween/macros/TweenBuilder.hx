@@ -9,10 +9,6 @@ import tink.macro.tools.TypeTools;
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 using StringTools;
-/**
- * ...
- * @author back2dos
- */
 
 class TweenBuilder {
 	static var ITERABLE = 'Iterable'.asComplexType([TPType('Dynamic'.asComplexType())]);
@@ -105,7 +101,7 @@ class TweenBuilder {
 							}
 						if (name.charAt(0) == '$') {
 							var e = 
-								if (name.substr(0, 3) == '$on') 
+								if (name.substr(0, 3) == "$on") 
 									handler(op.e2, targetType, []);
 								else op.e2;
 							tmp.resolve(op.pos).field(name.substr(1), op.e1.pos).assign(e, op.pos);

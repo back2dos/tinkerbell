@@ -1,6 +1,6 @@
 package tink.macro.build;
 
-private typedef Enums = Type;
+import Type in Enums;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
@@ -79,7 +79,7 @@ class MemberTransformer {
 		}
 		
 		for (plugin in plugins) {
-			context.add = callback(addMember, context.members);
+			context.add = addMember.callback(context.members);
 			
 			plugin(context);	
 			

@@ -38,13 +38,13 @@ package tink.collections.maps;
 	}
 #elseif php
 	import tink.native.PHP;
-	class ObjectMap < K, V > extends tink.collections.maps.abstract.StringIDMap < K, V > {
+	class ObjectMap < K, V > extends tink.collections.maps.base.StringIDMap < K, V > {
 		override function transform(key:K):String untyped {
 			return PHP.objHash(key);
 		}
 	}
 #elseif (flash || js || neko || cpp)
-	class ObjectMap < K, V > extends tink.collections.maps.abstract.IntIDMap < K, V > {
+	class ObjectMap < K, V > extends tink.collections.maps.base.IntIDMap < K, V > {
 		#if !cpp
 			static var idCounter = 0;
 		#end
