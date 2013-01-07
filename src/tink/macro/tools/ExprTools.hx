@@ -1,6 +1,6 @@
 package tink.macro.tools;
 
-private typedef Inspect = Type;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -14,7 +14,8 @@ using tink.macro.tools.ExprTools;
 using tink.macro.tools.TypeTools;
 using tink.core.types.Outcome;
 
-typedef VarDecl = { name : String, type : ComplexType, expr : Null<Expr> };
+private typedef Inspect = std.Type;
+typedef VarDecl 				= { name : String, type : ComplexType, expr : Null<Expr> };
 typedef ParamSubst = {
 	var exists(default, null):String->Bool;
 	var get(default, null):String->ComplexType;
