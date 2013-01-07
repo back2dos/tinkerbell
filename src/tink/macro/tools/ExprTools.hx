@@ -1,6 +1,6 @@
 package tink.macro.tools;
 
-private typedef Inspect = Type;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -14,7 +14,8 @@ using tink.macro.tools.ExprTools;
 using tink.macro.tools.TypeTools;
 using tink.core.types.Outcome;
 
-typedef VarDecl = { name : String, type : ComplexType, expr : Null<Expr> };
+private typedef Inspect = std.Type;
+typedef VarDecl 				= { name : String, type : ComplexType, expr : Null<Expr> };
 typedef ParamSubst = {
 	var exists(default, null):String->Bool;
 	var get(default, null):String->ComplexType;
@@ -57,7 +58,7 @@ class ExprTools {
 							for (v in vars) 
 								v.name = replace(v.name);
 							e;
-						case EField(owner, field), EType(owner, field):
+						case EField(owner, field) #if !haxe3, EType(owner, field) #end:
 							if (skipFields) e;
 							else owner.field(replace(field), e.pos);
 						case EFunction(_, f):
@@ -90,7 +91,7 @@ class ExprTools {
 			e.transform(function (e:Expr) 
 				return
 					switch (e.expr) {
-						case EField(owner, field), EType(owner, field):
+						case EField(owner, field) #if !haxe3, EType(owner, field) #end:
 							getPrivate(owner, field, e.pos);
 						default: e;
 					}
@@ -426,11 +427,19 @@ class ExprTools {
 		
 	static public function drill(parts:Array<String>, ?pos) {
 		var first = parts.shift();
-		var ret = at(EConst(isUC(first) ? CType(first) : CIdent(first)), pos);
+		#if haxe3
+			var ret = at(EConst(CIdent(first)), pos);
+		#else
+			var ret = at(EConst(isUC(first) ? CType(first) : CIdent(first)), pos);
+		#end
 		for (part in parts)
 			ret = 
 				if (isUC(part)) 
+					#if !haxe3
 					at(EType(ret, part), pos);
+					#else
+					at(EField(ret, part), pos);
+					#end
 				else 
 					field(ret, part, pos);
 		return ret;		
@@ -466,7 +475,7 @@ class ExprTools {
 				expr.pos.makeFailure(e);
 			}				
 	}	
-	static public inline function cond(cond:ExprRequire<Bool>, cons:Expr, ?alt:Expr, ?pos) 
+	static public inline function cond(cond:#if !haxe3 ExprRequire<Bool> #else ExprOf<Bool> #end, cons:Expr, ?alt:Expr, ?pos) 
 		return EIf(cond, cons, alt).at(pos)
 		
 	static public function isWildcard(e:Expr) 
@@ -507,7 +516,7 @@ class ExprTools {
 			switch (e.expr) {
 				case EConst(c):
 					switch (c) {
-						case CIdent(id), CType(id): Success(id);
+						case CIdent(id) #if !haxe3 ,CType(id) #end: Success(id);
 						default: e.pos.makeFailure(NOT_AN_IDENT);
 					}
 				default: 
@@ -519,7 +528,7 @@ class ExprTools {
 			switch (e.expr) {
 				case EConst(c):
 					switch (c) {
-						case CString(s), CIdent(s), CType(s): Success(s);
+						case CString(s), CIdent(s) #if !haxe3, CType(s) #end: Success(s);
 						default: e.pos.makeFailure(NOT_A_NAME);
 					}
 				default: e.pos.makeFailure(NOT_A_NAME);
