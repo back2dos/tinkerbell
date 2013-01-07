@@ -150,7 +150,7 @@ class Printer {
 				switch (e.expr) {
 					case EConst(c):
 						switch (c) {
-							case CInt(s), CFloat(s), CIdent(s), CType(s): s;
+							case CInt(s), CFloat(s), CIdent(s) #if !haxe3 ,CType(s) #end: s;
 							case CString(s): '"' + s + '"';
 							case CRegexp(r, opt): '~/' + r + '/' + opt;
 						}

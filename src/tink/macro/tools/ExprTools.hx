@@ -516,7 +516,7 @@ class ExprTools {
 			switch (e.expr) {
 				case EConst(c):
 					switch (c) {
-						case CIdent(id), CType(id): Success(id);
+						case CIdent(id) #if !haxe3 ,CType(id) #end: Success(id);
 						default: e.pos.makeFailure(NOT_AN_IDENT);
 					}
 				default: 
@@ -528,7 +528,7 @@ class ExprTools {
 			switch (e.expr) {
 				case EConst(c):
 					switch (c) {
-						case CString(s), CIdent(s), CType(s): Success(s);
+						case CString(s), CIdent(s) #if !haxe3, CType(s) #end: Success(s);
 						default: e.pos.makeFailure(NOT_A_NAME);
 					}
 				default: e.pos.makeFailure(NOT_A_NAME);
