@@ -1,6 +1,5 @@
 package tink.macro.tools;
 
-private typedef Enums = Type;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -10,6 +9,8 @@ import tink.core.types.Outcome;
 using tink.macro.tools.ExprTools;
 using tink.macro.tools.PosTools;
 using tink.core.types.Outcome;
+
+private typedef Enums = std.Type;
 
 class TypeTools {
 	static var types = new IntHash<Type>();
