@@ -164,7 +164,7 @@ class Printer {
 						'cast(' + rec(e) + ((t == null) ? '' : ', ' + printType(indent, t)) + ')';
 					case EArray(e1, e2): 
 						rec(e1) + '[' + rec(e2) + ']';
-					case EField(e, field), EType(e, field):
+					case EField(e, field) #if !haxe3 , EType(e, field)#end:
 						rec(e) + '.' + field;
 					case EParenthesis(e):
 						'(' + rec(e) + ')';

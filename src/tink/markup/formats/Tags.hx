@@ -73,7 +73,7 @@ class Tags {
 		var cls = new List();
 		while (src != null) 
 			switch (src.expr) {
-				case EField(e, f), EType(e, f): 
+				case EField(e, f) #if !haxe3, EType(e, f) #end: 
 					cls.push(f);
 					src = e;
 				default:
