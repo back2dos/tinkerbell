@@ -58,7 +58,7 @@ class ExprTools {
 							for (v in vars) 
 								v.name = replace(v.name);
 							e;
-						case EField(owner, field), EType(owner, field):
+						case EField(owner, field) #if !haxe3, EType(owner, field) #end:
 							if (skipFields) e;
 							else owner.field(replace(field), e.pos);
 						case EFunction(_, f):
@@ -91,7 +91,7 @@ class ExprTools {
 			e.transform(function (e:Expr) 
 				return
 					switch (e.expr) {
-						case EField(owner, field), EType(owner, field):
+						case EField(owner, field) #if !haxe3, EType(owner, field) #end:
 							getPrivate(owner, field, e.pos);
 						default: e;
 					}
@@ -427,11 +427,19 @@ class ExprTools {
 		
 	static public function drill(parts:Array<String>, ?pos) {
 		var first = parts.shift();
-		var ret = at(EConst(isUC(first) ? CType(first) : CIdent(first)), pos);
+		#if haxe3
+			var ret = at(EConst(CIdent(first)), pos);
+		#else
+			var ret = at(EConst(isUC(first) ? CType(first) : CIdent(first)), pos);
+		#end
 		for (part in parts)
 			ret = 
 				if (isUC(part)) 
+					#if !haxe3
 					at(EType(ret, part), pos);
+					#else
+					at(EField(ret, part), pos);
+					#end
 				else 
 					field(ret, part, pos);
 		return ret;		
