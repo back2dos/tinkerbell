@@ -17,7 +17,9 @@ class PropBuilder {
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
 		var get = 'get_' + m.name,
 			set = if (setter == null) 'null' else 'set_' + m.name;
+		var acc = [];
 		function mk(gen:Member) {
+			acc.push(gen);
 			addField(gen);
 			gen.isStatic = m.isStatic;
 			gen.isBound = m.isBound;
@@ -29,7 +31,11 @@ class PropBuilder {
 		
 		m.kind = FProp(get, set, t, e);
 		m.publish();
-		return m;
+		return {
+			field: m,
+			get: acc[0],
+			set: acc[1]
+		}
 	}
 	var hasField:String->Bool;
 	var addField:Member->Member;
