@@ -6,7 +6,7 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.PosInfos;
 import tink.core.types.Outcome;
-
+import haxe.macro.Printer;
 using Lambda;
 using StringTools;
 using tink.macro.tools.PosTools;
@@ -241,6 +241,7 @@ class ExprTools {
 			case EThrow(e): EThrow(rec(e));
 			case EReturn(e): EReturn(rec(e));
 			case EDisplay(e, t): EDisplay(rec(e), t);
+			case EDisplayNew(t): EDisplayNew(t);
 			case EUnop(op, postFix, e): EUnop(op, postFix, rec(e));
 			case ENew(t, params): ENew(t, params.mapArray(f, ctx, pos));
 			case EBinop(op, e1, e2): EBinop(op, rec(e1), rec(e2));
@@ -372,12 +373,11 @@ class ExprTools {
 	}
 	
 	static public inline function reject(e:Expr, ?reason:String = 'cannot handle expression'):Dynamic 
-		//return e.pos.error(reason)
-		return throw reason
+		return e.pos.error(reason)
 	
-	///transforms an expression to readable code
 	static public inline function toString(e:Expr):String 
-		return Printer.print(e)
+		return tink.macro.tools.Printer.printExpr('', e)
+		//return new Printer().printExpr(e)
 		
 	static public inline function at(e:ExprDef, ?pos:Position) 
 		return {
@@ -424,12 +424,12 @@ class ExprTools {
 	static inline function isUC(s:String) 
 		return StringTools.fastCodeAt(s, 0) < 0x5B
 		
-	static public function drill(parts:Array<String>, ?pos) {
-		var first = parts.shift();
-		var ret = at(EConst(CIdent(first)), pos);
+	static public function drill(parts:Array<String>, ?pos:Position, ?target:Expr) {
+		if (target == null) 
+			target = at(EConst(CIdent(parts.shift())), pos);
 		for (part in parts)
-			ret = field(ret, part, pos);
-		return ret;		
+			target = field(target, part, pos);
+		return target;		
 	}
 	
 	static public inline function resolve(s:String, ?pos) 

@@ -1,5 +1,6 @@
 package tink.macro.tools;
 
+import haxe.macro.Context;
 import haxe.macro.Expr;
 using Lambda;
 using tink.macro.tools.ExprTools;
@@ -23,7 +24,7 @@ class Printer {
 			return printExpr(indent, e);		
 		return '(' + rec(e1) + ' ' + binoperator(b) + ' ' + rec(e2) +')';
 	}
-	static public function printExprList(indent:String, list:Iterable<Expr>, ?sep, ?border:Array<String>):String {
+	static public function printExprList(indent:String, list:Iterable<Expr>, ?sep = ', ', ?border:Array<String>):String {
 		return printList(list.map(printExpr.callback(indent)), sep, border);
 	}
 	static public function printList(list:Iterable<String>, ?sep = ', ', ?border:Array<String>) {
@@ -62,7 +63,7 @@ class Printer {
 				case TAnonymous(fields): 
 					printFields(indent, fields);
 				case TParent(t): 
-					printType(indent, t);
+					'(' + printType(indent, t) + ')';
 				case TExtend(p, fields):
 					printFields(indent, fields, p);
 			}
@@ -87,7 +88,7 @@ class Printer {
 		for (arg in f.args) {
 			var s = if (arg.opt) '?' else '';
 			s += arg.name;
-			if (arg.type != null) s += ':' + printType(indent, arg.type);
+			s += typify(indent, arg.type);
 			if (arg.value != null) s += ' = ' + rec(arg.value);
 			args.push(s);
 		}
@@ -236,7 +237,7 @@ class Printer {
 					case EFunction(name, f): 
 						printFunction(f, name, indent);
 					case EMeta(s, e):
-						'@' + s.name + ' ' + rec(e);
+						'@' + s.name + printExprList(indent, s.params) + ' ' + rec(e);
 					//default: '#UNSUPPORTED_' + Type.enumConstructor(e.expr);
 			}
 	}		

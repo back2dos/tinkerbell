@@ -46,8 +46,13 @@ class Constructor {
 					}
 		}
 	}
+	public function addStatement(e:Expr, ?prepend) 
+		if (prepend)
+			this.nuStatements.unshift(e)
+		else
+			this.nuStatements.push(e)
+			
 	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool, ?t:ComplexType) {
-		//if (ownerIsInterface) pos.error('cannot initialize properties on interfaces');
 		if (e == null) {
 			e = name.resolve(pos);
 			args.push( { name : name, opt : def != null, type : null, value : def } );
@@ -58,10 +63,7 @@ class Constructor {
 			e = ECheckType(e, t).at(e.pos);
 		var s = EUntyped('this'.resolve(pos)).at(pos).field(name, pos).assign(e, pos);
 			
-		if (prepend)
-			this.nuStatements.unshift(s);
-		else
-			this.nuStatements.push(s);
+		addStatement(s, prepend);
 	}
 	public inline function publish() {
 		if (isPublic == null) 

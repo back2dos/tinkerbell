@@ -12,7 +12,7 @@ using tink.macro.tools.MacroTools;
 
 class PluginMap {
 	static var plugins = new Hash<PluginStack>();
-	@:macro static public function register():Array<Field> {
+	macro static public function register():Array<Field> {
 		var cl = Context.getLocalClass().get();
 		if (cl.isInterface) return null;
 		if (cl.params.length > 0) return null;

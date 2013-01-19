@@ -41,14 +41,14 @@ class Bouncer {
 	static public function makeOuter<A>(a:A):Bouncer {
 		return null;
 	}
-	@:macro public function andBounce(ethis:Expr, id:Int) {
+	macro public function andBounce(ethis:Expr, id:Int) {
 		return
 			switch (ethis.expr) {
 				case ECall(_, params): doOuter(id, params[0]);
 				default: ethis.reject();
 			}
 	}
-	@:macro static public function catchBounce(id:Int) {
+	macro static public function catchBounce(id:Int) {
 		return doBounce(id);
 	}
 }

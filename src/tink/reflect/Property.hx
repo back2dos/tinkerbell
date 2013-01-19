@@ -125,7 +125,7 @@ private class Store {
 			}		
 		}
 	#end
-	@:macro static public function properties(e) {
+	macro static public function properties(e) {
 		Context.onGenerate(extract);
 		return e;
 	}	

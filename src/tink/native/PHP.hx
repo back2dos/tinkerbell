@@ -9,7 +9,7 @@ package tink.native;
  */
 
 class PHP {
-	@:macro static public function embed(s:String) {
+	macro static public function embed(s:String) {
 		var s = s.toExpr();
 		return macro untyped __php__($s);
 	}

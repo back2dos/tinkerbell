@@ -1,11 +1,11 @@
 package tink.macro.build;
 
+import haxe.macro.Printer;
 import Type in Enums;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.Type;
-import tink.macro.tools.Printer;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
@@ -99,7 +99,7 @@ class MemberTransformer {
 			
 		if (verbose) 
 			for (field in ret) 
-				Context.warning(Printer.printField('', field), field.pos);
+				Context.warning(new Printer().printField(field), field.pos);
 		return ret;
 	}
 	function getOwnMember(name:String) {

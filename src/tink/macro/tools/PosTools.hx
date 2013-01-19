@@ -26,11 +26,6 @@ class PosTools {
 			else
 				pos;
 	}
-	//static public function at(pos:Position, e:Expr) {
-		//return ExprTools.transform(e, function (e:Expr) {
-			//return e;
-		//}, pos);
-	//}
 	static public function errorExpr(pos:Position, error:Dynamic) {
 		return Bouncer.bounce(function ():Expr {
 			return PosTools.error(pos, error);
@@ -38,6 +33,10 @@ class PosTools {
 	}
 	static public inline function error(pos:Position, error:Dynamic):Dynamic {
 		return Context.error(Std.string(error), pos);
+	}
+	static public inline function warning<A>(pos:Position, warning:Dynamic, ?ret:A):A {
+		Context.warning(Std.string(warning), pos);
+		return ret;
 	}
 	///used to easily construct failed outcomes
 	static public function makeFailure<A, Reason>(pos:Position, reason:Reason):Outcome<A, MacroError<Reason>> {

@@ -11,7 +11,7 @@ using tink.macro.tools.MacroTools;
  */
 
 class DBBuild {
-	@:macro static public function build():Array<Field> {
+	macro static public function build():Array<Field> {
 		return new MemberTransformer().build([bootTables]);
 	}
 	static function field(name:String, type:ComplexType, pos) {

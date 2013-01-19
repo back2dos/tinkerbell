@@ -6,7 +6,7 @@ package tink.devtools;
 #end
 
 class Debug {
-	@:macro static public function assert(exprs:Array<ExprOf<Bool>>) {
+	macro static public function assert(exprs:Array<ExprOf<Bool>>) {
 		var nop = [].toBlock();
 		#if debug
 			function fail(e:Expr) {
@@ -35,7 +35,7 @@ class Debug {
 			].toBlock();		
 		}
 	#end
-	@:macro static public function log(exprs:Array<Expr>) {
+	macro static public function log(exprs:Array<Expr>) {
 		return 
 			#if debug
 				logExprs(exprs);

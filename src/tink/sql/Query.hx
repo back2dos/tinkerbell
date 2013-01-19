@@ -54,7 +54,7 @@ class SelectOrdered<T> extends Query<T> {
 			return AST.build(new tink.sql.Query.SelectOrdered<Eval__type>($cnx, $qry));
 		}
 	#end		
-	@:macro public function limit(ethis:Expr, count:Int, ?offset:Int) {
+	macro public function limit(ethis:Expr, count:Int, ?offset:Int) {
 		var s:SqlSelect = ethis.untag().data;
 		s.range = { count: count, offset:offset }; 
 		return SqlCommands.select(s, SelectRange.make).tag(s);
@@ -66,7 +66,7 @@ class SelectWhere<T> extends SelectOrdered<T> {
 			return AST.build(new tink.sql.Query.SelectWhere<Eval__type>($cnx, $qry));
 		}
 	#end
-	@:macro public function order(params:Array<Expr>) {
+	macro public function order(params:Array<Expr>) {
 		var s:SqlSelect = params.shift().untag().data;
 		if (params.length == 0)
 			Context.warning('empty order clause', Context.currentPos());
@@ -80,7 +80,7 @@ class Select<T> extends SelectWhere<T> {
 			return AST.build(new tink.sql.Query.Select<Eval__type>($cnx, $qry));
 		}
 	#end
-	@:macro public function where(params:Array<Expr>) {
+	macro public function where(params:Array<Expr>) {
 		var s:SqlSelect = params.shift().untag().data;
 		s.where = params;
 		return SqlCommands.select(s, SelectWhere.make).tag(s);

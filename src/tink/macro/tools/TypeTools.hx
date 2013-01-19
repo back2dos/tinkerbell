@@ -1,5 +1,6 @@
 package tink.macro.tools;
 
+import haxe.macro.Printer;
 import Type in Enums;
 
 import haxe.macro.Context;
@@ -9,12 +10,13 @@ import tink.core.types.Outcome;
 
 using tink.macro.tools.ExprTools;
 using tink.macro.tools.PosTools;
+using tink.macro.tools.FunctionTools;
 using tink.core.types.Outcome;
 
 class TypeTools {
 	static var types = new IntHash<Type>();
 	static var idCounter = 0;
-	@:macro static public function getType(id:Int):Type {
+	macro static public function getType(id:Int):Type {
 		return types.get(id);
 	}
 	static public function getID(t:Type, ?reduced = true) {
@@ -71,9 +73,28 @@ class TypeTools {
 						var e = ECheckType(macro null, toComplex(t)).at();
 						var fields = Reflect.copy(ret.sure());
 						ret = fields.asSuccess();
+						
 						for (field in fields) 
-							if (field.isPublic) 
-								field.type = e.field(field.name, e.pos).typeof().sure();
+							if (field.isPublic) {
+								var member = e.field(field.name, e.pos);
+								field.type = 
+									switch (member.typeof()) {
+										case Success(t): t;
+										default:
+											switch (reduce(field.type)) {
+												case TFun(args, _):
+													var fArgs = [],
+														fParams = [];
+													for (a in args)
+														fArgs.push(a.name.toArg());
+													var f = (macro null).func(fArgs, false); 
+													f.expr = EReturn(member.call(f.getArgIdents(), e.pos)).at(e.pos);
+													f.toExpr(e.pos).typeof().sure();
+												default: 
+													throw 'assert';
+											}
+									}	
+							}
 							else {
 								var kind = 
 									switch (field.kind) {
@@ -120,7 +141,7 @@ class TypeTools {
 			}
 	
 	static public function toString(t:ComplexType) 
-		return Printer.printType('', t)
+		return new Printer().printComplexType(t)
 	
 	static public function isSubTypeOf(t:Type, of:Type, ?pos) 
 		return 
@@ -197,7 +218,7 @@ class TypeTools {
 						if(t.isPrivate)
 							return toComplex(type, false);
 						switch (t.kind) {
-							case KTypeParameter: asComplexType(t.name);
+							case KTypeParameter(_): asComplexType(t.name);
 							default: baseToComplex(t, params);
 						}
 					case TFun(args, ret):

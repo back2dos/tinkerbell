@@ -1,9 +1,5 @@
 package tink.macro.tools;
 
-/**
- * ...
- * @author back2dos
- */
 import haxe.macro.Expr;
 using tink.macro.tools.ExprTools;
 class FunctionTools {

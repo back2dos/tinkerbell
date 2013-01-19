@@ -39,7 +39,7 @@ class Benchmark {
 		next(pos);
 		return value;
 	}
-	@:macro static public function measure(msg:String, e:Expr, ?times:Expr):Expr {
+	macro static public function measure(msg:String, e:Expr, ?times:Expr):Expr {
 		if (times.getIdent().equals('null')) times = 1.toExpr();
 		var msg = msg.toExpr();
 		return macro {

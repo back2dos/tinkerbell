@@ -7,11 +7,11 @@ package tink.markup;
 	import tink.markup.formats.TreeCrawler;	
 #end
 
-@:macro class Build {
-	static public function fast(e) {
+class Build {
+	macro static public function fast(e) {
 		return TreeCrawler.build(e, new Tags(new Fast()));
 	}
-	static public function xml(e) {
+	macro static public function xml(e) {
 		return TreeCrawler.build(e, new Tags(new Nodes()));
 	}
 }

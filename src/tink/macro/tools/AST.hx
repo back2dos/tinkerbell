@@ -12,7 +12,7 @@ using tink.macro.tools.MacroTools;
 
 class AST {
 	///returns an expression that evaluates to the ast of the given expression, while performing a number of substitutions
-	@:macro static public function build(expr:Expr, ?pos:Expr):ExprOf<Expr> {
+	macro static public function build(expr:Expr, ?pos:Expr):ExprOf<Expr> {
 		return (new Builder(pos)).transformExpr(expr);
 	}	
 }

@@ -23,7 +23,7 @@ class Tweener {
 				else group;
 		}
 	#end
-	@:macro static public function tween(exprs:Array<haxe.macro.Expr>) {
+	macro static public function tween(exprs:Array<haxe.macro.Expr>) {
 		return
 			if (exprs.length == 0) 
 				haxe.macro.Context.currentPos().error('at least one argument required');
