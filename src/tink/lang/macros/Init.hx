@@ -4,7 +4,6 @@ import haxe.macro.Expr;
 import tink.macro.build.Constructor;
 import tink.macro.build.Member;
 import tink.macro.build.MemberTransformer;
-import tink.macro.tools.Printer;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
@@ -31,22 +30,22 @@ class Init {
 					case FVar(t, e):
 						if (e != null) {
 							member.kind = FVar(t = getType(t, e), null);
-							initMember(member, t, e);
+							Init.member(ctx, member, t, e);
 						}
 					case FProp(get, set, t, e):
 						if (e != null) {
 							member.kind = FProp(get, set, t = getType(t, e), null);
-							initMember(member, t, e);
+							Init.member(ctx, member, t, e);
 						}						
 					default:
 				}
 		}
 	}
-	function initMember(member:Member, t:ComplexType, e:Expr) {
+	static public function member(ctx:ClassBuildContext, member:Member, t:ComplexType, e:Expr) {
 		if (ctx.cls.isInterface) 
 			member.addMeta(':default', e.pos, [ECheckType(e, t).at(e.pos)]);
 		else 
-			field(this.ctx.getCtor(), member.name, t, e);
+			field(ctx.getCtor(), member.name, t, e);
 	}
 	static public function field(ctor:Constructor, name, t:ComplexType, e:Expr) {
 		var init = null,
