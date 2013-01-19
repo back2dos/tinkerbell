@@ -19,7 +19,7 @@ class MapTools {
 		}
 	}
 
-	@:macro static public function zip < K, V > (keys:ExprOf<Iterable<K>>, values:ExprOf<Iterable<V>>) {
+	macro static public function zip < K, V > (keys:ExprOf<Iterable<K>>, values:ExprOf<Iterable<V>>) {
 		var keyType = keys.getIterType().sure();
 		var params = [TPType(keyType.toComplex()), TPType(values.getIterType().sure().toComplex())];
 		var map = 

@@ -1,11 +1,5 @@
 package tink.collections.maps;
 
-
-/**
- * ...
- * @author back2dos
- */
-
 #if flash9
 	import flash.utils.Dictionary;
 	class ObjectMap < K, V > extends Dictionary, implements Map < K, V > {

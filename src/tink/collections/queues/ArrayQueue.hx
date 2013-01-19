@@ -1,10 +1,6 @@
 package tink.collections.queues;
-import tink.lang.Cls;
 
-/**
- * ...
- * @author back2dos
- */
+import tink.lang.Cls;
 
 class ArrayQueue<T> implements Queue<T> {
 	var entries:Array<T>;
@@ -17,6 +13,7 @@ class ArrayQueue<T> implements Queue<T> {
 	public function add(item:T):Void {
 		if (count == entries.length) {
 			entries = entries.slice(zero, count).concat(entries.slice(0, count)).concat(forLength(count));
+			count <<= 1;
 			zero = 0;
 			add(item);
 		}
