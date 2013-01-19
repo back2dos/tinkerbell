@@ -1,10 +1,6 @@
 package tink.reactive.bindings;
-import tink.lang.Cls;
 
-/**
- * ...
- * @author back2dos
- */
+import tink.lang.Cls;
 
 class BindableArray<T> implements Cls {
 	var data:Array<T>;

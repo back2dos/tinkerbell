@@ -1,13 +1,19 @@
 package tink.reactive.bindings;
 
-using tink.macro.tools.MacroTools;
-using tink.core.types.Outcome;
+#if macro
+	using tink.macro.tools.MacroTools;
+	using tink.core.types.Outcome;
 
-import haxe.macro.Expr;
-import haxe.macro.Type;
-
+	import haxe.macro.Expr;
+	import haxe.macro.Type;
+#end
+class WatchHelper {
+	macro static public function watch(e:Expr) {
+		return (macro new tink.reactive.bindings.Binding.Watch(function () return $e)).finalize();
+	}
+}
 class FuncBindings {
-	@:macro static public function bind<A>(func:ExprOf < A->Dynamic > , arg:ExprOf<A>) {
+	macro static public function bind<A>(func:ExprOf < A->Dynamic > , arg:ExprOf<A>) {
 		var src = Helper.makeSource(arg);
 		return (macro { 
 			var tmpSrc = $src;
@@ -19,7 +25,7 @@ class FuncBindings {
 	}
 }
 class FieldBindings {
-	@:macro static public function bind(owner:ExprOf<{}>, field:Expr, value:Expr) {
+	macro static public function bind(owner:ExprOf<{}>, field:Expr, value:Expr) {
 		var fieldName = field.getName().sure();
 		var source = Helper.makeSource(value),
 			target = owner.field(fieldName, field.pos);

@@ -1,24 +1,47 @@
 package tink.reactive.signals;
 
-import tink.collections.maps.FunctionMap;
+import tink.collections.sets.ArraySet;
+import tink.lang.Cls;
 
-interface Signal<T> {
-	function on(handler:T->Dynamic):Void;
-	function un(handler:T->Dynamic):Void;
+typedef Named<Const, T> = T;
+
+interface VoidSignal {
+	function on(handler:Void->Void):Void;
+	function un(handler:Void->Void):Void;	
+	function once(handler:Void->Void):Void;
 }
 
-class SimpleSignal<T> implements Signal<T> {
-	var handlers:FunctionMap<T->Dynamic, T->Dynamic>;
-	public function new() {
-		this.handlers = new FunctionMap();
+interface Signal<T> {
+	function on(handler:T->Void):Void;
+	function un(handler:T->Void):Void;
+	function once(handler:T->Void):Void;
+}
+private interface SignalBase<F> implements Cls {
+	var handlers:ArraySet<F> = new ArraySet();
+	var single:ArraySet<F> = new ArraySet();
+	public function on(handler:F):Void {
+		single.remove(handler);
+		handlers.add(handler);
 	}
-	public function on(handler) {
-		handlers.set(handler, handler);
+	function all():Array<F> {
+		var ret = untyped single.a.concat(handlers.a);
+		single = new ArraySet();
+		return ret;
 	}
-	public function un(handler) {
-		handlers.remove(handler);
-	}
-	public function fire(data:T) {
-		for (h in handlers.keys()) h(data);
-	}
+	public function un(handler:F):Void 
+		handlers.remove(handler) || single.remove(handler)
+		
+	public function once(handler:F):Void 
+		handlers.contains(handler) || single.add(handler)
+}
+class SimpleSignal<T> implements SignalBase<T->Void>, implements Signal<T> {
+	public function new() {}
+	public function fire(data:T) 
+		for (h in all()) h(data)
+}
+
+class SimpleVoidSignal implements SignalBase<Void->Void>, implements VoidSignal {
+	public function new() {}
+	public function fire() 
+		for (h in all()) h()
 }
