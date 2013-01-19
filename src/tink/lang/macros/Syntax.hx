@@ -13,7 +13,12 @@ using tink.core.types.Outcome;
 typedef Rule = Expr->Expr;
 
 class Syntax {
-	static var rules = [LoopSugar.transformLoop];
+	static var rules = [
+		#if tink_reactive
+			tink.reactive.signals.macros.SignalSugar.transform,
+		#end
+		LoopSugar.transformLoop
+	];
 	static function apply(e:Expr) {
 		var old = e;
 		for (rule in rules) 
