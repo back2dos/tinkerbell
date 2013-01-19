@@ -18,6 +18,22 @@ class PartialImpl {
 				default: f.pos.error('multiple defaults defined');
 			}
 	}
+	static function addRequirements(f:ClassField, ctx:ClassBuildContext) {
+		var tags = f.meta.get().getValues(':defaultRequires');
+		switch (tags.length) {
+			case 0: null;
+			case 1: 
+				switch (tags[0]) {
+					case [ { expr: ECast(_, TAnonymous(fields)) } ]: 
+						for (f in fields)
+							if (!ctx.has(f.name))
+								ctx.add(Member.ofHaxe(f));
+					default: 
+						throw 'assert';
+				}
+			default: f.pos.error('multiple default requirements defined');
+		}		
+	}
 	static public function process(ctx:ClassBuildContext) {
 		if (ctx.cls.isInterface) 
 			for (m in ctx.members) 
@@ -32,6 +48,10 @@ class PartialImpl {
 		else {
 			for (i in ctx.cls.interfaces)
 				for (f in TInst(i.t, i.params).getFields(true).sure()) {
+					var index = 0,
+						paramMap = new Hash();
+					for (p in i.t.get().params)
+						paramMap.set(p.name, i.params[index].toComplex(true));
 					if (!ctx.has(f.name)) {
 						switch (f.kind) {
 							case FVar(read, write):
@@ -41,17 +61,20 @@ class PartialImpl {
 									kind: FProp(read.accessToName(), write.accessToName(), f.type.toComplex()),
 									pos: f.pos
 								}));
-								var d = getDefault(f);
-								if (d != null)
+								var d = getDefault(f).substParams(paramMap);
+								if (d != null) {
+									addRequirements(f, ctx);
 									switch (d.expr) {
 										case ECheckType(e, t):
 											Init.field(ctx.getCtor(), f.name, t, e);
 										default:
 											Init.field(ctx.getCtor(), f.name, f.type.toComplex(), d);//for people who specify this manually
 									}
+								}
 							case FMethod(_):
-								var d = getDefault(f);
+								var d = getDefault(f).substParams(paramMap);
 								if (d != null) {
+									addRequirements(f, ctx);
 									switch (d.expr) {
 										case EFunction(_, impl):
 											ctx.add(Member.ofHaxe( {
