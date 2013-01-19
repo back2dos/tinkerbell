@@ -1,8 +1,14 @@
 package tink.collections.maps;
 
-#if (flash9 || php)
-	class FunctionMap < K, V > extends ObjectMap < K, V > { }
-#elseif (js || flash)
+#if (flash9 || php || js)
+	class FunctionMap < K, V > extends ObjectMap < K, V > { 
+		#if js
+			static function __init__() {
+				tink.native.JS.patchBind();
+			}
+		#end
+	}
+#elseif (flash)
 	class FunctionMap < K, V > extends tink.collections.maps.base.StringIDMap < K, V > { 
 		static var idCounter = 0;
 		function objID(o:Dynamic):String untyped {			
