@@ -7,7 +7,7 @@ package tink.lang.macros;
 #end
 
 class ClassBuilder {
-	@:macro static public function buildFields():Array<haxe.macro.Expr.Field> 
+	macro static public function buildFields():Array<haxe.macro.Expr.Field> 
 		return 
 			new MemberTransformer(Context.getLocalClass().get().meta.get().getValues(':verbose').length > 0).build(PLUGINS)
 	
@@ -25,12 +25,14 @@ class ClassBuilder {
 			#end
 		}
 		static public var PLUGINS = [
+				#if tink_reactive //probably shouldn't be here but it's very convenient for now
+					tink.reactive.signals.macros.SignalBuilder.make,
+				#end
 				Init.process,
 				Forward.process,
 				PropBuilder.process,
-				#if tink_reactive //probably shouldn't be here but it's very convenient for now
+				#if tink_reactive
 					tink.reactive.bindings.macros.BindableProperties.make,
-					tink.reactive.signals.macros.SignalBuilder.make,
 				#else
 					noBindings,
 				#end
