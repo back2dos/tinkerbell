@@ -31,8 +31,6 @@ class Forward {
 		for (member in members)
 			switch (member.extractMeta(TAG)) {
 				case Success(tag):
-					//if (ownerIsInterface) 
-						//tag.pos.error('@:forward not implemented for interfaces');
 					switch (member.kind) {
 						case FVar(t, _):
 							forwardTo(member, t, tag.pos, tag.params);
