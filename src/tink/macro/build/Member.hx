@@ -1,7 +1,7 @@
 package tink.macro.build;
  
 import haxe.macro.Expr;
-import tink.macro.tools.Printer;
+import haxe.macro.Printer;
 import tink.core.types.Outcome;
 
 using Lambda;
@@ -63,30 +63,9 @@ class Member {
 			}
 			else return Failure();
 	}
-	public function toString() {
-		var ret = '';
-		for (tags in meta)
-			for (tag in tags)
-				ret += '@' + tag.name + Printer.printExprList('', tag.params);
-		if (isStatic) ret += 'static ';
-		if (isPublic == true) ret += 'public ';
-		else if (isPublic == false) ret += 'private ';
-		switch (kind) {
-			case FVar(t, e): 
-				ret += 'var ' + name + ':' + Printer.printType('', t);
-				if (e != null)
-					ret += ' = ' + e.toString();
-				ret += ';';
-			case FProp(get, set, t, e):
-				ret += 'var ' + name + '(' + get + ', ' + set + '):' + Printer.printType('', t);
-				if (e != null)
-					ret += ' = ' + e.toString();
-				ret += ';';
-			case FFun(f):
-				ret += Printer.printFunction(f, name);
-		}
-		return ret;
-	}
+	public function toString() 
+		return new Printer().printField(this.toHaxe())
+	
 	public function toHaxe():Field {
 		return {
 			name : name,
@@ -182,17 +161,18 @@ class Member {
 				
 				case ADynamic: ret.isBound = false;
 				case AInline: ret.isBound = true;
+				case AMacro: ret.pos.warning('unexpected macro');
 			}
 			
 		return ret;
 	}
 	
-	static public function plain(name:String, type:ComplexType, pos:Position) {
+	static public function plain(name:String, type:ComplexType, pos:Position, ?e) {
 		return ofHaxe( {
 			name: name, 
 			doc: null,
 			access: [],
-			kind: FVar(type),
+			kind: FVar(type, e),
 			pos: pos,
 			meta: []
 		});
