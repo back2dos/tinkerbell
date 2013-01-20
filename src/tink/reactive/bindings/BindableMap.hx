@@ -27,7 +27,7 @@ class BindableMap<K, V> implements Map<K, V>, implements Cls {
 			else map;
 	}
 	public function entry(k:K): { var value(get_value, set_value):V; } {
-		return new Entry(get.callback(k), set.callback(k));
+		return new Entry(get.bind(k), set.bind(k));
 	}
 	@:bindable(k) public function get(k:K):Null<V> {
 		return map.get(k);

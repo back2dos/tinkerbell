@@ -136,8 +136,8 @@ class TweenParams<T> implements Cls {
 			propMap.exists, 
 			duration, 
 			easing, 
-			onDone == null ? ignore : onDone.callback(ret),
-			onStarve == null ? ignore : onStarve.callback(ret)
+			onDone == null ? ignore : onDone.bind(ret),
+			onStarve == null ? ignore : onStarve.bind(ret)
 		);
 		return ret;
 	}

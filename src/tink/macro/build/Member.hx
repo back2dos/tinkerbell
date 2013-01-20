@@ -161,7 +161,7 @@ class Member {
 				
 				case ADynamic: ret.isBound = false;
 				case AInline: ret.isBound = true;
-				case AMacro: ret.pos.warning('unexpected macro');
+				case AMacro: ret.excluded = true;
 			}
 			
 		return ret;

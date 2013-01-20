@@ -25,7 +25,7 @@ class Printer {
 		return '(' + rec(e1) + ' ' + binoperator(b) + ' ' + rec(e2) +')';
 	}
 	static public function printExprList(indent:String, list:Iterable<Expr>, ?sep = ', ', ?border:Array<String>):String {
-		return printList(list.map(printExpr.callback(indent)), sep, border);
+		return printList(list.map(printExpr.bind(indent)), sep, border);
 	}
 	static public function printList(list:Iterable<String>, ?sep = ', ', ?border:Array<String>) {
 		if (border == null) border = '()'.split('');
@@ -59,7 +59,7 @@ class Printer {
 					printPath(indent, p);
 				case TFunction(args, ret):
 					if (args.length == 0) 'Void -> ' + printType(indent, ret);
-					else args.concat([ret]).map(printType.callback(indent)).array().join(' -> '); 
+					else args.concat([ret]).map(printType.bind(indent)).array().join(' -> '); 
 				case TAnonymous(fields): 
 					printFields(indent, fields);
 				case TParent(t): 

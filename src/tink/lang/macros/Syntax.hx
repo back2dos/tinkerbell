@@ -41,5 +41,5 @@ class Syntax {
 		return transform(e)
 		
 	static function transform(e:Expr) 
-		return e.map(function (e:Expr, locals) return apply.callback(e).inContext(locals), null)
+		return e.map(function (e:Expr, locals) return apply.bind(e).inContext(locals), null)
 }

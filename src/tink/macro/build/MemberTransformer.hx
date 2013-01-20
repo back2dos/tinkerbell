@@ -27,6 +27,11 @@ class MemberTransformer {
 	var superFields:Hash<Bool>;
 	var verbose:Bool;
 	public function new(?verbose) { 
+		switch (Context.getType('Hash')) {
+			case TInst(inst, _): inst.get().fields.get();
+			default:
+		}
+		Context.typeof(macro new Hash());
 		members = new Hash();
 		localClass = Context.getLocalClass().get();
 		this.verbose = verbose;
@@ -79,7 +84,7 @@ class MemberTransformer {
 		}
 		
 		for (plugin in plugins) {
-			context.add = addMember.callback(context.members);
+			context.add = addMember.bind(context.members);
 			
 			plugin(context);	
 			

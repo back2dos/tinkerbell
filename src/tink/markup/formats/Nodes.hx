@@ -58,7 +58,7 @@ class Nodes {
 			}
 	}
 	public function setProp(attr:String, value:Expr, pos:Position):Expr {
-		value = stringifyProp.callback(value).bounce();
+		value = stringifyProp.bind(value).bounce();
 		var attr = attr.toExpr(pos);
 		return (macro $target.set($attr, $value)).finalize(pos);
 	}
@@ -76,7 +76,7 @@ class Nodes {
 		).finalize(e.pos);
 	}
 	public function addChild(e:Expr, ?t:Type):Expr {
-		return doAddChild.callback(target, e).bounce();
+		return doAddChild.bind(target, e).bounce();
 	}
 	public function addString(s:String, pos:Position):Expr {
 		var s = s.toExpr(pos);

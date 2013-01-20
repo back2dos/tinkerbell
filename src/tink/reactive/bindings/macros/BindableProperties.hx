@@ -75,7 +75,7 @@ class BindableProperties {
 						case FFun(f):
 							var body = [];
 							for (key in [name.toExpr(tag.pos)].concat(tag.params))
-								body.push(makeBinding.callback(key).bounce(key.pos));
+								body.push(makeBinding.bind(key).bounce(key.pos));
 							body.push(f.expr);
 							f.expr = body.toBlock(tag.pos);
 					}
