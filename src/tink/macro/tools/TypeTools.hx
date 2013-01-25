@@ -14,10 +14,10 @@ using tink.macro.tools.FunctionTools;
 using tink.core.types.Outcome;
 
 class TypeTools {
-	static var types = new IntHash<Type>();
+	static var types = new IntHash<Void->Type>();
 	static var idCounter = 0;
 	macro static public function getType(id:Int):Type {
-		return types.get(id);
+		return types.get(id)();
 	}
 	static public function getID(t:Type, ?reduced = true) {
 		if (reduced)
@@ -89,7 +89,7 @@ class TypeTools {
 														fArgs.push(a.name.toArg());
 													var f = (macro null).func(fArgs, false); 
 													f.expr = EReturn(member.call(f.getArgIdents(), e.pos)).at(e.pos);
-													f.toExpr(e.pos).typeof().sure();
+													f.asExpr(e.pos).typeof().sure();
 												default: 
 													throw 'assert';
 											}
@@ -190,7 +190,7 @@ class TypeTools {
 			default: false;
 		}
 	}
-	static public function register(type:Type):Int {
+	static public function register(type:Void->Type):Int {
 		var id = idCounter++;
 		types.set(id, type);
 		return id;
@@ -236,12 +236,16 @@ class TypeTools {
 					//TODO: check TDynamic here
 					default: toComplex(type, false);
 				}
-			else
-				TPath({
-					pack : ['haxe','macro'],
-					name : 'MacroType',
-					params : [TPExpr('tink.macro.tools.TypeTools.getType'.resolve().call([register(type).toExpr()]))],
-					sub : null,				
-				});		
-	}	
+			else 
+				lazyComplex(function () return type);		
+	}
+	static public function lazyComplex(f:Void->Type) {
+		return
+			TPath({
+				pack : ['haxe','macro'],
+				name : 'MacroType',
+				params : [TPExpr('tink.macro.tools.TypeTools.getType'.resolve().call([register(f).toExpr()]))],
+				sub : null,				
+			});
+	}
 }
