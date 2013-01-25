@@ -25,7 +25,7 @@ class SignalSugar {
 									name = params[0].getID().substr(1);
 							default:
 						}
-						var func = match.exprs.handle.func([name.toArg()], false).toExpr();
+						var func = match.exprs.handle.func([name.toArg()], false).asExpr();
 						(macro $signal.on($func));
 					}
 					else macro ${match.exprs.signal}.on(function () ${match.exprs.handle});
@@ -35,14 +35,17 @@ class SignalSugar {
 		for (pattern in [WHEN, WHEN_NAMED])
 			switch (e.match(pattern)) {
 				case Success(match):
-					var name = match.names.data;
-					if (name == null) name = 'data';
-					var func = match.exprs.handle.func([name.toArg()], false).toExpr();
-					return (macro {
-						var tmp = ${match.exprs.target};
-						tmp.get($func);
-						tmp;
-					}).finalize(e.pos);
+					var target = match.exprs.target,
+						name = match.names.data;
+					if (name == null) 
+						name = 'result';	
+					var func = match.exprs.handle.func([name.toArg()], false).asExpr();
+					var ret = 
+						//if (target.field('get').typeof().isSuccess())
+							//macro $target.get($func)
+						//else
+							macro $target($func);
+					return ret.finalize(e.pos);
 				default:
 			}
 		switch (e.match(WITH)) {
