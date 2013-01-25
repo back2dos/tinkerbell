@@ -9,6 +9,7 @@ import haxe.macro.Type;
 
 using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
+using Lambda;
 
 typedef ClassBuildContext = {
 	cls:ClassType,
@@ -22,17 +23,14 @@ typedef ClassBuildContext = {
 class MemberTransformer {
 	
 	var members:Hash<Member>;
+	var macros:Hash<Field>;
 	var constructor:Null<Constructor>;
 	var localClass:ClassType;
 	var superFields:Hash<Bool>;
 	var verbose:Bool;
 	public function new(?verbose) { 
-		switch (Context.getType('Hash')) {
-			case TInst(inst, _): inst.get().fields.get();
-			default:
-		}
-		Context.typeof(macro new Hash());
 		members = new Hash();
+		macros = new Hash();
 		localClass = Context.getLocalClass().get();
 		this.verbose = verbose;
 	}
@@ -58,20 +56,17 @@ class MemberTransformer {
 	function prune(a:Array<Member>) {
 		var ret = [];
 		for (m in a) 
-			if (!m.excluded) {
-				/*if (localClass.isInterface)
-					switch (m.kind) {
-						case FFun(f): f.expr = null;
-						default:
-					}*/
+			if (!m.excluded) 
 				ret.push(m);
-			}
 		return ret;
 	}
 	public function build(plugins:Iterable<ClassBuildContext->Void>) {
 		var fields = [];
 		for (field in Context.getBuildFields()) 
-			addMember(fields, Member.ofHaxe(field));
+			if (field.access.has(AMacro))
+				macros.set(field.name, field)
+			else
+				addMember(fields, Member.ofHaxe(field));
 			
 		var context = {
 			cls: localClass,
@@ -94,14 +89,15 @@ class MemberTransformer {
 		var ret = (constructor == null || localClass.isInterface) ? [] : [constructor.toHaxe()];
 		for (member in context.members) {
 			if (member.isBound)
-				switch (member.kind) {
+				switch (member.kind) {//TODO: this seems like an awful place for a cleanup. If all else fails, this should go into a separate plugin (?)
 					case FVar(_, _): if (!member.isStatic) member.isBound = null;
 					case FProp(_, _, _, _): member.isBound = null;
 					default:
 				}
 			ret.push(member.toHaxe());
 		}
-			
+		for (m in macros)
+			ret.push(m);
 		if (verbose) 
 			for (field in ret) 
 				Context.warning(new Printer().printField(field), field.pos);
@@ -120,7 +116,7 @@ class MemberTransformer {
 			if (name == 'new')
 				constructor != null;
 			else
-				members.exists(name) && !members.get(name).excluded;		
+				macros.exists(name) || (members.exists(name) && !members.get(name).excluded);
 	}
 	function hasSuperField(name:String) {
 		if (superFields == null) {

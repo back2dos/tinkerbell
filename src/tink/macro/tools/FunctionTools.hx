@@ -1,10 +1,15 @@
 package tink.macro.tools;
 
 import haxe.macro.Expr;
+
 using tink.macro.tools.ExprTools;
+
 class FunctionTools {
-	static public function toExpr(f:Function, ?name, ?pos) {
+	static public inline function asExpr(f:Function, ?name, ?pos) {
 		return EFunction(name, f).at(pos);
+	}
+	static public function toExpr(f:Function, ?name:String, ?pos:Position, ?at:haxe.PosInfos) {
+		return MacroTools.deprecate(at, 'asExpr', asExpr(f, name, pos));
 	}
 	static public inline function toArg(name:String, ?t, ?opt = false, ?value = null):FunctionArg {
 		return {

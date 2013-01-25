@@ -1,15 +1,14 @@
 try {
 	var __fid = 1;
 	$bind = function (o, m) {
-		m = o.__fid || (o.__fid = __fid++);
+		var id = m.__fid || (m.__fid = __fid++);
 		if (o.__hx_closures == null) o.__hx_closures = { };
-		if (o.__hx_closures[m] == null) {
-		var f = o[m];
-			o.__hx_closures[m] = function () {
-				return f.apply(o, arguments);
+		if (o.__hx_closures[id] == null) {
+			o.__hx_closures[id] = function () {
+				return m.apply(o, arguments);
 			}
 		}
-		return o.__hx_closures[m];
+		return o.__hx_closures[id];
 	}
 	Reflect.compareMethods = function (a, b) { return a == b; }
 }

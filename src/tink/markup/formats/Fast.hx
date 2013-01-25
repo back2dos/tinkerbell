@@ -73,7 +73,7 @@ package tink.markup.formats;
 		}
 		function optimize(target:Expr) {
 			target = target.transform(flatten).transform(unify).transform(print);
-			var f = target.func([tmp.toArg()], false).toExpr();
+			var f = target.func([tmp.toArg()], false).asExpr();
 			return (macro new tink.markup.formats.Fast($f)).finalize(target.pos);
 		}
 		public function postprocess(e:Expr):Expr {
