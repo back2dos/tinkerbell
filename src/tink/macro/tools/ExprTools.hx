@@ -219,7 +219,7 @@ class ExprTools {
 		
 		function rec(e, ?inner)
 			return map(e, f, inner == null ? ctx : inner, pos);
-		if (source == null || source.expr == null) return null;
+		if (source == null || source.expr == null) return source;
 		//if (pos == null) pos = source.pos;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
