@@ -106,7 +106,7 @@ class ExprTools {
 					case Success(t):
 						switch (ret.typeof()) {
 							case Failure(f):
-								if (f.data == 'Cannot access to private field ' + field) //TODO: ask for error codes or typed errors
+								if (f.data == 'Cannot access private field ' + field) //TODO: ask for error codes or typed errors
 									for (f in t.getFields(false).sure())
 										if (f.name == field) {
 											var kind =
@@ -219,7 +219,7 @@ class ExprTools {
 		
 		function rec(e, ?inner)
 			return map(e, f, inner == null ? ctx : inner, pos);
-		if (source == null)	return null;
+		if (source == null || source.expr == null) return null;
 		//if (pos == null) pos = source.pos;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
@@ -444,6 +444,11 @@ class ExprTools {
 		var ret = f();
 		context = contexts.pop();
 		return ret;
+	}
+	static public function lazyType(expr:Expr, ?locals) {
+		return (function () {
+			return typeof(expr, locals).sure();
+		}).lazyComplex();
 	}
 	static public function typeof(expr:Expr, ?locals) {
 		return
