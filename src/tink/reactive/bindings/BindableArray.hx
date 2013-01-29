@@ -30,15 +30,18 @@ class BindableArray<T> implements Cls {
 		onChange(data.unshift(x));
 		return length;
 	}
-	public function remove(x:T):Bool {
-		return data.remove(x) && onChange(true);
-	}
-	public function shift():Null<T> {
-		return onChange(data.shift());
-	}
-	public function insert(pos, x) {
-		onChange(data.insert(pos, x));
-	}
+	public function remove(x:T):Bool 
+		return data.remove(x) && onChange(true)
+	
+	public function shift():Null<T> 
+		return onChange(data.shift())
+	
+	public function insert(pos, x) 
+		onChange(data.insert(pos, x))
+	
+	@:bindable(CHANGE) public function slice(pos, ?end) 
+		return data.slice(pos, end)
+	
 	@:bindable(CHANGE) public function get(index:Int) {
 		return data[index];
 	}
