@@ -16,6 +16,7 @@ class MacroTools {
 	static public inline function tempName(c:Class<String>, ?prefix = '__tinkTmp'):String {
 		return prefix + Std.string(idCounter++);
 	}
+	#if macro
 	static public function deprecate<A>(at:haxe.PosInfos, useInstead:String, ret:A, ?p:haxe.PosInfos) {
 		try {
 			var lines = sys.io.File.getContent(at.fileName).split('\n'),
@@ -45,4 +46,5 @@ class MacroTools {
 		
 		return ret;
 	}
+	#end
 }
