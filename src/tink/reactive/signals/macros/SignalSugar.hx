@@ -11,6 +11,15 @@ class SignalSugar {
 	static var WITH = macro @with(EXPR__target) EXPR__statements;
 	static var ON = macro @on(EXPR__signal) EXPR__handle;
 	
+	static function getFuture(target:Expr, handle:Expr, ?name, ?pos) {
+		if (name == null) 
+			name = 'result';
+		return target.call(
+			[handle.func([name.toArg()], false).asExpr(null, pos)],
+			pos
+		);
+	}
+	
 	static public function transform(e:Expr) {
 		switch (e.match(ON)) {
 			case Success(match):
@@ -35,17 +44,7 @@ class SignalSugar {
 		for (pattern in [WHEN, WHEN_NAMED])
 			switch (e.match(pattern)) {
 				case Success(match):
-					var target = match.exprs.target,
-						name = match.names.data;
-					if (name == null) 
-						name = 'result';	
-					var func = match.exprs.handle.func([name.toArg()], false).asExpr();
-					var ret = 
-						//if (target.field('get').typeof().isSuccess())
-							//macro $target.get($func)
-						//else
-							macro $target($func);
-					return ret.finalize(e.pos);
+					return getFuture(match.exprs.target, match.exprs.handle, match.names.data, e.pos);
 				default:
 			}
 		switch (e.match(WITH)) {
@@ -73,6 +72,17 @@ class SignalSugar {
 				statements.unshift('tmp'.define(target, target.pos));
 				statements.push('tmp'.resolve(target.pos));
 				return statements.toBlock().finalize(e.pos);
+			default:
+		}
+		switch (e.expr) {
+			case EMeta( { name: 'when', params: [] }, { expr: ESwitch(over, cases, edef) } ):
+				var arg = String.tempName();
+				return getFuture(
+					over, 
+					ESwitch(arg.resolve(over.pos), cases, edef).at(e.pos), 
+					arg, 
+					e.pos
+				);
 			default:
 		}
 		return e;
