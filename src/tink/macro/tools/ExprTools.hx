@@ -339,7 +339,8 @@ class ExprTools {
 				{
 					var vExpr = v.expr == null ? null : map(v.expr, f, ctx);
 					if (v.type == null && vExpr != null)
-						v.type = vExpr.typeof(ctx).sure().toComplex();
+						v.type = vExpr.lazyType(ctx.copy());
+						//v.type = vExpr.typeof(ctx).sure().toComplex();
 					ctx.push({ name:v.name, expr:null, type:v.type });
 					ret.push({ name:v.name, expr:vExpr == null ? null : vExpr, type:v.type });
 				}
