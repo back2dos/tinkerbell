@@ -3,10 +3,6 @@ package tink.native;
 	import haxe.macro.Expr;
 	using tink.macro.tools.MacroTools;
 #end
-/**
- * ...
- * @author back2dos
- */
 
 class PHP {
 	macro static public function embed(s:String) {

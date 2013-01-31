@@ -26,8 +26,7 @@ class PlainSource<T> implements Source<T>, implements Editable<T>, implements Cl
 		value = param;
 		for (h in handlers) h();
 		return param;
-	}
-	
+	}	
 }
 /*
 TODO: consider using this instead, after some profiling 
