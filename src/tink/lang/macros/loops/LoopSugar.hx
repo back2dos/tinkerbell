@@ -412,8 +412,13 @@ class LoopSugar {
 						match.exprs.output = (macro [].push).finalize(e.pos);
 					var it = match.exprs.it,
 						expr = match.exprs.expr,
-						output = match.exprs.output;
-						
+						output:Expr = match.exprs.output;
+					
+					switch (output.getIdent()) {
+						case Success(s): 
+							if (s.startsWith('$')) break;//RAPTORS: hack to make this doesn't break tink_markup
+						default:
+					}
 					var outputVarName = temp('output');
 					var outputVar = outputVarName.resolve(output.pos);
 					function getParams(e:Expr)
