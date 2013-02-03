@@ -16,14 +16,10 @@ import tink.ui.core.UIContainer;
 import tink.ui.core.UIComponent;
 import tink.ui.text.Label;
 
+import tink.reflect.Private;
+
 using tink.ui.controls.Default;
 using tink.reactive.bindings.BindingTools;
-
-
-/**
- * ...
- * @author back2dos
- */
 
 class States<T> implements Cls {
 	@:bindable var up:T;
@@ -118,7 +114,7 @@ class FlashBehavior {
 		#end
 	}
 }
-import tink.reflect.Private;
+
 class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
 	var label = new Label();
 	var container = new UIContainer();

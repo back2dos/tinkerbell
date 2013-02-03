@@ -28,7 +28,6 @@ class Label extends UIComponent<TextField, LabelStyle> {
 		
 		view.bind(filters, calcFilters());
 		updateFormat.bind(style.toNative());
-		//view.bind(embedFonts, style.embed);
 	}
 	function updateFormat(t:TextFormat) {
 		view.setTextFormat(view.defaultTextFormat = t);

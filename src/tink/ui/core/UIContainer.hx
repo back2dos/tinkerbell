@@ -1,9 +1,9 @@
 package tink.ui.core;
 
+import tink.reactive.bindings.BindableArray;
 import flash.display.Sprite;
 import flash.filters.DropShadowFilter;
 import tink.devtools.Debug;
-import tink.reactive.bindings.BindableArray;
 import tink.ui.core.Metrics;
 import tink.ui.style.Style;
 
@@ -11,12 +11,7 @@ using tink.ui.core.Metrics;
  
 class UIContainer extends UIPaneBase<ContainerStyle> {
 	var children = new BindableArray<UILeaf>();	
-	@:cache({
-		var a = [];
-		for (c in children)
-			a.push(c.getMetrics());
-		a;
-	}) 
+	@:cache([for (c in children) c.getMetrics()]) 
 	private var childMetrics:Array<Metrics>;	
 	public function new() {
 		super(new ContainerStyle());
