@@ -8,8 +8,10 @@ import tinx.node.*;
 
 using tink.reactive.signals.Signal;
 
+private typedef In = NativeIn;//TODO: this circumvents some weird bug
+
 class InStream implements Cls {
-	@:forward inline var target:NativeIn = _;
+	@:forward inline var target:In = _;
 	
 	@:signal var data:Buffer = new Emission(target, 'data');
 	@:signal var end = new VoidEmission(target, 'end');
@@ -27,7 +29,7 @@ class InStream implements Cls {
 		return encoded.get(encoding);
 	}
 	public function get(handler:Buffer->Void):Void {
-		var bufs = [];
+		var bufs:Array<Buffer> = [];
 		@on(data) 
 			bufs.push(data);
 		@on(end) 
