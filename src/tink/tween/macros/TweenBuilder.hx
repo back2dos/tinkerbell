@@ -2,7 +2,6 @@ package tink.tween.macros;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import tink.macro.tools.AST;
 import haxe.macro.Type;
 import tink.macro.tools.TypeTools;
 
@@ -21,49 +20,49 @@ class TweenBuilder {
 				}
 			default:
 		}
+		var targetType = targetType.toComplex();
 		return
 			body.func(
-				['tween'.toArg('tink.tween.Tween'.asComplexType([TPType(targetType.toComplex())]))].concat(additional)
+				['tween'.toArg(macro : tink.tween.Tween<$targetType>)].concat(additional)
 				, false
-			).toExpr(body.pos);
+			).asExpr(body.pos);
 	}
 	static function atomStatic(name:String, op) {
+		var prop = (macro tmpTarget).field(name);
 		return
-			AST.build(
+			(macro
 				function (tmpTarget) {
-					if (false) tmpTarget.eval__name = .0;
+					if (false) $prop = .0;
 					//the above is needed to make the type inferrer understand, that the field provides write access (otherwise inference will cause an error within the scope of this function), but the optimizer will throw this out for us
-					var tmpStart:Float = tmpTarget.eval__name;
-					var tmpDelta = $(op.e2) - tmpStart;
+					var tmpStart:Float = $prop;
+					var tmpDelta = ${op.e2} - tmpStart;
 					return
 						function (amplitude:Float) {
 							if (amplitude < 1e30)
-								tmpTarget.eval__name = tmpStart + tmpDelta * amplitude;
+								$prop = tmpStart + tmpDelta * amplitude;
 							else
 								tmpTarget = null;
 							return null;
 						}
-				},			
-				op.pos
-			);
+				}
+			).finalize(op.pos);
 	}
 	static function atomDynamic(name:String, op) {
 		return
-			AST.build(
+			(macro
 				function (tmpTarget) {
-					var tmpStart:Float = tink.reflect.Property.get(tmpTarget, "eval__name");
-					var tmpDelta = $(op.e2) - tmpStart;
+					var tmpStart:Float = tink.reflect.Property.get(tmpTarget, $v{name});
+					var tmpDelta = ${op.e2} - tmpStart;
 					return
 						function (amplitude:Float) {
 							if (amplitude < 1e30)
-								tink.reflect.Property.set(tmpTarget, "eval__name", tmpStart + tmpDelta * amplitude);
+								tink.reflect.Property.set(tmpTarget, $v{name}, tmpStart + tmpDelta * amplitude);
 							else
 								tmpTarget = null;
 							return null;
 						}
-				},			
-				op.pos
-			);			
+				}
+			).finalize(op.pos);
 	}
 	static public function buildTween(target:Expr, group:Expr, params:Array<Expr>) {
 		var targetType = target.typeof().sure();
@@ -80,7 +79,7 @@ class TweenBuilder {
 		var targetCT = targetType.toComplex(),
 			tmp = String.tempName();
 			
-		var ret = [tmp.define(AST.build(new tink.tween.Tween.TweenParams<Eval__targetCT>()))];//just to be sure
+		var ret = [tmp.define(macro new tink.tween.Tween.TweenParams<$targetCT>())];//just to be sure
 		
 		while (params.length > 0) {
 			var e = params.pop();
@@ -121,23 +120,25 @@ class TweenBuilder {
 										else {
 											var tmp = String.tempName();
 											var inst = ENew(tp, [tmp.resolve(), op.e2]).at(op.e1.pos).field('update', op.pos);
-											inst.func([tmp.toArg()], 'Dynamic'.asComplexType()).toExpr(op.pos);
+											inst.func([tmp.toArg()], 'Dynamic'.asComplexType()).asExpr(op.pos);
 										}
 								}
-							AST.build(eval__tmp.addAtom("eval__name", $atom), op.pos);	
+							(macro $i{tmp}.addAtom($v{name}, $atom)).finalize(op.pos);
 						}
 					case OpLt, OpLte:
 						var e = handler(op.e2, targetType, ['forward'.toArg('Bool'.asComplexType())]);
-						if (op.e1.getIterType().isSuccess())
-							AST.build(for (tmp in $(op.e1)) eval__tmp.addCuePoint(tmp, $e), op.pos);
-						else 
-							AST.build(eval__tmp.addCuePoint($(op.e1), $e), op.pos);
+						(
+							if (op.e1.getIterType().isSuccess())
+								macro for (tmp in ${op.e1}) $i{tmp}.addCuePoint(tmp, $e)								
+							else 
+								macro $i{tmp}.addCuepoint(${op.e1}, $e)
+						).finalize(op.pos);
 					default:
 						op.pos.error('cannot handle ' + op.op);
 				}
 			);
 		}
-		ret.push(AST.build(eval__tmp.start($group, $target)));
+		ret.push(macro $i{tmp}.start($group, $target));
 		return ret.toBlock();
 	}
 }
