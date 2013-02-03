@@ -1,12 +1,14 @@
 package tink.macro.tools;
 
 import Type in Inspect;
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.PosInfos;
 import tink.core.types.Outcome;
 import haxe.macro.Printer;
+
 using Lambda;
 using StringTools;
 using tink.macro.tools.PosTools;
@@ -253,7 +255,7 @@ class ExprTools {
 			case ESwitch(expr, cases, def):
 				var newCases = cases;
 				newCases = [];
-				expr = rec(expr);
+				expr = rec(expr); 
 				switch (expr.typeof(ctx).sure().reduce()) {
 					case TEnum(e, _):
 						var enumDef = e.get();
@@ -272,26 +274,29 @@ class ExprTools {
 												if (caseValues.length == 0) {
 													switch (newVal.typeof(ctx).sure().reduce()) {
 														case TFun(args, _):
-															for (arg in 0...args.length)
+															for (arg in 0...args.length) {
 																innerCtx.push({ 
 																	name:params[arg].getName().sure(), 
 																	type: args[arg].t.toComplex(), 
 																	expr: null 
 																});
+															}
 														default:
 															e.reject('Constructor may not have arguments');
 													}
 												}
 												newVal = newVal.call(params, v.pos);
 											default:
+												e.reject();
 										}
 									default:
+										v.reject();
 								}
 								caseValues.push(rec(newVal));
 							}
 							newCases.push( { expr: rec(c.expr, innerCtx), values: caseValues } );
 						}
-					default:
+					case _:
 						for (c in cases) {
 							var caseValues = [];
 							for (v in c.values) 
@@ -304,6 +309,7 @@ class ExprTools {
 				switch(it.expr) {
 					case EIn(itIdent, itExpr):
 						var innerCtx = ctx.copy();
+						trace(itExpr.toString() + ' in ' + EVars(ctx).at().toString());
 						switch(itExpr.typeof(ctx)) {
 							case Success(t):
 								if (t.getID() == "IntIter")
@@ -339,8 +345,7 @@ class ExprTools {
 				{
 					var vExpr = v.expr == null ? null : map(v.expr, f, ctx);
 					if (v.type == null && vExpr != null)
-						v.type = vExpr.lazyType(ctx.copy());
-						//v.type = vExpr.typeof(ctx).sure().toComplex();
+						v.type = vExpr.typeof(ctx).sure().toComplex();
 					ctx.push({ name:v.name, expr:null, type:v.type });
 					ret.push({ name:v.name, expr:vExpr == null ? null : vExpr, type:v.type });
 				}
@@ -378,7 +383,6 @@ class ExprTools {
 	
 	static public inline function toString(e:Expr):String 
 		return tink.macro.tools.Printer.printExpr('', e)
-		//return new Printer().printExpr(e)
 		
 	static public inline function at(e:ExprDef, ?pos:Position) 
 		return {
