@@ -42,14 +42,15 @@ class BindableArray<T> implements Cls {
 	@:bindable(CHANGE) public function slice(pos, ?end) 
 		return data.slice(pos, end)
 	
-	@:bindable(CHANGE) public function get(index:Int) {
-		return data[index];
-	}
-	public function set(index:Int, x:T) {
-		return onChange(data[index] = x);
-	}
-	@:bindable(CHANGE) public function iterator() {
-		return data.iterator();
-	}
+	@:bindable(CHANGE) public function get(index:Int) 
+		return data[index]
 	
+	public function set(index:Int, x:T) 
+		return onChange(data[index] = x)
+	
+	@:bindable(CHANGE) public function iterator() 
+		return data.iterator()
+	
+	@:bindable(CHANGE) public function toArray()
+		return data.copy()
 }
