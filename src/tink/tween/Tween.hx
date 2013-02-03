@@ -101,7 +101,7 @@ class Tween<T> {
 		
 		targetMap.get(tween.target).push(tween);
 	}
-	static public var defaultEasing = Math.sqrt;
+	static public var defaultEasing = function (f:Float) return Math.sin(0.5 * f * Math.PI);
 }
 private class CuePoint<T> {
 	public var mark(default, null):Float;
@@ -121,10 +121,10 @@ class TweenParams<T> implements Cls {
 	public var onStarve:Tween<T>->Void;
 	public var duration = 1.0;
 	public var easing = Tween.defaultEasing;
-	
+	public var overwrite = false;
 	public function new() {}
 	static function ignore() { }
-	
+	static function overwriteAll(_) return true
 	public function start(group, target:T):Tween<T> {
 		var ret = RealTween.get();
 		ret.init(
@@ -133,7 +133,7 @@ class TweenParams<T> implements Cls {
 			cue, 
 			properties, 
 			atoms, 
-			propMap.exists, 
+			overwrite ? overwriteAll : propMap.exists, 
 			duration, 
 			easing, 
 			onDone == null ? ignore : onDone.bind(ret),
