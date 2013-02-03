@@ -122,12 +122,16 @@ class MemberTransformer {
 		if (superFields == null) {
 			superFields = new Hash();
 			var cl = localClass.superClass;
+			//var chain = [];
 			while (cl != null) {
 				var c = cl.t.get();
+				//chain.push(c.name);
 				for (f in c.fields.get())
 					superFields.set(f.name, true);
 				cl = c.superClass;
 			}
+			//trace(localClass.name + ':' + superFields.toString());
+			//trace(chain);
 		}
 		return superFields.get(name);
 	}

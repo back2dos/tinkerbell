@@ -73,20 +73,28 @@ package tink.markup.formats;
 		}
 		function optimize(target:Expr) {
 			target = target.transform(flatten).transform(unify).transform(print);
+			return wrap(target);
+		}
+		function wrap(target:Expr) {
 			var f = target.func([tmp.toArg()], false).asExpr();
-			return (macro new tink.markup.formats.Fast($f)).finalize(target.pos);
+			return (macro new tink.markup.formats.Fast($f)).finalize(target.pos);			
 		}
-		public function postprocess(e:Expr):Expr {
-			return e.outerTransform(optimize);
-		}
+		public function postprocess(e:Expr):Expr 
+			return 
+				#if display 
+					wrap(e)
+				#else 
+					e.outerTransform(optimize)
+				#end
+		
 		function sOut(s:String):Expr {
 			return out(s.toExpr(here));
 		}
 		static function out(e:Expr):Expr {
 			return (macro tink.markup.formats.Fast.add($e)).finalize(e.pos);
 		}
-		static var IS_LITERAL = out("eval__lit".toExpr());
-		static var IS_OUT = out("$v".resolve());
+		static var IS_LITERAL = out(EConst(CString("NAME__lit")).at());//TODO: using toExpr or $v{} causes compiler error
+		static var IS_OUT = out("EXPR__v".resolve());
 		public function setProp(attr:String, value:Expr, pos:Position):Expr {
 			return [
 				sOut((' ' + attr + '="')),
@@ -118,6 +126,14 @@ package tink.markup.formats;
 				ret.push(sOut(' />'));
 			return ret.toBlock();
 		}
+		static public function build(e:Expr) 
+			return
+				switch (e.expr) {
+					case EMeta( { name : 'html', params: [] }, e):
+						e = TreeCrawler.build(e, new Tags(new Fast()));
+						macro $e.toString();
+					default: e;
+				}
 	}
 #else
 	class Fast {

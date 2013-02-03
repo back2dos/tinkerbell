@@ -133,19 +133,6 @@ class Member {
 		ret.pos = f.pos;
 		ret.kind = f.kind;
 		
-		//switch (f.kind) {
-			//case FFun(f):
-				//switch (f.expr.expr) {
-					//case EMeta(s, e):
-						//f = Reflect.copy(f);
-						//ret.kind = FFun(f);
-						//f.expr = e;
-						//
-					//default:
-				//}
-			//default:
-		//}
-		
 		if (f.meta != null)
 			for (m in f.meta) 
 				ret.addMeta(m.name, m.pos, m.params);
@@ -163,7 +150,6 @@ class Member {
 				case AInline: ret.isBound = true;
 				case AMacro: ret.excluded = true;
 			}
-			
 		return ret;
 	}
 	

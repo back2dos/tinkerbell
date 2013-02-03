@@ -11,13 +11,13 @@ using StringTools;
 using Lambda;
 
 class LoopSugar {
-	static public function process(ctx:ClassBuildContext) 
-		for (member in ctx.members)
+	/*static public function process(ctx:ClassBuildContext) 
+		for (member in ctx.members)//TODO: this should be a syntax plugin, not a class builder plugin
 			switch (member.getFunction()) {
 				case Success(f):
 					f.expr = f.expr.transform(transformLoop);
 				default:
-			}
+			}*/
 	
 	static function getVar(v:Expr):LoopVar 
 		return { name: v.getIdent().sure(), pos: v.pos }	
@@ -39,8 +39,8 @@ class LoopSugar {
 		]
 	];
 	static function numeric(start, end, ?step, ?up = true) {
-		if (step == null) 
-			step = macro 1;
+		if (step == null) step = macro 1;
+		//if (start == null) start = macro 0;
 		return Numeric(start, end, step, up);
 	}
 	static function parseSingle(e:Expr):LoopHead {
@@ -84,6 +84,9 @@ class LoopSugar {
 			}
 	}
 	static function transform(it:Expr, expr:Expr) {
+		return (macro null).finalize().outerTransform(function (_) return doTransform(it, expr));
+	}
+	static function doTransform(it:Expr, expr:Expr) {
 		var loopFlag = temp('loop'),
 			hasJump = false;
 		
@@ -451,7 +454,7 @@ class LoopSugar {
 						returnOutput ? outputVar : [].toBlock()
 					].toBlock(e.pos);
 				default:
-			}
+			}		
 		return	
 			switch (e.expr) {
 				case EFor(it, expr):

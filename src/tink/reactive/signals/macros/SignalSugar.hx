@@ -6,7 +6,7 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class SignalSugar {
-	static var WHEN_NAMED = macro @when(EXPR__target, NAME__data) EXPR__handle;
+	static var WHEN_NAMED = macro @when(NAME__data = EXPR__target) EXPR__handle;
 	static var WHEN = macro @when(EXPR__target) EXPR__handle;
 	static var WITH = macro @with(EXPR__target) EXPR__statements;
 	static var ON = macro @on(EXPR__signal) EXPR__handle;
@@ -14,66 +14,85 @@ class SignalSugar {
 	static function getFuture(target:Expr, handle:Expr, ?name, ?pos) {
 		if (name == null) 
 			name = 'result';
+		/*var t = (macro {
+			var tmp = null;
+			$target(function (d) tmp = d);
+			tmp;
+		}).finalize().typeof().sure().toComplex();*/
 		return target.call(
 			[handle.func([name.toArg()], false).asExpr(null, pos)],
 			pos
 		);
 	}
-	
-	static public function transform(e:Expr) {
-		switch (e.match(ON)) {
-			case Success(match):
-				var signal = match.exprs.signal;
-				var t = signal.pos.makeBlankType();
-				var ret =  
-					if (signal.is(macro : tink.reactive.signals.Signal<$t>)) {
-						var name = 'data';
-						switch (signal.typeof().sure()) {
-							case TType(ref, params):
-								if (ref.toString() == 'tink.reactive.signals.Named')
-									name = params[0].getID().substr(1);
+	static function registerHandler(handle:Expr, signal:Expr) {
+		signal = signal.withPrivateAccess();
+		var t = signal.pos.makeBlankType();
+		var ret =  
+			if (signal.is(macro : tink.reactive.signals.Signal<$t>)) {
+				var name = 'data';
+				var t = (macro {
+					var tmp = null;
+					${signal}.on(function (d) tmp = d);
+					tmp;
+				}).finalize().typeof().sure().toComplex();
+				switch (signal.typeof().sure()) {
+					case TType(ref, params):
+						if (ref.toString() == 'tink.reactive.signals.Named')
+							name = params[0].getID().substr(1);
+					default:
+				}
+				var func = handle.func([name.toArg(t)], false).asExpr();
+				(macro $signal.on($func));
+			}
+			else macro $signal.on(function () $handle);
+		return ret.finalize();
+	}
+	static public function on(e:Expr) 
+		return
+			switch (e.match(ON)) {
+				case Success(match):
+					match.exprs.signal.outerTransform(registerHandler.bind(match.exprs.handle));
+				default: e;
+			}	
+			
+	static public function with(e:Expr) 
+		return
+			switch (e.match(WITH)) {
+				case Success(match):
+					var target = match.exprs.target,
+						statements = 
+							switch (match.exprs.statements) {
+								case { expr: EBlock(exprs) }: exprs;
+								case e: [e]; 
+							}
+					for (s in statements) 						
+						switch (s.match(ON)) {
+							case Success(match):
+								
+								var signal = match.exprs.signal;
+								switch (signal.expr) {
+									case EConst(CIdent(name)): 
+										signal.expr = 'tmp'.resolve().field(name).expr;
+									case ECall({ expr: EConst(CIdent(name)) }, params):
+										signal.expr = 'tmp'.resolve().field(name).call(params).expr;
+									default:
+								}
 							default:
 						}
-						var func = match.exprs.handle.func([name.toArg()], false).asExpr();
-						(macro $signal.on($func));
-					}
-					else macro ${match.exprs.signal}.on(function () ${match.exprs.handle});
-				return ret.finalize(e.pos);
-			default:
-		}
-		for (pattern in [WHEN, WHEN_NAMED])
+					statements.unshift('tmp'.define(target, target.pos));
+					statements.push('tmp'.resolve(target.pos));
+					return statements.toBlock().finalize(e.pos);
+				default: e;
+			}		
+	
+	
+	static public function when(e:Expr) {
+		for (pattern in [WHEN_NAMED, WHEN])
 			switch (e.match(pattern)) {
 				case Success(match):
 					return getFuture(match.exprs.target, match.exprs.handle, match.names.data, e.pos);
 				default:
 			}
-		switch (e.match(WITH)) {
-			case Success(match):
-				var target = match.exprs.target,
-					statements = 
-						switch (match.exprs.statements) {
-							case { expr: EBlock(exprs) }: exprs;
-							case e: [e]; 
-						}
-				for (s in statements) 						
-					switch (s.match(ON)) {
-						case Success(match):
-							
-							var signal = match.exprs.signal;
-							switch (signal.expr) {
-								case EConst(CIdent(name)): 
-									signal.expr = 'tmp'.resolve().field(name).expr;
-								case ECall({ expr: EConst(CIdent(name)) }, params):
-									signal.expr = 'tmp'.resolve().field(name).call(params).expr;
-								default:
-							}
-						default:
-					}
-				statements.unshift('tmp'.define(target, target.pos));
-				statements.push('tmp'.resolve(target.pos));
-				return statements.toBlock().finalize(e.pos);
-			default:
-		}
 		switch (e.expr) {
 			case EMeta( { name: 'when', params: [] }, { expr: ESwitch(over, cases, edef) } ):
 				var arg = String.tempName();
@@ -87,4 +106,5 @@ class SignalSugar {
 		}
 		return e;
 	}
+	
 }
