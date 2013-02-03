@@ -19,7 +19,7 @@ class Init {
 	function getType(t:Null<ComplexType>, inferFrom:Expr) {
 		return
 			if (t == null) 
-				inferFrom.typeof().sure().toComplex();
+				inferFrom.lazyType();
 			else 
 				t;
 	}
