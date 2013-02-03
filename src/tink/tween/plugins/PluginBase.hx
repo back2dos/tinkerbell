@@ -1,11 +1,6 @@
 package tink.tween.plugins;
 import tink.tween.Tween;
 
-/**
- * ...
- * @author back2dos
- */
-
 class PluginBase<T> implements Plugin<T> {
 	var target:T;
 	var start:Float;

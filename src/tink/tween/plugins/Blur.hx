@@ -6,11 +6,6 @@ import tink.collections.maps.ObjectMap;
 import tink.tween.plugins.PluginBase;
 import tink.tween.Tween;
 
-/**
- * ...
- * @author back2dos
- */
-
 @:alias('blurX') class Foo extends PluginBase<DisplayObject> {
 	override function init(_):Float {
 		return Helper.getFilter(target).blurX;

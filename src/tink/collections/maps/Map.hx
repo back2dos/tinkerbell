@@ -1,10 +1,5 @@
 package tink.collections.maps;
 
-/**
- * ...
- * @author back2dos
- */
-
 interface Map<K, V> {
 	function get(k:K):Null<V>;
 	function set(k:K, v:V):V;

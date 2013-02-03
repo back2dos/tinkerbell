@@ -1,4 +1,5 @@
 package tinx.node.io;
+
 import tinx.node.events.Emitter;
 
 typedef NativeIn = {>Emitter,

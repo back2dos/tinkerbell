@@ -1,10 +1,5 @@
 package tink.tween;
 
-/**
- * ...
- * @author back2dos
- */
-
 class TweenTicker {
 	static public function free(group:TweenGroup) {
 		group.hookTo(function (_) return function () { } );

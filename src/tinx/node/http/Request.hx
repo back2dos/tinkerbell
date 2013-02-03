@@ -1,7 +1,6 @@
 package tinx.node.http;
 
 import tinx.node.io.*;
-import tinx.node.Lib;
 
 private typedef NativeRequest = {>NativeIn,
 	var connection:Dynamic;

@@ -1,9 +1,5 @@
 package tink.tween.plugins;
 
-/**
- * ...
- * @author back2dos
- */
 import tink.tween.Tween;
 
 @:autoBuild(tink.tween.macros.PluginMap.register()) interface Plugin<T> {

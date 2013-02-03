@@ -1,10 +1,6 @@
 package tink.collections.maps;
-import tink.lang.Cls;
 
-/**
- * ...
- * @author back2dos
- */
+import tink.lang.Cls;
 
 #if macro
 	class IntMap<T> extends tink.collections.maps.base.IntIDMap<Int, T> {
