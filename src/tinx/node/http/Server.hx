@@ -2,11 +2,11 @@ package tinx.node.http;
 
 import tink.lang.Cls;
 
-import tinx.node.Lib;
+import tinx.node.Runtime;
 import tinx.node.events.*;
 
 class Server implements Cls {
-	var native:Dynamic = Lib.module('http').createServer(handleRequest);
+	var native:Dynamic = Runtime.load('http').createServer(handleRequest);
 	
 	@:signal var request:Request;
 	@:signal var close = new VoidEmission(native, 'close');
