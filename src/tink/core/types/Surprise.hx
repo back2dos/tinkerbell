@@ -26,6 +26,16 @@ class SurpriseTools {
 					}
 			)
 			
+	static public function merge<A, F>(fs:Array<Surprise<A, F>>):Surprise<Array<A>, F> {
+		var ret = function (handler) handler(Success([]));
+		for (f in fs)
+			ret = chain(
+				ret, 
+				function (result:Array<A>) 
+					return map(f, function (a:A) return result.concat([a]))
+			);
+		return ret;
+	}			
 	static public function handle<S, F>(f:Surprise<S, F>, ?process:S->Void, ?recover:F->Void, ?finally:Void->Void) {
 		f(function (outcome) {
 			switch (outcome) {
