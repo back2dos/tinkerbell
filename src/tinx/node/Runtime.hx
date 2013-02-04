@@ -7,7 +7,7 @@ package tinx.node;
 	static public function cwd():String;
 	
 	static public var argv(default, null):Array<String>;
-	static public var exexPath(default, null):String;
+	static public var execPath(default, null):String;
 	
 	static public inline function load<A>(s:String):A
 		return untyped require(s)
