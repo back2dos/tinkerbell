@@ -383,7 +383,10 @@ class LoopSugar {
 				}
 	}
 	static var FIELD = (macro EXPR__owner.NAME__field);
-	static public function transformLoop(e:Expr) {
+	static public function comprehension(e:Expr) {
+		function loop(it, body)
+			return EFor(it, body).at(e.pos);
+			
 		for (pattern in [COMPREHENSION_FOLD, COMPREHENSION_FOLD_VAR])
 			switch (e.match(pattern)) {
 				case Success(match): 
@@ -395,7 +398,7 @@ class LoopSugar {
 					
 					var ret = [
 						result.define(init, init.pos),
-						transform(
+						loop(
 							it, 
 							yield(expr, function (e:Expr) return resultVar.assign(e, e.pos))
 						),					
@@ -411,6 +414,7 @@ class LoopSugar {
 		for (pattern in [COMPREHENSION, COMPREHENSION_TO_CALL, COMPREHENSION_INTO]) 
 			switch (e.match(pattern)) {
 				case Success(match):
+					match.exprs.toFields().log();
 					if (match.exprs.output == null)
 						match.exprs.output = (macro [].push).finalize(e.pos);
 					var it = match.exprs.it,
@@ -447,14 +451,17 @@ class LoopSugar {
 						}
 					return [
 						outputVarName.define(output, output.pos),
-						transform(
+						loop(
 							it, 
 							yield(expr, doYield)
 						),
 						returnOutput ? outputVar : [].toBlock()
 					].toBlock(e.pos);
 				default:
-			}		
+			}
+		return e;
+	}
+	static public function transformLoop(e:Expr) {			
 		return	
 			switch (e.expr) {
 				case EFor(it, expr):
