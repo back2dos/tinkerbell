@@ -414,7 +414,6 @@ class LoopSugar {
 		for (pattern in [COMPREHENSION, COMPREHENSION_TO_CALL, COMPREHENSION_INTO]) 
 			switch (e.match(pattern)) {
 				case Success(match):
-					match.exprs.toFields().log();
 					if (match.exprs.output == null)
 						match.exprs.output = (macro [].push).finalize(e.pos);
 					var it = match.exprs.it,

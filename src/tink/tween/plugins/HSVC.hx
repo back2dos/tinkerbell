@@ -1,10 +1,5 @@
 package tink.tween.plugins;
 
-/**
- * ...
- * @author back2dos
- */
-
 import flash.display.DisplayObject;
 import flash.filters.BitmapFilter;
 import flash.filters.ColorMatrixFilter;
