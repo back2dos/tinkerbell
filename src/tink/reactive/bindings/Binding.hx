@@ -153,7 +153,10 @@ class Binding<T> implements Cls {
 
 private typedef BindingMap = IntHash<Binding<Dynamic>>;
 
-@:generic private class SingleSignaller<T, M:Map<T, BindingMap>> {
+#if !js
+@:generic 
+#end
+private class SingleSignaller<T, M:Map<T, BindingMap>> {
 	var keyMap:M;
 	var revisions:IntHash<Int>;
 	public function new(keyMap) {
