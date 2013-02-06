@@ -131,7 +131,7 @@ class TweenBuilder {
 							if (op.e1.getIterType().isSuccess())
 								macro for (tmp in ${op.e1}) $i{tmp}.addCuePoint(tmp, $e)								
 							else 
-								macro $i{tmp}.addCuepoint(${op.e1}, $e)
+								macro $i{tmp}.addCuePoint(${op.e1}, $e)
 						).finalize(op.pos);
 					default:
 						op.pos.error('cannot handle ' + op.op);
