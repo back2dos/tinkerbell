@@ -2,7 +2,13 @@ package tinx.node;
 
 import tink.core.types.*;
 
-typedef Exception = Dynamic;
+//TODO: this should probably just be called error
+@:native('Error')
+extern class Exception {
+	public var message(default, null):String;
+	public var stack(default, null):String;
+	public function new(message:String):Void;
+}
 typedef UnsafeResult<T> = Outcome<T, Exception>;
 typedef Unsafe<T> = Surprise<T, Exception>;
 typedef Handler<T> = Exception->T->Void;
