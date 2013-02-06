@@ -85,7 +85,7 @@ class MemberTransformer {
 			
 			context.members = prune(context.members);
 		}
-			
+		//TODO: syntactic sugars do not get applied to the constructor this way
 		var ret = (constructor == null || localClass.isInterface) ? [] : [constructor.toHaxe()];
 		for (member in context.members) {
 			if (member.isBound)
