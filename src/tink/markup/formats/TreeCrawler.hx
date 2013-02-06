@@ -28,6 +28,7 @@ class TreeCrawler {
 			if (e == null) e;
 			else
 				switch (e.expr) {
+					case EDisplay(_, _): e;
 					case EParenthesis(expr): 
 						EParenthesis(yield(expr)).at(e.pos);
 					case EUntyped(expr): 

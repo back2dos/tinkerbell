@@ -16,7 +16,7 @@ private class Entry<V> {
 		this.set_value = set_value;
 	}
 }
-class BindableMap<K, V> implements Map<K, V>, implements Cls {
+class BindableMap<K, V> implements Map<K, V> implements Cls {
 	//TODO: measure speedup gained by @:generic
 	static inline var KEYS = 'KEYS';
 	static inline var VALS = 'VALS';

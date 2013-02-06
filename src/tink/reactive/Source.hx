@@ -8,10 +8,10 @@ interface Source<T> {
 	function unwatch(handler:Void->Void):Void;
 	function watch(handler:Void->Void):Void;
 }
-interface Editable<T> implements Source<T> {
+interface Editable<T> extends Source<T> {
 	var value(get_value, set_value):T;
 }
-class PlainSource<T> implements Source<T>, implements Editable<T>, implements Cls {
+class PlainSource<T> implements Source<T> implements Editable<T> implements Cls {
 	var handlers = new FunctionMap<Void->Void, Void->Void>();	
 	public function unwatch(handler:Void->Void):Void {
 		handlers.remove(handler);

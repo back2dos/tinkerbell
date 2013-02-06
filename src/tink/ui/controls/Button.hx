@@ -58,7 +58,7 @@ class SingleStyle {
 	@:bindable var skin:Skin;
 	@:bindable var text:TextStyle;
 }
-class ButtonStyle implements Style, implements Cls {
+class ButtonStyle implements Style implements Cls {
 	@:read var normal = new States<Skin>();
 	@:read var selected:States<Skin> = new States(normal);
 	
@@ -115,7 +115,7 @@ class FlashBehavior {
 	}
 }
 
-class Button extends UIComponent<Sprite, ButtonStyle>, implements Cls {
+class Button extends UIComponent<Sprite, ButtonStyle> implements Cls {
 	var label = new Label();
 	var container = new UIContainer();
 	

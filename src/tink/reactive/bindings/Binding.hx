@@ -11,7 +11,7 @@ import tink.lang.Cls;
 import tink.reactive.Source;
 import tink.collections.maps.Map;
 
-class Watch<T> extends Binding<T>, implements Source<T> {
+class Watch<T> extends Binding<T> implements Source<T> {
 	public var value(get_value, null):T;
 	#if (cpp || php) //works around haXe issue #699
 		override function get_value() return super.get_value()
@@ -20,7 +20,7 @@ class Watch<T> extends Binding<T>, implements Source<T> {
 		super(get);
 	}
 }
-class Control<T> extends Binding<T>, implements Editable<T> {
+class Control<T> extends Binding<T> implements Editable<T> {
 	public var value(get_value, set_value):T;
 	#if (cpp || php) //works around haXe issue #699
 		override function get_value() return super.get_value()

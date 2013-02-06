@@ -12,7 +12,7 @@ import tink.lang.Cls;
 		}
 	}
 #else
-	class StringMap<T> implements Map < String, T >, implements Cls {
+	class StringMap<T> implements Map < String, T > implements Cls {
 		@:forward var h:Hash<T>;
 		public function new() {
 			this.h = new Hash();

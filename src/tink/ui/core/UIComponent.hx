@@ -12,7 +12,7 @@ using tink.ui.core.Metrics;
 
 typedef NativeView = flash.display.DisplayObject;
 
-class UIComponent<V:NativeView, S:Style> implements Cls, implements UILeaf {
+class UIComponent<V:NativeView, S:Style> implements Cls implements UILeaf {
 	var metrics:Metrics;
 	var width = .0;
 	var height = .0;

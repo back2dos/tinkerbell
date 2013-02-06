@@ -2,7 +2,7 @@ package tink.collections.sets;
 
 import tink.lang.Cls;
 
-class ArraySet<T> implements Set<T>, implements Cls {
+class ArraySet<T> implements Set<T> implements Cls {
 	@:forward(iterator, length) inline var a:Array<T> = [];
 	public function new() {}
 		

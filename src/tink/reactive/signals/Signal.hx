@@ -35,7 +35,7 @@ private interface SignalBase<F> implements Cls {
 		handlers.contains(handler) || single.add(handler)
 }
 
-class SimpleSignal<T> implements SignalBase<T->Void>, implements Signal<T> {
+class SimpleSignal<T> implements SignalBase<T->Void> implements Signal<T> {
 	public function new() {}
 	public function fire(data:T) 
 		for (h in all()) h(data)
@@ -47,7 +47,7 @@ class SimpleSignal<T> implements SignalBase<T->Void>, implements Signal<T> {
 	}
 }
 
-class SimpleVoidSignal implements SignalBase<Void->Void>, implements VoidSignal {
+class SimpleVoidSignal implements SignalBase<Void->Void> implements VoidSignal {
 	public function new() {}
 	public function fire() 
 		for (h in all()) h()

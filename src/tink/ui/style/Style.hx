@@ -36,7 +36,7 @@ class Frame implements Cls {
 		return h ? left + right : top + bottom;
 	}
 }
-class ComponentStyle implements Cls, implements Style {
+class ComponentStyle implements Cls implements Style {
 	@:read var margin = new Frame();
 	@:bindable var hAlign = .5;
 	@:bindable var vAlign = .5;

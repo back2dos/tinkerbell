@@ -2,7 +2,7 @@ package tink.collections.maps;
 
 #if flash9
 	import flash.utils.Dictionary;
-	class ObjectMap < K, V > extends Dictionary, implements Map < K, V > {
+	class ObjectMap < K, V > extends Dictionary implements Map < K, V > {
 		public function new() {
 			super(false);
 		}
