@@ -31,7 +31,7 @@ class Syntax {
 			#end
 		],
 		[
-			//LoopSugar.transformLoop,
+			LoopSugar.transformLoop,
 		]
 	];
 	static function apply(rules:Array<Rule>, e:Expr) {
