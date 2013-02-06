@@ -7,6 +7,7 @@ import tinx.node.events.*;
 import tinx.node.*;
 
 using tink.reactive.signals.Signal;
+using tinx.node.Exception;
 
 private typedef In = NativeIn;//TODO: this circumvents some weird bug
 
@@ -28,11 +29,13 @@ class InStream implements Cls {
 			);
 		return encoded.get(encoding);
 	}
-	public function get(handler:Buffer->Void):Void {
+	public function all(handler:UnsafeResult<Buffer>->Void):Void {
 		var bufs:Array<Buffer> = [];
 		@on(data) 
 			bufs.push(data);
+		@on(error)
+			handler(Failure(error));
 		@on(end) 
-			handler(Buffer.concat(bufs));
+			handler(Success(Buffer.concat(bufs)));
 	}
 }
