@@ -1,5 +1,6 @@
 package tinx.node.mongo.lang;
 
+import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
@@ -118,12 +119,29 @@ class Projection {
 		ret.typeof().sure();
 		return ret;
 	}
-	static public function typeCheck(rep:Node, t:TypeInfo):Expr 
+	static public function typeCheck(rep:Node, info:TypeInfo):Expr 
 		return
-			if (rep.empty()) 
-				throw 'NI'
+			if (rep.empty()) {
+				var t = Context.toComplexType(info.t.reduce());
+				if (t == null) info.blank();
+				else switch (t) {
+					case TAnonymous(fields):
+						if (!info.has('_id'))
+							fields.push( { 
+								name : '_id', 
+								kind: FVar(macro : tinx.node.mongo.ObjectID), 
+								pos: info.pos
+							});
+						ECheckType(macro null, t).at();
+					case TExtend(p, fields):
+						p;
+						fields;
+						ECheckType(macro null, t).at();
+					default: info.blank();
+				}
+			}
 			else 
-				buildProto(rep, t)
+				buildProto(rep, info)
 			
 	static function doCompile(rep:Node, prefix:Array<String>, field:String->Expr->Void) {
 		for (name in rep.keys()) {

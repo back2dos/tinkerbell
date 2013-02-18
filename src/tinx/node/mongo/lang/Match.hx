@@ -48,7 +48,7 @@ private class MatchTyper {
 		}
 	}		
 	static function checkField(path:Path, s:MatchField, info:TypeInfo) {
-		var e = info.resolve(path);
+		var e = info.resolve(path).blank(path.last.pos);
 		switch (s) {
 			case Eq(v), NotEq(v), Gt(v), Gte(v), Lt(v), Lte(v):
 				var op = if (e.typeof().sure().getID() == 'Date') OpEq else OpLt;
@@ -150,7 +150,7 @@ private class Parser {
 
 private class Generator {
 	static var map = {
-		NotEq: 'neq',
+		NotEq: 'ne',
 		ExistNot: 'exists',
 		NotIn: 'nin'
 	}

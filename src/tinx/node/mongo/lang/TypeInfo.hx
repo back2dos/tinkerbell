@@ -9,7 +9,7 @@ using tink.core.types.Outcome;
 class TypeInfo {
 	var fields:Hash<TypeInfo>;
 	public var t(default, null):Type;
-	var pos:Position;
+	public var pos(default, null):Position;
 	var ct:ComplexType;
 	function new(t, pos, ?nonRoot) {
 		this.t = t;
@@ -46,8 +46,11 @@ class TypeInfo {
 					pos.error('type $other not supported for collections');
 		}
 	}
-	//public function has(name) 
-		//return fields == null || fields.exists(name)
+	public function getFields()
+		return fields.keys()
+		
+	public function has(name) 
+		return fields != null || fields.exists(name)
 	
 	public function isArray()
 		return fields.exists('[]')
@@ -63,18 +66,19 @@ class TypeInfo {
 				pos.error('unknown field $name')
 		
 	public function resolve(path:Path) {
-		var ret = blank(path.first.pos);
+		var ret = this;
 		for (p in path)
-			ret = ret.field(p.s, p.pos);
+			ret = ret.get(p.s, p.pos);
 		return ret;
 	}
 	public function check(path:Path, value:Null<Expr>) {
 		if (value == null) 
 			throw 'NI';
 		else 
-			ECheckType(value, resolve(path).lazyType()).at(path.last.pos).typeof().sure();
+			ECheckType(value, resolve(path).blank(path.getPos(this.pos)).lazyType()).at(path.getPos(this.pos)).typeof().sure();
 	}
 	static public function getInfo(e:Expr) {
+		//e.log();
 		return 
 			switch (e.typeof().sure().reduce()) {
 				case TInst(_, params): new TypeInfo(params[0], e.pos);

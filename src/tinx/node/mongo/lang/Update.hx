@@ -1,10 +1,12 @@
 package tinx.node.mongo.lang;
 
 using Type;
+import haxe.macro.Context;
 import haxe.macro.Expr;
 
 using tink.macro.tools.MacroTools;
 using StringTools;
+using Lambda;
 
 typedef DocUpdate = Array<FieldUpdate>;
 typedef FieldUpdate = {
@@ -20,7 +22,7 @@ enum FieldUpdateOp {
 	BitXor(v:ExprOf<Int>);
 	Push(values:Array<Expr>);
 	Pull(values:Array<Expr>);
-	AddToSet(value:Expr);
+	AddToSet(values:Array<Expr>);
 	Pop(?shift:Bool);
 }
 private class Parser {
@@ -57,11 +59,8 @@ private class Parser {
 									e.reject('$op must not have any arguments');
 								Pop(op == 'shift');
 							case 'push': Push(params); 
-							case 'remove': Push(params); 
-							case 'add': 
-								if (params.length != 1) 
-									e.reject('add must have one argument exactly');
-								AddToSet(params[0]);
+							case 'remove': Pull(params); 
+							case 'add': AddToSet(params);
 							default: e.reject('unknown operation $op');
 						}
 					);
@@ -78,8 +77,10 @@ private class Generator {
 					fieldOp('pop', f.field, shift ? macro -1 : macro 1);
 				case Unset:
 					fieldOp('unset', f.field, macro 1);
-				case Set(v), Inc(v), AddToSet(v):
+				case Set(v), Inc(v), AddToSet([v]):
 					fieldOp(f.op.enumConstructor(), f.field, v);
+				case AddToSet(values):
+					fieldOp('addToSet', f.field, macro { "$each" : $a{values} } );
 				case BitAnd(v), BitOr(v), BitXor(v):
 					fieldOp('bit', f.field, EObjectDecl([field(f.op.enumConstructor().substr(3), v)]).at());
 				case Push(values), Pull(values):
@@ -126,9 +127,35 @@ private class Generator {
 		]).at();
 	}
 }
+private class Typer {
+	static public function type(f:FieldUpdate, t:TypeInfo) {
+		switch (f.op) {
+			case BitOr(v), BitAnd(v), BitXor(v), Set(v), Inc(v):
+				t.check(f.field, v);
+			case Unset:
+				t.check(f.field, null);
+			case Push(values), Pull(values), AddToSet(values):
+				var t = t.resolve(f.field);
+				if (!t.isArray())
+					f.field.last.pos.error('cannot perform an array operation on '+Context.toComplexType(t.t).toString());
+				t.check(new Path([]), values.toArray());
+			case Pop(_):
+				var t = t.resolve(f.field);
+				if (!t.isArray())
+					f.field.last.pos.error('cannot perform an array operation on '+Context.toComplexType(t.t).toString());
+		}
+	}
+}
 class Update {
-	static public function gen(d)
-		return new Generator(d).gen()
-	static public function parse(a) 
-		return Parser.parse(a)
+	static public function parse(input:Array<Expr>) 
+		return Parser.parse(input)
+	static public function typeCheck(rep:DocUpdate, t:TypeInfo) {
+		//for (f in rep)
+			//Typer.type(
+		rep.iter(Typer.type.bind(_, t));
+		return null;
+	}
+	static public function generate(rep:DocUpdate):Expr
+		return new Generator(rep).gen()
+		
 }

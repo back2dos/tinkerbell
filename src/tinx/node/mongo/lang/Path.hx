@@ -23,6 +23,10 @@ class Path {
 	inline function get_length() return parts.length
 	inline function get_last() return get(length-1)
 	inline function get_first() return get(0)
+	public function getPos(?fallback) 
+		return
+			if (length == 0) fallback
+			else last.pos
 	
 	public inline function join(sep)
 		return parts.join(sep)
