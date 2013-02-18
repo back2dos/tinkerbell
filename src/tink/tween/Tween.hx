@@ -86,7 +86,7 @@ class Tween<T> {
 	}
 
 	static var targetMap = new ObjectMap<Dynamic, Array<Tween<Dynamic>>>();
-	static public function byTarget<A>(target:A):Iterable<A> {//returning Iterable here because we don't want people to screw around with this
+	static public function byTarget<A>(target:A):Iterable<Tween<A>> {//returning Iterable here because we don't want people to screw around with this
 		var ret = targetMap.get(target);
 		if (ret == null)
 			ret = targetMap.set(target, []);
