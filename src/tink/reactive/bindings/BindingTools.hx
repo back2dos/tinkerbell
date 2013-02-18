@@ -13,7 +13,7 @@ class WatchHelper {
 	}
 }
 class FuncBindings {
-	macro static public function bind<A>(func:ExprOf < A->Dynamic > , arg:ExprOf<A>) {
+	macro static public function bindExpr<A>(func:ExprOf < A->Void > , arg:ExprOf<A>) {
 		var src = Helper.makeSource(arg);
 		return (macro { 
 			var tmpSrc = $src;
@@ -29,7 +29,6 @@ class FieldBindings {
 		var fieldName = field.getName().sure();
 		var source = Helper.makeSource(value),
 			target = owner.field(fieldName, field.pos);
-		
 		return
 			if (target.is(Helper.EDITABLE)) {
 				if (!source.is(Helper.EDITABLE)) 
