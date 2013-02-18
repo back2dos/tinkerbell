@@ -16,7 +16,7 @@ interface Signal<T> {
 	function un(handler:T->Void):Void;
 	function once(handler:T->Void):Void;
 }
-private interface SignalBase<F> implements Cls {
+private interface SignalBase<F> extends Cls {
 	var handlers:ArraySet<F> = new ArraySet();
 	var single:ArraySet<F> = new ArraySet();
 	public function on(handler:F):Void {
