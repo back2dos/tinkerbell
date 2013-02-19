@@ -39,8 +39,14 @@ class BindableArray<T> implements Cls {
 	public function insert(pos, x) 
 		onChange(data.insert(pos, x))
 	
+	@:bindable(CHANGE) public function indexOf(item) {
+		for (i in 0...data.length)
+			if (data[i] == item) return i;
+		return -1;
+	}
+	
 	@:bindable(CHANGE) public function slice(pos, ?end) 
-		return data.slice(pos, end)
+		return data.slice(pos, end == null ? data.length : end)
 	
 	@:bindable(CHANGE) public function get(index:Int) 
 		return data[index]
