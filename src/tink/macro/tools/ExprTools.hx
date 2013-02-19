@@ -472,7 +472,7 @@ class ExprTools {
 				expr.pos.makeFailure(e);
 			}				
 	}	
-	static public inline function cond(cond:ExprOf<Bool>, cons:Expr, ?alt:Expr, ?pos) 
+	static public inline function cond(cond:Expr, cons:Expr, ?alt:Expr, ?pos) 
 		return EIf(cond, cons, alt).at(pos)
 		
 	static public function isWildcard(e:Expr) 
