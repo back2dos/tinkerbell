@@ -82,9 +82,9 @@ package tink.markup.formats;
 		public function postprocess(e:Expr):Expr 
 			return 
 				#if display 
-					wrap(e)
+					wrap(e);
 				#else 
-					e.outerTransform(optimize)
+					e.outerTransform(optimize);
 				#end
 		
 		function sOut(s:String):Expr {

@@ -31,9 +31,9 @@ class Tags {
 	public function new(plugin) {
 		this.plugin = plugin;
 	}
-	public function init(pos:Position):Null<Expr> return plugin.init(pos)
-	public function finalize(pos:Position):Null<Expr> return plugin.finalize(pos)
-	public function postprocess(e:Expr):Expr return plugin.postprocess(e)
+	public function init(pos:Position):Null<Expr> return plugin.init(pos);
+	public function finalize(pos:Position):Null<Expr> return plugin.finalize(pos);
+	public function postprocess(e:Expr):Expr return plugin.postprocess(e);
 
 	function getTag(src:Expr) {
 		return

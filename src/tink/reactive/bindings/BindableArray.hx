@@ -31,13 +31,13 @@ class BindableArray<T> implements Cls {
 		return length;
 	}
 	public function remove(x:T):Bool 
-		return data.remove(x) && onChange(true)
+		return data.remove(x) && onChange(true);
 	
 	public function shift():Null<T> 
-		return onChange(data.shift())
+		return onChange(data.shift());
 	
 	public function insert(pos, x) 
-		onChange(data.insert(pos, x))
+		onChange(data.insert(pos, x));
 	
 	@:bindable(CHANGE) public function indexOf(item) {
 		for (i in 0...data.length)
@@ -46,17 +46,17 @@ class BindableArray<T> implements Cls {
 	}
 	
 	@:bindable(CHANGE) public function slice(pos, ?end) 
-		return data.slice(pos, end == null ? data.length : end)
+		return data.slice(pos, end == null ? data.length : end);
 	
 	@:bindable(CHANGE) public function get(index:Int) 
-		return data[index]
+		return data[index];
 	
 	public function set(index:Int, x:T) 
-		return onChange(data[index] = x)
+		return onChange(data[index] = x);
 	
 	@:bindable(CHANGE) public function iterator() 
-		return data.iterator()
+		return data.iterator();
 	
 	@:bindable(CHANGE) public function toArray()
-		return data.copy()
+		return data.copy();
 }

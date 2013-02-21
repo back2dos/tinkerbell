@@ -9,7 +9,7 @@ package tink.lang.macros;
 class ClassBuilder {
 	macro static public function buildFields():Array<haxe.macro.Expr.Field> 
 		return 
-			new MemberTransformer(Context.getLocalClass().get().meta.get().getValues(':verbose').length > 0).build(PLUGINS)
+			new MemberTransformer(Context.getLocalClass().get().meta.get().getValues(':verbose').length > 0).build(PLUGINS);
 	
 	#if macro
 		static function noBindings(ctx:ClassBuildContext) {
@@ -38,6 +38,9 @@ class ClassBuilder {
 				#end
 				PartialImpl.process,
 				Syntax.process,
+				#if !display 
+					//StackAlloc.process,
+				#end
 			];	
 	#end
 }

@@ -39,21 +39,17 @@ class Syntax {
 			e = rule(e);
 		return e;
 	}
-	//static function bounce(e:Expr)
-		//return (macro null).finalize(e.pos).outerTransform(function (_) return transform(e))
 	static public function process(ctx:ClassBuildContext) {
 		for (m in ctx.members)
 			switch (m.getFunction()) {
 				case Success(f):
-					//var e = f.expr;
 					if (f.expr != null)
-						//f.expr = bounce(f.expr);
 						f.expr = transform(f.expr);
 				default:
 			}
 	}
 	static function transformBody(e:Expr) 
-		return transform(e)
+		return transform(e);
 		
 	static function transform(e:Expr) {
 		for (rules in rules)

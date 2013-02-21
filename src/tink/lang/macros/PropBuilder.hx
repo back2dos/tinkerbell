@@ -12,7 +12,7 @@ class PropBuilder {
 	static public inline var READ = ':read';
 	
 	static public function process(ctx) 
-		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members)
+		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members);
 	
 	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
 		var get = 'get_' + m.name,

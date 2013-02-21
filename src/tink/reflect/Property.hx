@@ -84,7 +84,7 @@ import tink.devtools.Benchmark;
 			}
 			return ret;
 		}
-		static function __init__() Store.properties({})
+		static function __init__() Store.properties({});
 	}
 
 	private class Access {

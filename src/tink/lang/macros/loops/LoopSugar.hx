@@ -210,7 +210,7 @@ class LoopSugar {
 		#if display
 			return standardIter(e);
 		#else
-			var ret = FastLoops.iter(e);
+			var ret = null;// FastLoops.iter(e);
 			return
 				if (ret == null) standardIter(e);
 				else ret;

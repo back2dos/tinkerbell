@@ -124,7 +124,7 @@ class TweenParams<T> implements Cls {
 	public var overwrite = false;
 	public function new() {}
 	static function ignore() { }
-	static function overwriteAll(_) return true
+	static function overwriteAll(_) return true;
 	public function start(group, target:T):Tween<T> {
 		var ret = RealTween.get();
 		ret.init(

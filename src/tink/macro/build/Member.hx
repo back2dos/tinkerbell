@@ -64,7 +64,7 @@ class Member {
 			else return Failure();
 	}
 	public function toString() 
-		return new Printer().printField(this.toHaxe())
+		return new Printer().printField(this.toHaxe());
 	
 	public function toHaxe():Field {
 		return {

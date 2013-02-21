@@ -50,7 +50,7 @@ class Constructor {
 		if (prepend)
 			this.nuStatements.unshift(e)
 		else
-			this.nuStatements.push(e)
+			this.nuStatements.push(e);
 			
 	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool, ?t:ComplexType) {
 		if (e == null) {
