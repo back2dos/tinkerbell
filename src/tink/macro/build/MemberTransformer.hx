@@ -22,15 +22,15 @@ typedef ClassBuildContext = {
 }
 class MemberTransformer {
 	
-	var members:Hash<Member>;
-	var macros:Hash<Field>;
+	var members:Map<String,Member>;
+	var macros:Map<String,Field>;
 	var constructor:Null<Constructor>;
 	var localClass:ClassType;
-	var superFields:Hash<Bool>;
+	var superFields:Map<String,Bool>;
 	var verbose:Bool;
 	public function new(?verbose) { 
-		members = new Hash();
-		macros = new Hash();
+		members = new Map();
+		macros = new Map();
 		localClass = Context.getLocalClass().get();
 		this.verbose = verbose;
 	}
@@ -120,7 +120,7 @@ class MemberTransformer {
 	}
 	function hasSuperField(name:String) {
 		if (superFields == null) {
-			superFields = new Hash();
+			superFields = new Map();
 			var cl = localClass.superClass;
 			//var chain = [];
 			while (cl != null) {

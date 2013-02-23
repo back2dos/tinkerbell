@@ -49,7 +49,7 @@ class PartialImpl {
 			for (i in ctx.cls.interfaces)
 				for (f in TInst(i.t, i.params).getFields(true).sure()) {
 					var index = 0,
-						paramMap = new Hash();
+						paramMap = new Map();
 					for (p in i.t.get().params)
 						paramMap.set(p.name, i.params[index].toComplex(true));
 					if (!ctx.has(f.name)) {

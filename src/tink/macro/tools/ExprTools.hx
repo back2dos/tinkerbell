@@ -28,7 +28,7 @@ class ExprTools {
 		return ECheckType(e, c).at(e.pos).typeof().isSuccess();
 	}
 	static var annotCounter = 0;
-	static var annotations = new IntHash<Dynamic>();
+	static var annotations = new Map<Int,Dynamic>();
 	static public function tag<D>(e:Expr, data:D) {
 		annotations.set(annotCounter, data);
 		return [(annotCounter++).toExpr(e.pos), e].toBlock(e.pos);

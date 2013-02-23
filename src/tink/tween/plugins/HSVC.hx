@@ -141,7 +141,7 @@ private class ColorMatrixHelper implements Cls {
 		if (saturation != 0) ret.adjustSaturation(saturation);
 		return ret.toArray();
 	}
-	static var archive = new Hash<ColorMatrixHelper>();
+	static var archive = new Map<StringColorMatrixHelper>();
 	public function release() {
 		if (--count == 0) {
 			map.delete(target);

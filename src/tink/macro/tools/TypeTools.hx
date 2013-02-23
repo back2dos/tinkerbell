@@ -14,7 +14,7 @@ using tink.macro.tools.FunctionTools;
 using tink.core.types.Outcome;
 
 class TypeTools {
-	static var types = new IntHash<Void->Type>();
+	static var types = new Map<Int,Void->Type>();
 	static var idCounter = 0;
 	macro static public function getType(id:Int):Type {
 		return types.get(id)();
@@ -42,7 +42,7 @@ class TypeTools {
 					throw 'not implemented';
 			}		
 	}
-	static function getDeclaredFields(t:ClassType, out:Array<ClassField>, marker:Hash<Bool>) {
+	static function getDeclaredFields(t:ClassType, out:Array<ClassField>, marker:Map<String,Bool>) {
 		for (field in t.fields.get()) 
 			if (!marker.exists(field.name)) {
 				marker.set(field.name, true);
@@ -56,7 +56,7 @@ class TypeTools {
 				getDeclaredFields(t.superClass.t.get(), out, marker);		
 	}
 	
-	static var fieldsCache = new Hash();
+	static var fieldsCache = new Map();
 	static public function getFields(t:Type, ?substituteParams = true) 
 		return
 			switch (reduce(t)) {
@@ -65,7 +65,7 @@ class TypeTools {
 						c = c.get();
 					if (!fieldsCache.exists(id)) {
 						var fields = [];
-						getDeclaredFields(c, fields, new Hash());
+						getDeclaredFields(c, fields, new Map());
 						fieldsCache.set(id, fields.asSuccess());
 					}
 					var ret = fieldsCache.get(id);

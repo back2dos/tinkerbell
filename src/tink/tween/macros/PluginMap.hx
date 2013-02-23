@@ -11,7 +11,7 @@ import haxe.macro.Type;
 using tink.macro.tools.MacroTools;
 
 class PluginMap {
-	static var plugins = new Hash<PluginStack>();
+	static var plugins = new Map<StringPluginStack>();
 	macro static public function register():Array<Field> {
 		var cl = Context.getLocalClass().get();
 		if (cl.isInterface) return null;

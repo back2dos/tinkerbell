@@ -1,11 +1,11 @@
 package tink.collections.maps.base;
 
 class StringIDMap<K, V> implements tink.collections.maps.Map<K, V> {
-	var keyMap:Hash<K>;
-	var valMap:Hash<V>;
+	var keyMap:Map<StringK>;
+	var valMap:Map<StringV>;
 	public function new() {
-		this.keyMap = new Hash();
-		this.valMap = new Hash();
+		this.keyMap = new Map();
+		this.valMap = new Map();
 	}
 	function transform(key:K):String {
 		return throw "base";

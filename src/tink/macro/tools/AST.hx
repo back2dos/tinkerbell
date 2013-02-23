@@ -22,11 +22,11 @@ private class Builder {
 	var here:Expr;
 	var varName:String;
 	var posDecl:Expr;
-	var temps:Hash<String>;
+	var temps:Map<String,String>;
 	var subst:Bool;
 	static var NULL = EConst(CIdent('null'));
 	public function new(pos:Expr, ?noSubst = false) {
-		this.temps = new Hash();
+		this.temps = new Map();
 		this.subst = !noSubst;
 		var varName = String.tempName();
 		var posExpr = 
