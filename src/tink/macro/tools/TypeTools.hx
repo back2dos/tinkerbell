@@ -141,11 +141,11 @@ class TypeTools {
 			}
 	
 	static public function toString(t:ComplexType) 
-		return new Printer().printComplexType(t)
+		return new Printer().printComplexType(t);
 	
 	static public function isSubTypeOf(t:Type, of:Type, ?pos) 
 		return 
-			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof()
+			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof();
 	
 	static public function isDynamic(t:Type) 
 		return switch(reduce(t)) {
@@ -157,7 +157,7 @@ class TypeTools {
 		return [
 			'_'.define(t, pos),
 			'_'.resolve(pos)
-		].toBlock(pos).typeof()
+		].toBlock(pos).typeof();
 	
 	static public inline function instantiate(t:TypePath, ?args, ?pos) {
 		return ENew(t, args == null ? [] : args).at(pos);
@@ -176,13 +176,13 @@ class TypeTools {
 			pack: parts,
 			params: params == null ? [] : params,
 			sub: sub
-		}
+		};
 	}
 	static public inline function asComplexType(s:String, ?params) 
-		return TPath(asTypePath(s, params))
+		return TPath(asTypePath(s, params));
 	
 	static public inline function reduce(type:Type, ?once) 
-		return Context.follow(type, once)
+		return Context.follow(type, once);
 	
 	static public function isVar(field:ClassField) {
 		return switch (field.kind) {
@@ -202,7 +202,7 @@ class TypeTools {
 		return ret;
 	}
 	static function baseToComplex(t:BaseType, params:Array<Type>) 
-		return asComplexType(t.module + '.' + t.name, paramsToComplex(params))
+		return asComplexType(t.module + '.' + t.name, paramsToComplex(params));
 	
 	static public function toComplex(type:Type, ?pretty = false):ComplexType {
 		return 

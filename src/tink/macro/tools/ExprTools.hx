@@ -134,7 +134,7 @@ class ExprTools {
 			});
 	}
 	static public function partial<D>(c:ComplexType, data:D, ?pos) 
-		return ECheckType(macro null, c).at(pos).tag(data)
+		return ECheckType(macro null, c).at(pos).tag(data);
 	
 	static public function substitute(source:Expr, vars:Dynamic<Expr>, ?pos) 
 		return 
@@ -148,12 +148,12 @@ class ExprTools {
 								e;
 						default: e;
 					}
-			}, pos)
+			}, pos);
 	
 	static public inline function ifNull(e:Expr, fallback:Expr) 
 		return
-			if (e.getIdent().equals('null')) fallback
-			else e
+			if (e.getIdent().equals('null')) fallback;
+			else e;
 	
 	static public function substParams(source:Expr, subst:ParamSubst, ?pos):Expr 
 		return crawl(
@@ -168,10 +168,10 @@ class ExprTools {
 							else c;
 						default: c;
 					}
-			, pos)
+			, pos);
 	
 	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr 
-		return crawl(source, transformer, function (t) return t, pos)
+		return crawl(source, transformer, function (t) return t, pos);
 	
 	static function crawlArray(a:Array<Dynamic>, transformer:Expr->Expr, retyper:ComplexType->ComplexType, pos:Position):Array<Dynamic> {
 		var ret = [];
@@ -187,7 +187,7 @@ class ExprTools {
 				for (i in target)
 					t = i;
 				t;
-			}).finalize(target.pos).typeof()
+			}).finalize(target.pos).typeof();
 	
 	static function crawl(target:Dynamic, transformer:Expr->Expr, retyper:ComplexType->ComplexType, pos:Position):Dynamic {
 		return
@@ -364,7 +364,7 @@ class ExprTools {
 	}
 	
 	static public inline function iterate(target:Expr, body:Expr, ?loopVar:String = 'i', ?pos:Position) 
-		return EFor(EIn(loopVar.resolve(pos), target).at(pos), body).at(pos)
+		return EFor(EIn(loopVar.resolve(pos), target).at(pos), body).at(pos);
 	
 	static public function toFields(object:Dynamic<Expr>, ?pos:Position) {
 		var args = [];
@@ -379,55 +379,55 @@ class ExprTools {
 	}
 	
 	static public inline function reject(e:Expr, ?reason:String = 'cannot handle expression'):Dynamic 
-		return e.pos.error(reason)
+		return e.pos.error(reason);
 	
 	static public inline function toString(e:Expr):String 
-		return tink.macro.tools.Printer.printExpr('', e)
+		return tink.macro.tools.Printer.printExpr('', e);
 		
 	static public inline function at(e:ExprDef, ?pos:Position) 
 		return {
 			expr: e,
 			pos: pos.getPos()
-		}
+		};
 	
 	static public inline function instantiate(s:String, ?args:Array<Expr>, ?params:Array<TypeParam>, ?pos:Position) 
-		return s.asTypePath(params).instantiate(args, pos)
+		return s.asTypePath(params).instantiate(args, pos);
 	
 	static public inline function assign(target:Expr, value:Expr, ?op:Binop, ?pos:Position) 
-		return binOp(target, value, op == null ? OpAssign : OpAssignOp(op), pos)
+		return binOp(target, value, op == null ? OpAssign : OpAssignOp(op), pos);
 	
 	static public inline function define(name:String, ?init:Expr, ?typ:ComplexType, ?pos:Position) 
-		return at(EVars([ { name:name, type: typ, expr: init } ]), pos)
+		return at(EVars([ { name:name, type: typ, expr: init } ]), pos);
 	
 	static public inline function add(e1, e2, ?pos) 
-		return binOp(e1, e2, OpAdd, pos)
+		return binOp(e1, e2, OpAdd, pos);
 		
 	static public inline function unOp(e, op, ?postFix = false, ?pos) 
-		return EUnop(op, postFix, e).at(pos)
+		return EUnop(op, postFix, e).at(pos);
 	
 	static public inline function binOp(e1, e2, op, ?pos) 
-		return EBinop(op, e1, e2).at(pos)
+		return EBinop(op, e1, e2).at(pos);
 		
 	static public inline function field(e, field, ?pos) 
-		return EField(e, field).at(pos)
+		return EField(e, field).at(pos);
 		
 	static public inline function call(e, ?params, ?pos) 
-		return ECall(e, params == null ? [] : params).at(pos)
+		return ECall(e, params == null ? [] : params).at(pos);
 		
 	static public inline function toExpr(v:Dynamic, ?pos:Position) 
-		return Context.makeExpr(v, pos.getPos())
+		return Context.makeExpr(v, pos.getPos());
 		
 	static public inline function toArray(exprs:Iterable<Expr>, ?pos) 
-		return EArrayDecl(exprs.array()).at(pos)
+		return EArrayDecl(exprs.array()).at(pos);
 		
 	static public inline function toMBlock(exprs, ?pos) 
-		return EBlock(exprs).at(pos)
+		return EBlock(exprs).at(pos);
 		
 	static public inline function toBlock(exprs:Iterable<Expr>, ?pos) 
-		return toMBlock(Lambda.array(exprs), pos)
+		return toMBlock(Lambda.array(exprs), pos);
 		
 	static inline function isUC(s:String) 
-		return StringTools.fastCodeAt(s, 0) < 0x5B
+		return StringTools.fastCodeAt(s, 0) < 0x5B;
 		
 	static public function drill(parts:Array<String>, ?pos:Position, ?target:Expr) {
 		if (target == null) 
@@ -438,7 +438,7 @@ class ExprTools {
 	}
 	
 	static public inline function resolve(s:String, ?pos) 
-		return drill(s.split('.'), pos)
+		return drill(s.split('.'), pos);
 
 		
 	static var contexts = new List();
@@ -473,7 +473,7 @@ class ExprTools {
 			}				
 	}	
 	static public inline function cond(cond:ExprOf<Bool>, cons:Expr, ?alt:Expr, ?pos) 
-		return EIf(cond, cons, alt).at(pos)
+		return EIf(cond, cons, alt).at(pos);
 		
 	static public function isWildcard(e:Expr) 
 		return 
@@ -546,7 +546,7 @@ class ExprTools {
 	static inline var EMPTY_EXPRESSION = "expression expected";	
 	
 	static public function match(expr:Expr, pattern:Expr) 
-		return new Matcher().match(expr, pattern)
+		return new Matcher().match(expr, pattern);
 	
 }
 
@@ -554,8 +554,8 @@ private class Matcher {
 	var exprs:Dynamic<Expr>;
 	var strings:Dynamic<String>;
 	public function new() {
-		this.exprs = {}
-		this.strings = {}
+		this.exprs = {};
+		this.strings = {};
 	}
 	public function match(expr:Expr, pattern:Expr) {
 		return
