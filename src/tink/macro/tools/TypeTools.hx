@@ -14,7 +14,7 @@ using tink.macro.tools.FunctionTools;
 using tink.core.types.Outcome;
 
 class TypeTools {
-	static var types = new IntHash<Void->Type>();
+	static var types = new Map<Int,Void->Type>();
 	static var idCounter = 0;
 	macro static public function getType(id:Int):Type {
 		return types.get(id)();
@@ -42,7 +42,7 @@ class TypeTools {
 					throw 'not implemented';
 			}		
 	}
-	static function getDeclaredFields(t:ClassType, out:Array<ClassField>, marker:Hash<Bool>) {
+	static function getDeclaredFields(t:ClassType, out:Array<ClassField>, marker:Map<String,Bool>) {
 		for (field in t.fields.get()) 
 			if (!marker.exists(field.name)) {
 				marker.set(field.name, true);
@@ -56,7 +56,7 @@ class TypeTools {
 				getDeclaredFields(t.superClass.t.get(), out, marker);		
 	}
 	
-	static var fieldsCache = new Hash();
+	static var fieldsCache = new Map();
 	static public function getFields(t:Type, ?substituteParams = true) 
 		return
 			switch (reduce(t)) {
@@ -65,7 +65,7 @@ class TypeTools {
 						c = c.get();
 					if (!fieldsCache.exists(id)) {
 						var fields = [];
-						getDeclaredFields(c, fields, new Hash());
+						getDeclaredFields(c, fields, new Map());
 						fieldsCache.set(id, fields.asSuccess());
 					}
 					var ret = fieldsCache.get(id);
@@ -141,11 +141,11 @@ class TypeTools {
 			}
 	
 	static public function toString(t:ComplexType) 
-		return new Printer().printComplexType(t)
+		return new Printer().printComplexType(t);
 	
 	static public function isSubTypeOf(t:Type, of:Type, ?pos) 
 		return 
-			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof()
+			ECheckType(ECheckType('null'.resolve(), toComplex(t)).at(pos), toComplex(of)).at(pos).typeof();
 	
 	static public function isDynamic(t:Type) 
 		return switch(reduce(t)) {
@@ -157,7 +157,7 @@ class TypeTools {
 		return [
 			'_'.define(t, pos),
 			'_'.resolve(pos)
-		].toBlock(pos).typeof()
+		].toBlock(pos).typeof();
 	
 	static public inline function instantiate(t:TypePath, ?args, ?pos) {
 		return ENew(t, args == null ? [] : args).at(pos);
@@ -176,13 +176,13 @@ class TypeTools {
 			pack: parts,
 			params: params == null ? [] : params,
 			sub: sub
-		}
+		};
 	}
 	static public inline function asComplexType(s:String, ?params) 
-		return TPath(asTypePath(s, params))
+		return TPath(asTypePath(s, params));
 	
 	static public inline function reduce(type:Type, ?once) 
-		return Context.follow(type, once)
+		return Context.follow(type, once);
 	
 	static public function isVar(field:ClassField) {
 		return switch (field.kind) {
@@ -202,7 +202,7 @@ class TypeTools {
 		return ret;
 	}
 	static function baseToComplex(t:BaseType, params:Array<Type>) 
-		return asComplexType(t.module + '.' + t.name, paramsToComplex(params))
+		return asComplexType(t.module + '.' + t.name, paramsToComplex(params));
 	
 	static public function toComplex(type:Type, ?pretty = false):ComplexType {
 		return 
@@ -218,7 +218,11 @@ class TypeTools {
 						if(t.isPrivate)
 							return toComplex(type, false);
 						switch (t.kind) {
-							case KTypeParameter(_): asComplexType(t.name);
+							#if haxe3
+							case KTypeParameter(constraints): asComplexType(t.name, paramsToComplex(constraints));
+							#else
+							case KTypeParameter: asComplexType(t.name);
+							#end
 							default: baseToComplex(t, params);
 						}
 					case TFun(args, ret):
@@ -233,6 +237,15 @@ class TypeTools {
 						baseToComplex(t, params);
 					case TLazy(f):
 						toComplex(f(), true);
+					#if haxe3
+					case TAbstract(t, params):
+						var t = t.get();
+
+						if(t.isPrivate)
+							return toComplex(type, false); 
+
+						baseToComplex(t, params);
+					#end
 					//TODO: check TDynamic here
 					default: toComplex(type, false);
 				}

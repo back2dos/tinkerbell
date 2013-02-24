@@ -10,8 +10,8 @@ class Bouncer {
 	//TODO: as is, a more less empty class is generated in the output. This is unneccessary.
 	#if macro
 		static var idCounter = 0;
-		static var bounceMap = new IntHash<Void->Expr>();
-		static var outerMap = new IntHash<Expr->Expr>();
+		static var bounceMap = new Map<Int,Void->Expr>();
+		static var outerMap = new Map<Int,Expr->Expr>();
 		static public function bounce(f:Void->Expr, ?pos) {
 			var id = idCounter++;
 			bounceMap.set(id, f);

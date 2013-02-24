@@ -13,9 +13,9 @@ import tink.lang.Cls;
 	}
 #else
 	class StringMap<T> implements Map < String, T > implements Cls {
-		@:forward var h:Hash<T>;
+		@:forward var h:Map<StringT>;
 		public function new() {
-			this.h = new Hash();
+			this.h = new Map();
 		}
 		public inline function set(key:String, value:T) {
 			h.set(key, value);

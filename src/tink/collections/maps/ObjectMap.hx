@@ -34,7 +34,7 @@ package tink.collections.maps;
 	import tink.native.PHP;
 	class ObjectMap < K, V > extends tink.collections.maps.base.StringIDMap < K, V > {
 		override function transform(key:K):String untyped {
-			return PHP.objHash(key);
+			return PHP.objMap(key);
 		}
 	}
 #elseif (flash || js || neko || cpp)
