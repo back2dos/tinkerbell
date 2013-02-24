@@ -113,7 +113,7 @@ private class CuePoint<T> {
 }
 private typedef Cue<T> = Array<CuePoint<T>>;
 class TweenParams<T> implements Cls {
-	var propMap = new Hash<Bool>();
+	var propMap = new Map<StringBool>();
 	var properties = new Array<String>();
 	var atoms = new Array<TweenAtom<T>>();
 	var cue = new Cue<T>();

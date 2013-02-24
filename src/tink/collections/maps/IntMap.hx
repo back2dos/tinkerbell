@@ -10,9 +10,9 @@ import tink.lang.Cls;
 	}
 #else
 	class IntMap<T> implements Cls implements Map < Int, T > {
-		@:forward var h:IntHash<T>;
+		@:forward var h:Map<Int,T>;
 		public function new() {
-			this.h = new IntHash();
+			this.h = new Map();
 		}
 		public inline function set(key:Int, value:T):T {
 			h.set(key, value);

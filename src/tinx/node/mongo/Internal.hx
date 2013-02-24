@@ -15,12 +15,12 @@ extern class NativeDb {
 
 class DbBase implements Cls {
 	var native:Unsafe<NativeDb>;
-	var collections:Hash<Collection<Dynamic>>;
+	var collections:Map<StringCollection<Dynamic>>;
 	
 	public function new(?name = 'test', ?host = 'localhost', ?port = 27017, ?login: { user:String, password:String } ) {
 		var login = if (login == null) '' else (login.user +':' + login.password);
 		this.native = NativeDb.connect.bind('mongodb://$login@$host:$port/$name', { safe: true } ).future();
-		this.collections = new Hash();
+		this.collections = new Map();
 	}
 	public function close() 
 		native.handle(function(db) db.close())

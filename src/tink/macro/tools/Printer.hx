@@ -18,7 +18,7 @@ class Printer {
 			}			
 	}
 	static public function unoperator(u:Unop)
-		return unops[Type.enumIndex(u)]
+		return unops[Type.enumIndex(u)];
 	static public function binop(?indent:String = '', b:Binop, e1:Expr, e2:Expr):String {
 		function rec(e)
 			return printExpr(indent, e);		

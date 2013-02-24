@@ -26,7 +26,7 @@ class FastLoops {
 		var fields = 
 			switch (fields) {
 				case TAnonymous(fields): 
-					var ret = new Hash();
+					var ret = new Map();
 					for (f in fields)
 						ret.set(f.name, f);
 					ret;
@@ -55,7 +55,7 @@ class FastLoops {
 					function iterator();
 				}
 			);
-			for (h in 'Hash,IntHash'.split(','))
+			for (h in 'Map,Map'.split(','))
 				addRules(h, 
 					macro: {
 						@:tink_for({ 
@@ -75,8 +75,8 @@ class FastLoops {
 		}
 		else if (Context.defined('neko')) {
 			var hashes = [
-				{ t: 'Hash', key: macro neko.NativeString.toString(a[i++]) },
-				{ t: 'IntHash', key: macro a[i++] },
+				{ t: 'Map', key: macro neko.NativeString.toString(a[i++]) },
+				{ t: 'Map', key: macro a[i++] },
 			];
 			for (h in hashes) {
 				var key = h.key;

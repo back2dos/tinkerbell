@@ -9,10 +9,10 @@ class PHP {
 		var s = s.toExpr();
 		return macro untyped __php__($s);
 	}
-	static public function objHash(key:Dynamic):String {
+	static public function objMap(key:Dynamic):String {
 		if (embed('is_array($key)')) {
 			if (embed('is_callable($key)')) 
-				return objHash(key[0]) + key[1];
+				return objMap(key[0]) + key[1];
 			else 
 				throw 'cannot handle native PHP arrays yet';
 		}

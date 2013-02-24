@@ -20,12 +20,12 @@ using Lambda;
 
 
 class SqlBuilder {
-	static var hx2sql:Hash<SqlBinop>; 
-	static var sql2string:Hash<String>;
+	static var hx2sql:Map<StringSqlBinop>; 
+	static var sql2string:Map<StringString>;
 	static function __init__() {
 		var m = Meta.getFields(SqlBinop);
-		hx2sql = new Hash();
-		sql2string = new Hash();
+		hx2sql = new Map();
+		sql2string = new Map();
 		for (f in Reflect.fields(m)) {
 			var a:Array<String> = Reflect.field(m, f).translate;
 			hx2sql.set(a[1], Enums.createEnum(SqlBinop, f));

@@ -151,17 +151,17 @@ class Binding<T> implements Cls {
 }
 
 
-private typedef BindingMap = IntHash<Binding<Dynamic>>;
+private typedef BindingMap = Map<Int,Binding<Dynamic>>;
 
 #if !js
 @:generic 
 #end
 private class SingleSignaller<T, M:Map<T, BindingMap>> {
 	var keyMap:M;
-	var revisions:IntHash<Int>;
+	var revisions:Map<Int,Int>;
 	public function new(keyMap) {
 		this.keyMap = keyMap;
-		this.revisions = new IntHash();
+		this.revisions = new Map();
 	}
 	public inline function bind<A>(key:T, ?ret:A) {
 		watch(key, Binding.current());
@@ -171,14 +171,14 @@ private class SingleSignaller<T, M:Map<T, BindingMap>> {
 		if (watcher == null) return;
 		var bindings = keyMap.get(key);
 		if (bindings == null)
-			keyMap.set(key, bindings = new IntHash());
+			keyMap.set(key, bindings = new Map());
 		bindings.set(watcher.id, watcher);
 		revisions.set(watcher.id, watcher.revision);
 	}
 	public function fire<A>(key:T, ?ret:A) {
 		if (keyMap.exists(key)) {
 			var bindings = keyMap.get(key); 
-			keyMap.set(key, new IntHash());
+			keyMap.set(key, new Map());
 			for (b in bindings) {
 				if (b.revision == revisions.get(b.id))
 					b.invalidate();
@@ -201,13 +201,13 @@ private class UnknownSignaller {
 		if (watcher == null) return;
 		var bindings = keyMap.get(key);
 		if (bindings == null)
-			keyMap.set(key, bindings = new IntHash());
+			keyMap.set(key, bindings = new Map());
 		bindings.set(watcher.id, watcher);
 	}
 	public function fire<A>(key:Dynamic, ?ret:A) {
 		if (keyMap.exists(key)) {
 			var bindings = keyMap.get(key); 
-			keyMap.set(key, new IntHash());
+			keyMap.set(key, new Map());
 			for (b in bindings) b.invalidate();
 		}
 		return ret;
