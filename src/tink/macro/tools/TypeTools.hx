@@ -218,7 +218,11 @@ class TypeTools {
 						if(t.isPrivate)
 							return toComplex(type, false);
 						switch (t.kind) {
-							case KTypeParameter(_): asComplexType(t.name);
+							#if haxe3
+							case KTypeParameter(constraints): asComplexType(t.name, paramsToComplex(constraints));
+							#else
+							case KTypeParameter: asComplexType(t.name);
+							#end
 							default: baseToComplex(t, params);
 						}
 					case TFun(args, ret):
@@ -233,6 +237,15 @@ class TypeTools {
 						baseToComplex(t, params);
 					case TLazy(f):
 						toComplex(f(), true);
+					#if haxe3
+					case TAbstract(t, params):
+						var t = t.get();
+
+						if(t.isPrivate)
+							return toComplex(type, false); 
+
+						baseToComplex(t, params);
+					#end
 					//TODO: check TDynamic here
 					default: toComplex(type, false);
 				}
