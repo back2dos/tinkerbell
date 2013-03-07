@@ -29,16 +29,16 @@ private interface SignalBase<F> extends Cls {
 		return ret;
 	}
 	public function un(handler:F):Void 
-		handlers.remove(handler) || single.remove(handler)
+		handlers.remove(handler) || single.remove(handler);
 		
 	public function once(handler:F):Void 
-		handlers.contains(handler) || single.add(handler)
+		handlers.contains(handler) || single.add(handler);
 }
 
 class SimpleSignal<T> implements SignalBase<T->Void> implements Signal<T> {
 	public function new() {}
 	public function fire(data:T) 
-		for (h in all()) h(data)
+		for (h in all()) h(data);
 		
 	static public function map<S, T>(source:Signal<T>, map:T->S) {
 		var ret = new SimpleSignal();
@@ -50,5 +50,5 @@ class SimpleSignal<T> implements SignalBase<T->Void> implements Signal<T> {
 class SimpleVoidSignal implements SignalBase<Void->Void> implements VoidSignal {
 	public function new() {}
 	public function fire() 
-		for (h in all()) h()
+		for (h in all()) h();
 }

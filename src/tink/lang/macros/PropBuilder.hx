@@ -14,7 +14,7 @@ class PropBuilder {
 	static public function process(ctx) 
 		new PropBuilder(ctx.has, ctx.add).processMembers(ctx.members);
 	
-	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->Member, ?e:Expr) {
+	static public function make(m:Member, t:ComplexType, getter:Expr, setter:Null<Expr>, hasField:String->Bool, addField:Member->?Bool->Member, ?e:Expr) {
 		var get = 'get_' + m.name,
 			set = if (setter == null) 'null' else 'set_' + m.name;
 		var acc = [];
@@ -38,7 +38,7 @@ class PropBuilder {
 		}
 	}
 	var hasField:String->Bool;
-	var addField:Member->Member;
+	var addField:Member->?Bool->Member;
 	function new(hasField, addField) {
 		this.hasField = hasField;
 		this.addField = addField;

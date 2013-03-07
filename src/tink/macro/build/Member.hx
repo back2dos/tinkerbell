@@ -61,7 +61,7 @@ class Member {
 					meta.remove(name);
 				return Success(ret.shift());
 			}
-			else return Failure();
+			else return Failure('missing @$name');
 	}
 	public function toString() 
 		return new Printer().printField(this.toHaxe());

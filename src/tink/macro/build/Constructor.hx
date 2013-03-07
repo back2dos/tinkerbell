@@ -13,6 +13,7 @@ class Constructor {
 	var afterArgs:Array<FunctionArg>;
 	var pos:Position;
 	var ownerIsInterface:Bool;
+	var onGenerateHooks:Array<Function->Void>;
 	public var isPublic:Bool;
 	public function new(ownerIsInterface:Bool, f:Function, ?isPublic:Null<Bool> = null, ?pos:Position) {
 		this.ownerIsInterface = ownerIsInterface;
@@ -20,6 +21,7 @@ class Constructor {
 		this.isPublic = isPublic;
 		this.pos = pos.getPos();
 		
+		this.onGenerateHooks = [];
 		this.args = [];
 		this.beforeArgs = [];
 		this.afterArgs = [];
@@ -55,7 +57,7 @@ class Constructor {
 	public function init(name:String, pos:Position, ?e:Expr, ?def:Expr, ?prepend:Bool, ?t:ComplexType) {
 		if (e == null) {
 			e = name.resolve(pos);
-			args.push( { name : name, opt : def != null, type : null, value : def } );
+			args.push( { name : name, opt : def != null, type : t, value : def } );
 			if (isPublic == null) 
 				isPublic = true;
 		}
@@ -65,24 +67,29 @@ class Constructor {
 			
 		addStatement(s, prepend);
 	}
-	public inline function publish() {
+	public inline function publish() 
 		if (isPublic == null) 
 			isPublic = true;
-	}
-	public function toBlock() {
+	
+	public function toBlock() 
 		return nuStatements.concat(oldStatements).toBlock(pos);
-	}
+	
+	public function onGenerate(hook) 
+		this.onGenerateHooks.push(hook);
+		
 	public function toHaxe() {
+		var f:Function = {
+			args: this.beforeArgs.concat(this.args).concat(this.afterArgs),
+			ret: 'Void'.asComplexType(),
+			expr: toBlock(),
+			params: []
+		};
+		for (hook in onGenerateHooks) hook(f);
 		return {
 			name: 'new',
 			doc : null,
 			access : isPublic ? [APublic] : [],
-			kind :  FFun( {
-				args: this.beforeArgs.concat(this.args).concat(this.afterArgs),
-				ret: 'Void'.asComplexType(),
-				expr: toBlock(),
-				params: []
-			}),
+			kind :  FFun(f),
 			pos : pos,
 			meta : []
 		}

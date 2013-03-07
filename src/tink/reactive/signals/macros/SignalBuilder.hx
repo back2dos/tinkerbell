@@ -49,7 +49,7 @@ class SignalBuilder {
 								
 								member.kind = FVar(types.published);
 								member.addMeta(PropBuilder.READ, tag.pos, [own.resolve(tag.pos)]);
-								ctx.add(Member.plain(own, types.own, tag.pos, types.cls.instantiate(tag.pos))).isPublic = false;								
+								ctx.add(Member.plain(own, types.own, tag.pos, types.cls.instantiate(tag.pos)), true).isPublic = false;								
 							}
 							else {
 								member.addMeta(PropBuilder.READ, tag.pos);

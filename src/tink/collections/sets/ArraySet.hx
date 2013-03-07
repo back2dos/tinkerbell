@@ -32,6 +32,6 @@ class ArraySet<T> implements Set<T> implements Cls {
 		return false;
 	}
 	#if js
-		static function __init__() tink.native.JS.patchBind()
+		static function __init__() tink.native.JS.patchBind();
 	#end
 }

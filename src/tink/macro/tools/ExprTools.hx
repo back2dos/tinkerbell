@@ -173,7 +173,8 @@ class ExprTools {
 	static public function transform(source:Expr, transformer:Expr->Expr, ?pos):Expr 
 		return crawl(source, transformer, function (t) return t, pos);
 	
-	static function crawlArray(a:Array<Dynamic>, transformer:Expr->Expr, retyper:ComplexType->ComplexType, pos:Position):Array<Dynamic> {
+	static function crawlArray(a:Array<Dynamic>, transformer:Expr->Expr, retyper:ComplexType-> ComplexType, pos:Position):Array<Dynamic> {
+		if (a == null) return a;
 		var ret = [];
 		for (v in a)
 			ret.push(crawl(v, transformer, retyper, pos));
@@ -309,7 +310,6 @@ class ExprTools {
 				switch(it.expr) {
 					case EIn(itIdent, itExpr):
 						var innerCtx = ctx.copy();
-						trace(itExpr.toString() + ' in ' + EVars(ctx).at().toString());
 						switch(itExpr.typeof(ctx)) {
 							case Success(t):
 								if (t.getID() == "IntIter")

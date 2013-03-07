@@ -6,7 +6,7 @@ using Lambda;
 using tink.macro.tools.ExprTools;
 
 class Printer {
-	static var binops = '+,*,/,-,=,==,!=,>,>=,<,<=,&,|,^,&&,||,<<,>>,>>>,%,NONE,...'.split(',');
+	static var binops = '+,*,/,-,=,==,!=,>,>=,<,<=,&,|,^,&&,||,<<,>>,>>>,%,NONE,...,=>'.split(',');
 	static var unops = '++,--,!,-,~'.split(',');
 	static public function binoperator(b:Binop) {
 		return 

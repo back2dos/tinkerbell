@@ -68,7 +68,6 @@ class SignalSugar {
 					for (s in statements) 						
 						switch (s.match(ON)) {
 							case Success(match):
-								
 								var signal = match.exprs.signal;
 								switch (signal.expr) {
 									case EConst(CIdent(name)): 
@@ -94,7 +93,8 @@ class SignalSugar {
 				default:
 			}
 		switch (e.expr) {
-			case EMeta( { name: 'when', params: [] }, { expr: ESwitch(over, cases, edef) } ):
+			//case EMeta( { name: 'when', params: [] }, { expr: ESwitch(over, cases, edef) } ):
+			case ESwitch({ expr: EMeta( { name: 'when', params: [] }, over)}, cases, edef):
 				var arg = String.tempName();
 				return getFuture(
 					over, 

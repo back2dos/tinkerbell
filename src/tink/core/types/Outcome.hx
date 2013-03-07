@@ -2,7 +2,7 @@ package tink.core.types;
 
 enum Outcome<Data, Failure> {
 	Success(data:Data);
-	Failure(?failure:Failure);
+	Failure(failure:Failure);
 }
 interface ThrowableFailure {
 	function throwSelf():Dynamic;

@@ -15,10 +15,11 @@ typedef ClassBuildContext = {
 	cls:ClassType,
 	members:Array<Member>,
 	getCtor:Void->Constructor,
+	hasCtor:Void->Bool,
 	has:String->Bool,
 	get:String->Member,
 	hasOwn:String->Bool,
-	add:Member->Member
+	add:Member->?Bool->Member
 }
 class MemberTransformer {
 	
@@ -40,12 +41,19 @@ class MemberTransformer {
 				try {
 					var ctor = Context.getLocalClass().get().superClass.t.get().constructor.get();
 					var func = Context.getTypedExpr(ctor.expr()).getFunction().sure();
+
+					//TODO: Remove this workaround for haxe bug #1505. 
+					for (arg in func.args)
+						arg.type = null;
+						
 					func.expr = "super".resolve().call(func.getArgIdents());
 					constructor = new Constructor(localClass.isInterface, func);
 					if (ctor.isPublic)
 						constructor.publish();					
 				}
 				catch (e:Dynamic) {//fails for unknown reason
+					if (e == 'assert')
+						neko.Lib.rethrow(e);
 					constructor = new Constructor(localClass.isInterface, null);
 				}
 			}
@@ -72,6 +80,7 @@ class MemberTransformer {
 			cls: localClass,
 			members: fields,
 			getCtor: getConstructor,
+			hasCtor: function () return constructor != null,
 			has: hasMember,
 			get: getOwnMember,
 			hasOwn: hasOwnMember,
@@ -79,13 +88,13 @@ class MemberTransformer {
 		}
 		
 		for (plugin in plugins) {
-			context.add = addMember.bind(context.members);
+			context.add = addMember.bind(context.members, _, _);
 			
 			plugin(context);	
 			
 			context.members = prune(context.members);
 		}
-		//TODO: syntactic sugars do not get applied to the constructor this way
+		
 		var ret = (constructor == null || localClass.isInterface) ? [] : [constructor.toHaxe()];
 		for (member in context.members) {
 			if (member.isBound)
@@ -122,23 +131,19 @@ class MemberTransformer {
 		if (superFields == null) {
 			superFields = new Hash();
 			var cl = localClass.superClass;
-			//var chain = [];
 			while (cl != null) {
 				var c = cl.t.get();
-				//chain.push(c.name);
 				for (f in c.fields.get())
 					superFields.set(f.name, true);
 				cl = c.superClass;
 			}
-			//trace(localClass.name + ':' + superFields.toString());
-			//trace(chain);
 		}
 		return superFields.get(name);
 	}
 	function hasMember(name:String) {
 		return hasOwnMember(name) || hasSuperField(name);
 	}
-	function addMember(to:Array<Member>, m:Member) {
+	function addMember(to:Array<Member>, m:Member, ?front = false) {
 		if (hasOwnMember(m.name)) 
 			m.pos.error('duplicate member declaration ' + m.name);
 			
@@ -146,7 +151,8 @@ class MemberTransformer {
 			this.constructor = new Constructor(localClass.isInterface, Enums.enumParameters(m.kind)[0], m.isPublic, m.pos);
 		else {
 			members.set(m.name, m);
-			to.push(m);				
+			if (front) to.unshift(m);
+			else to.push(m);				
 		}
 		return m;
 	}		

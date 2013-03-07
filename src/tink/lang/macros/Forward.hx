@@ -20,7 +20,7 @@ class Forward {
 		new Forward(ctx.has, ctx.add, ctx.cls.isInterface).processMembers(ctx.members);
 	}
 	var hasField:String->Bool;
-	var addField:Member->Member;
+	var addField:Member->?Bool->Member;
 	var ownerIsInterface:Bool;
 	function new(hasField, addField, ownerIsInterface) {
 		this.hasField = hasField;
@@ -168,9 +168,11 @@ class Forward {
 		if (!isAccessible(read, true)) 
 			pos.error('cannot forward to non-readable field ' + name + ' of ' + t);
 		addField(Member.prop(name, t, pos, false, !isAccessible(write, false))).isBound = bound;
-		addField(Member.getter(name, pos, target.field(name, pos), t)).isBound = bound;
-		if (isAccessible(write, false))
-			addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
+		if (!hasField('get_$name'))
+			addField(Member.getter(name, pos, target.field(name, pos), t)).isBound = bound;
+		if (!hasField('set_$name'))
+			if (isAccessible(write, false))
+				addField(Member.setter(name, pos, target.field(name, pos).assign('param'.resolve(pos), pos), t));
 	}
 	static function and(a, b) {
 		return function (c) return a(c) && b(c);
