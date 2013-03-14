@@ -31,22 +31,30 @@ class BindableProperties {
 				this.bindings.byString.fire($str, $field = param);
 			}).finalize(pos);
 	}
-	static function makeBinding(on:Expr) {
+	static function makeBinding(on:Expr, BINDINGS:Expr) {
 		return 
 			(switch (on.typeof().sure().reduce().getID()) {
-					case 'String': macro this.bindings.byString.bind($on);
-					case 'Int': macro this.bindings.byInt.bind($on);
-					case 'Bool': macro this.bindings.byBool.bind($on);
-					default: macro this.bindings.byUnknown.bind($on);
+					case 'String': macro $BINDINGS.byString.bind($on);
+					case 'Int': macro $BINDINGS.byInt.bind($on);
+					case 'Bool': macro $BINDINGS.byBool.bind($on);
+					default: macro $BINDINGS.byUnknown.bind($on);
 				}
 			).finalize(on.pos);
 	}
+	static var BINDINGS = null;
 	static public function make(ctx:ClassBuildContext) {
+		BINDINGS = 
+			switch (ctx.cls.kind) {
+				case KAbstractImpl(_): macro get_bindings(this);
+				default: macro this.bindings;
+			}
+			
 		function makeBindable(pos) 
 			if (!ctx.has('bindings')) {
 				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding.Signaller'.asComplexType(), pos));
 				ctx.getCtor().init('bindings', pos, (macro new tink.reactive.bindings.Binding.Signaller()).finalize(pos), true);
 			}
+			
 		var setters = new Hash(),
 			getters = new Hash();
 		for (member in ctx.members) {
@@ -65,17 +73,17 @@ class BindableProperties {
 							if (nonCustom.has(get)) 
 								tag.pos.error('cannot make non-custom read access bindable');
 							else
-								getters.set(get, name);
+								getters.set('get_' + member.name, name);
 							if (nonCustom.has(set)) {
 								if (set == 'default')
 									tag.pos.error('cannot make non-custom write access bindable');
 							}
 							else 
-								setters.set(set, name);
+								setters.set('set_' + member.name, name);
 						case FFun(f):
 							var body = [];
 							for (key in [name.toExpr(tag.pos)].concat(tag.params))
-								body.push(makeBinding.bind(key).bounce(key.pos));
+								body.push(makeBinding.bind(key, BINDINGS).bounce(key.pos));
 							body.push(f.expr);
 							f.expr = body.toBlock(tag.pos);
 					}
@@ -135,7 +143,7 @@ class BindableProperties {
 					switch (e.expr) {
 						case EReturn(e): 
 							var name = name.toExpr(e.pos);
-							(macro return this.bindings.byString.fire($name, $e)).finalize(e.pos);
+							macro @:pos(e.pos) return $BINDINGS.byString.fire($name, $e);
 						default: e;
 					}
 	}
@@ -146,7 +154,7 @@ class BindableProperties {
 					switch (e.expr) {
 						case EReturn(e): 
 							var name = name.toExpr(e.pos);
-							(macro return this.bindings.byString.bind($name, $e)).finalize(e.pos);
+							macro @:pos(e.pos) return $BINDINGS.byString.bind($name, $e);
 						default: e;
 					}
 	}
