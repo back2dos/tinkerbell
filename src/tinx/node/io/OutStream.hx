@@ -9,7 +9,7 @@ class OutStream implements Cls {
 	
 	@:signal var drain = new VoidEmission(target, 'drain');
 	@:signal var close = new VoidEmission(target, 'close');
-	@:signal var error:Exception = new Emission(target, 'error');	
+	@:signal var error:Error = new Emission(target, 'error');	
 	
 	@:prop var encoding = 'utf8';
 	
@@ -18,12 +18,12 @@ class OutStream implements Cls {
 			if (Buffer.isBuffer(v)) 
 				target.write(v)
 			else 
-				target.write(Std.string(v), encoding)
+				target.write(Std.string(v), encoding);
 	
 	public function end(?v:Dynamic)
 		if (Buffer.isBuffer(v)) 
 			target.end(v)
 		else if (v != null)
-			target.end(Std.string(v), encoding)
+			target.end(Std.string(v), encoding);
 	
 }

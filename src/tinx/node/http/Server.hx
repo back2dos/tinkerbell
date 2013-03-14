@@ -12,10 +12,10 @@ class Server implements Cls {
 	@:signal var close = new VoidEmission(native, 'close');
 		
 	function handleRequest(request, response) 
-		_request.fire(new Request(this, request, response))
+		_request.fire(new Request(this, request, response));
 	
 	public function destroy() 
-		native.close()
+		native.close();
 		
 	static public function bind(port:Int, ?host = 'localhost') {
 		var ret = new Server();

@@ -148,7 +148,7 @@ private class Parser {
 			}	
 }
 
-private class Generator {
+private class Generate {
 	static var map = {
 		NotEq: 'ne',
 		ExistNot: 'exists',
@@ -192,16 +192,24 @@ private class Generator {
 					ECast(EObjectDecl([ { field: path.join('.'), expr: field(s) } ]).at(pos), null).at(pos);
 			}
 	}		
+	
+	static public function empty() 
+		return EObjectDecl([]).at();
 }
 
 class Match {
 	static public function parse(input:Expr):MatchDoc
-		return Parser.simplify(Parser.parseDoc(input))
-		
+		return 
+			if (input.getIdent().equals('null')) null;
+			else Parser.simplify(Parser.parseDoc(input));
+	
 	static public function typeCheck(rep:MatchDoc, t:TypeInfo):Void {
-		MatchTyper.check(rep, t);
+		if (rep != null)
+			MatchTyper.check(rep, t);
 		return null;
 	}
 	static public function generate(rep:MatchDoc):Expr
-		return Generator.doc(rep)		
+		return
+			if (rep == null) Generate.empty();
+			else Generate.doc(rep);		
 }

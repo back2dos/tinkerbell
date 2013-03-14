@@ -18,14 +18,14 @@ class Request extends InStream {
 	var response:Dynamic = _;
 	
 	function new() 
-		super(request)
+		super(request);
 	
 	public function trailers(handler) 
 		if (request.readable)
 			@on(end) 
 				handler(request.trailers)
 		else
-			handler(request.trailers)
+			handler(request.trailers);
 	
 	public function respond(?status = 200, ?reason:String, ?headers:Headers) {
 		response.writeHead(status, reason, headers);

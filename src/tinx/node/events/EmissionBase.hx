@@ -6,9 +6,9 @@ class EmissionBase<F> implements Cls {
 	var target:Emitter = _;
 	var type:String = _;
 	public function on(handler:F):Void
-		target.addListener(type, handler)
+		target.addListener(type, handler);
 	public function un(handler:F):Void 
-		target.removeListener(type, handler)
+		target.removeListener(type, handler);
 	public function once(handler:F):Void 
-		target.once(type, handler)
+		target.once(type, handler);
 }

@@ -27,7 +27,7 @@ enum FieldUpdateOp {
 }
 private class Parser {
 	static public function parse(a:Array<Expr>):DocUpdate
-		return [for (f in a) field(f)]
+		return [for (f in a) field(f)];
 	
 	static function make(path, op):FieldUpdate
 		return {
@@ -115,7 +115,7 @@ private class Generator {
 			EObjectDecl([
 				for (name in op.keys()) 
 					field(name, op.get(name))
-			]).at()
+			]).at();
 		
 	public function gen() {
 		return EObjectDecl([
@@ -148,7 +148,7 @@ private class Typer {
 }
 class Update {
 	static public function parse(input:Array<Expr>) 
-		return Parser.parse(input)
+		return Parser.parse(input);
 	static public function typeCheck(rep:DocUpdate, t:TypeInfo) {
 		//for (f in rep)
 			//Typer.type(
@@ -156,6 +156,6 @@ class Update {
 		return null;
 	}
 	static public function generate(rep:DocUpdate):Expr
-		return new Generator(rep).gen()
+		return new Generator(rep).gen();
 		
 }

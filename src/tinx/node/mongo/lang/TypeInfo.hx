@@ -21,7 +21,7 @@ class TypeInfo {
 		this.fields = new Hash();
 		
 		switch (t.reduce()) {
-			case TAnonymous(_):
+			case TAnonymous(_), TMono(_), TDynamic(_):
 				this.fields = t.getFields().map(function (fields:Array<ClassField>) {
 					var ret = new Hash();
 					for (f in fields)
@@ -47,23 +47,25 @@ class TypeInfo {
 		}
 	}
 	public function getFields()
-		return fields.keys()
+		return fields.keys();
 		
 	public function has(name) 
-		return fields != null || fields.exists(name)
+		return fields == null || fields.exists(name);
 	
 	public function isArray()
-		return fields.exists('[]')
+		return fields.exists('[]');
 	
 	public function blank(?pos) 
-		return ECheckType(macro null, ct).at(pos == null ? this.pos : pos)
+		return ECheckType(macro null, ct).at(pos == null ? this.pos : pos);
 	
 	public function get(name, pos:Position) 
 		return
-			if (fields.exists(name)) 
+			if (fields == null)
+				new TypeInfo((macro null).typeof().sure(), pos, true)
+			else if (fields.exists(name)) 
 				fields.get(name)
 			else 
-				pos.error('unknown field $name')
+				pos.error('unknown field $name');
 		
 	public function resolve(path:Path) {
 		var ret = this;
@@ -78,11 +80,12 @@ class TypeInfo {
 			ECheckType(value, resolve(path).blank(path.getPos(this.pos)).lazyType()).at(path.getPos(this.pos)).typeof().sure();
 	}
 	static public function getInfo(e:Expr) {
-		//e.log();
+		//trace(e.typeof());
 		return 
 			switch (e.typeof().sure().reduce()) {
 				case TInst(_, params): new TypeInfo(params[0], e.pos);
-				default: throw 'assert';
+				case TMono(_): new TypeInfo((macro { } ).typeof().sure(), e.pos);
+				default: throw (e.typeof());
 			}
 	}	
 }

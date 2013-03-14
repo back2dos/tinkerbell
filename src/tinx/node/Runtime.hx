@@ -10,9 +10,9 @@ package tinx.node;
 	static public var execPath(default, null):String;
 	
 	static public inline function load<A>(s:String):A
-		return untyped require(s)
+		return untyped require(s);
 	static public inline function env(id:String):String 
-		return untyped process[id]		
+		return untyped process[id];		
 		
 	static public inline function exec(s:String):String {
 		return s;

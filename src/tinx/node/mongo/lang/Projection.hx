@@ -141,7 +141,7 @@ class Projection {
 				}
 			}
 			else 
-				buildProto(rep, info)
+				buildProto(rep, info);
 			
 	static function doCompile(rep:Node, prefix:Array<String>, field:String->Expr->Void) {
 		for (name in rep.keys()) {

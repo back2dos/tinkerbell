@@ -34,16 +34,16 @@ class FS {
 	static var native:NativeFS = Runtime.load('fs');
 	
 	static public function read(path) 
-		return new InStream(native.createReadStream(path, { } ))
+		return new InStream(native.createReadStream(path, { } ));
 		
 	static public function write(path)
-		return new OutStream(native.createWriteStream(path, { } ))
+		return new OutStream(native.createWriteStream(path, { } ));
 		
 	static public function ls(path):Unsafe<Array<String>>
-		return native.readdir.bind(path).future()
+		return native.readdir.bind(path).future();
 		
 	static public function stat(path, ?follow = true):Unsafe<FileStats>
-		return (follow ? native.stat : native.lstat).bind(path).future()
+		return (follow ? native.stat : native.lstat).bind(path).future();
 		
 	static public function tree(path, ?depth = 255, ?follow = true):Unsafe<FileTree> 
 		return //the following code is probably slow as hell
@@ -64,9 +64,9 @@ class FS {
 					else
 						function (handler) 
 							handler(Success(File(path, s)))
-			)	
+			);	
 	static public function crawl(path, ?depth = 255, ?follow = true) 
-		return new FSCrawler(path, depth, follow)
+		return new FSCrawler(path, depth, follow);
 	
 }
 
@@ -77,18 +77,20 @@ class FSCrawler implements tink.lang.Cls {
 	@:read var readable = true;//should become bindable
 	var pending = 0;
 	public function new(path, depth, follow) 
-		crawl(path, depth, follow) 
+		crawl(path, depth, follow); 
 		
 	function crawl(path, depth, follow) 
 		if (depth > 0) {
 			pending++;
-			@when(FS.stat(path, follow)) 
+			{ stat : FS.stat(path, follow) }
+			=> if (throw error) { if (readable)
+			FS.stat(path, follow)(function (result)
 				if (readable) {
 					switch (result) {
 						case Success(stat):
 							_data.fire( { path: path, stat: stat } );
 							if (stat.isDirectory()) 
-								@when switch FS.ls(path) {
+								switch @when FS.ls(path) {
 									case Success(files):
 										for (f in files)
 											crawl('$path/$f', depth - 1, follow);
@@ -102,6 +104,7 @@ class FSCrawler implements tink.lang.Cls {
 							_error.fire(e);
 					}
 				}
+			)
 		}
 	inline function release()
 		if (--pending == 0) {
