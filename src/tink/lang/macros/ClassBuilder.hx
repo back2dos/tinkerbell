@@ -75,7 +75,6 @@ class ClassBuilder {
 			simpleSugar(LoopSugar.comprehension),
 			#if (tink_reactive || !tink_core)
 				simpleSugar(tink.reactive.signals.macros.SignalSugar.on),
-				simpleSugar(tink.reactive.signals.macros.SignalSugar.when),
 			#end
 			simpleSugar(LoopSugar.transformLoop)
 		];	
