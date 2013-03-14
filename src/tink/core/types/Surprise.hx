@@ -27,18 +27,18 @@ abstract Surprise<D, F>(Future<Outcome<D, F>>) {
 					))
 			);
 	
-	@:from static public function fromFutureOutcome<D, F>(f:Future<Outcome<D, F>>):Surprise<D, F> return f;
+	@:from static public function fromFutureOutcome<D, F>(f:Future<Outcome<D, F>>):Surprise<D, F> return cast f;
 	
 	@:from static public function fromFuture<A, B>(f:Future<A>):Surprise<A, B> 
 		return f.map(function (v):Outcome<A, B> return Success(v));
 	
-	@:from static public function fromOutcome<D, F>(f:Outcome<D, F>):Surprise<D, F> return f;
+	@:from static public function fromOutcome<D, F>(f:Outcome<D, F>):Surprise<D, F> return Future.ofConstant(f);
 	
 	@:from static public function fromInt<B>(v:Int):Surprise<Int, B> return fromFuture(Future.ofConstant(v));
 	
 	@:from static public function fromAny<A, B>(v:A):Surprise < A, B > return fromFuture(Future.ofConstant(v));
 	
-	static public inline function promote<D, F>(s:Surprise<D, F>) return s;
+	static public function promote<D, F>(s:Surprise<D, F>) return s;
 }
 
 abstract LeftFailingHandler<D, F>(F->D->Void) {
