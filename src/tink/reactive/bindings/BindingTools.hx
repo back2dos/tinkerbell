@@ -13,7 +13,8 @@ class WatchHelper {
 	}
 }
 class FuncBindings {
-	macro static public function bindExpr<A>(func:ExprOf < A->Void > , arg:ExprOf<A>) {
+	macro static public function bindExpr<A>(func:ExprOf<A->Void>, arg:ExprOf<A>) {
+		
 		var src = Helper.makeSource(arg);
 		return (macro { 
 			var tmpSrc = $src;
@@ -78,18 +79,21 @@ class FieldBindings {
 		}
 		static public function makeSource(of:Expr):Expr {
 			return
-				if (of.is(SOURCE)) of;
-				else 
-					switch (of.typeof()) {
-						case Success(_): 
-							if (of.assign(of).typeof().isSuccess()) 
-								control(of);
-							else
-								(macro
-									new tink.reactive.bindings.Binding.Watch(function () return $of)
-								).finalize(of.pos);
-						case Failure(f): f.throwSelf();
-					}
+				(macro
+					new tink.reactive.bindings.Binding.Watch(function () return $of)
+				).finalize(of.pos);
+				//if (of.is(SOURCE)) of;
+				//else 
+					//switch (of.typeof()) {
+						//case Success(_): 
+							//if (of.assign(of).typeof().isSuccess()) 
+								//control(of);
+							//else
+								//(macro
+									//new tink.reactive.bindings.Binding.Watch(function () return $of)
+								//).finalize(of.pos);
+						//case Failure(f): f.throwSelf();
+					//}
 		}
 	}
 #end	
