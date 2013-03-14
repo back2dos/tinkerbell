@@ -28,7 +28,7 @@ class ExprTools {
 		return ECheckType(e, c).at(e.pos).typeof().isSuccess();
 	}
 	static var annotCounter = 0;
-	static var annotations = new IntHash<Dynamic>();
+	static var annotations = new Map<Int,Dynamic>();
 	static public function tag<D>(e:Expr, data:D) {
 		annotations.set(annotCounter, data);
 		return [(annotCounter++).toExpr(e.pos), e].toBlock(e.pos);
@@ -152,7 +152,7 @@ class ExprTools {
 	
 	static public inline function ifNull(e:Expr, fallback:Expr) 
 		return
-			if (e.getIdent().equals('null')) fallback
+			if (e.getIdent().equals('null')) fallback;
 			else e;
 	
 	static public function substParams(source:Expr, subst:ParamSubst, ?pos):Expr 
@@ -388,7 +388,7 @@ class ExprTools {
 		return {
 			expr: e,
 			pos: pos.getPos()
-		}
+		};
 	
 	static public inline function instantiate(s:String, ?args:Array<Expr>, ?params:Array<TypeParam>, ?pos:Position) 
 		return s.asTypePath(params).instantiate(args, pos);
@@ -553,8 +553,8 @@ private class Matcher {
 	var exprs:Dynamic<Expr>;
 	var strings:Dynamic<String>;
 	public function new() {
-		this.exprs = {}
-		this.strings = {}
+		this.exprs = {};
+		this.strings = {};
 	}
 	public function match(expr:Expr, pattern:Expr) {
 		return

@@ -22,7 +22,7 @@ class InStream implements Cls {
 	@:signal var close = new VoidEmission(target, 'close');
 	@:signal var error:Error = new Emission(target, 'error');
 	
-	var encoded:Hash<Signal<String>> = new Hash();
+	var encoded:Map<StringSignal<String>> = new Map();
 	
 	public function decode(?encoding = 'utf8'):Signal<String> {
 		if (!encoded.exists(encoding)) 

@@ -18,7 +18,7 @@ class Member {
 	public var doc : Null<String>;
 	public var kind : FieldType;
 	public var pos : Position;
-	var meta:Hash<Array<Meta>>;
+	var meta:Map<String,Array<Meta>>;
 	
 	public var isOverride:Bool;
 	public var isStatic:Bool;
@@ -29,7 +29,7 @@ class Member {
 	
 	public function new() {
 		this.isOverride = this.isStatic = false;
-		this.meta = new Hash();
+		this.meta = new Map();
 		this.excluded = false;
 	}
 	public inline function forceInline() {

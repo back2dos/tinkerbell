@@ -44,14 +44,14 @@ enum SqlEDef {
 	SqlBin(op:SqlBinop, e1:SqlExpr, e2:SqlExpr);
 } 
 class SqlDatabaseDesc {
-	var tables:Hash<SqlTableDesc>;
+	var tables:Map<StringSqlTableDesc>;
 	var type:Type;
 	function new(type:Type) {
 		this.type = type;
 	}
 	function init() {
 		if (tables == null) {
-			tables = new Hash();	
+			tables = new Map();	
 			for (f in type.getFields().sure()) 
 				if (f.type.getID() == 'tink.sql.Table') 
 					this.tables.set(f.name, SqlTableDesc.get(f.type, f.pos));
@@ -65,7 +65,7 @@ class SqlDatabaseDesc {
 		init();
 		return tables.get(name);
 	}
-	static var cache = new Hash<SqlDatabaseDesc>();	
+	static var cache = new Map<StringSqlDatabaseDesc>();	
 	static public function get(type:Type):SqlDatabaseDesc {
 		var key = Context.signature(type);
 		var ret = cache.get(key);
@@ -78,7 +78,7 @@ class SqlTableDesc {
 	public var name(default, null):String;
 	public var db(default, null):SqlDatabaseDesc;
 	
-	var fieldMap:Hash<ClassField>;
+	var fieldMap:Map<StringClassField>;
 	var fieldList:Array<ClassField>;
 	
 	public var type(default, null):Type;
@@ -90,7 +90,7 @@ class SqlTableDesc {
 		this.type = tb.type;
 		this.cType = tb.type.toComplex();
 		this.fieldList = tb.type.getFields().sure();
-		this.fieldMap = new Hash();
+		this.fieldMap = new Map();
 		
 		for (f in this.fieldList)
 			this.fieldMap.set(f.name, f);
@@ -106,7 +106,7 @@ class SqlTableDesc {
 	public inline function fields() {
 		return fieldList.iterator();
 	}
-	static var cache = new Hash<SqlTableDesc>();
+	static var cache = new Map<StringSqlTableDesc>();
 	static public function get(type:Type, pos:Position):SqlTableDesc {
 		return
 			switch (type) {
@@ -139,10 +139,10 @@ typedef SqlJoin = {
 class SqlContext {
 	public var first(default, null):SqlTableDesc;
 	var joins:Array<SqlJoin>;
-	var tableMap:Hash<SqlTableDesc>;
+	var tableMap:Map<StringSqlTableDesc>;
 	public function new(first:SqlTableDesc) {
 		this.first = first;
-		this.tableMap = new Hash();
+		this.tableMap = new Map();
 		this.tableMap.set(first.name, first);
 		this.joins = [];
 	}

@@ -54,9 +54,8 @@ class BindableProperties {
 				ctx.add(Member.plain('bindings', 'tink.reactive.bindings.Binding.Signaller'.asComplexType(), pos));
 				ctx.getCtor().init('bindings', pos, (macro new tink.reactive.bindings.Binding.Signaller()).finalize(pos), true);
 			}
-			
-		var setters = new Hash(),
-			getters = new Hash();
+		var setters = new Map(),
+			getters = new Map();
 		for (member in ctx.members) {
 			switch (member.extractMeta(BINDABLE)) {
 				case Success(tag):

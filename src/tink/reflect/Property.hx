@@ -50,7 +50,7 @@ import tink.devtools.Benchmark;
 			#elseif (neko || js || flash)
 				null;
 			#else
-				new Hash();
+				new Map();
 			#end
 		static inline function getForClass(cl:Class<Dynamic>) {
 			return 

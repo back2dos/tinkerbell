@@ -68,9 +68,9 @@ private class Parser {
 			}
 }
 private class Generator {
-	var ops:Hash<Hash<Expr>>;
+	var ops:Map<StringMap<StringExpr>>;
 	public function new(d:DocUpdate) {
-		ops = new Hash();
+		ops = new Map();
 		for (f in d)
 			switch (f.op) {
 				case Pop(shift):
@@ -97,7 +97,7 @@ private class Generator {
 	function fieldOp(opName:String, path:Path, expr) {
 		opName = opName.charAt(0).toLowerCase() + opName.substr(1);
 		if (!ops.exists(opName)) 
-			ops.set(opName, new Hash());
+			ops.set(opName, new Map());
 		var op = ops.get(opName);
 		var name = path.join('.');
 		if (op.exists(name))
@@ -110,7 +110,7 @@ private class Generator {
 			expr: expr
 		}
 		
-	function genOp(op:Hash<Expr>) 
+	function genOp(op:Map<StringExpr>) 
 		return 
 			EObjectDecl([
 				for (name in op.keys()) 

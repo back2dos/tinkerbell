@@ -61,7 +61,7 @@ class StringAt {
 		this.s = s;
 		this.pos = pos;
 	}
-	public function getFrom<A>(h:Hash<A>, ?key:String = 'field')
+	public function getFrom<A>(h:Map<StringA>, ?key:String = 'field')
 		return 
 			if (h.exists(s)) h.get(s);
 			else pos.error('unknown $key $s');

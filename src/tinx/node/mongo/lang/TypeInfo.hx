@@ -7,7 +7,7 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class TypeInfo {
-	var fields:Hash<TypeInfo>;
+	var fields:Map<StringTypeInfo>;
 	public var t(default, null):Type;
 	public var pos(default, null):Position;
 	var ct:ComplexType;
@@ -18,12 +18,12 @@ class TypeInfo {
 		function reject()
 			pos.error('type $t not supported by MongoDB');
 		
-		this.fields = new Hash();
+		this.fields = new Map();
 		
 		switch (t.reduce()) {
 			case TAnonymous(_), TMono(_), TDynamic(_):
 				this.fields = t.getFields().map(function (fields:Array<ClassField>) {
-					var ret = new Hash();
+					var ret = new Map();
 					for (f in fields)
 						ret.set(f.name, new TypeInfo(f.type, pos, true));
 					return ret;
