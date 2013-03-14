@@ -33,7 +33,19 @@ class MemberTransformer {
 		members = new Hash();
 		macros = new Hash();
 		localClass = Context.getLocalClass().get();
+		//trace(localClass);
 		this.verbose = verbose;
+		switch (localClass.kind) {
+			case KAbstractImpl(a):
+				var meta = localClass.meta;
+				for (tag in a.get().meta.get())
+					if (!meta.has(tag.name)) {
+						//tag.pos.warning('copied');
+						meta.add(tag.name, tag.params, tag.pos);
+					}
+				this.verbose = meta.has(':verbose');//TODO: remove this workaround
+			default:
+		}
 	}
 	function getConstructor() {
 		if (constructor == null) 
