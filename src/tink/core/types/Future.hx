@@ -1,8 +1,10 @@
 package tink.core.types;
 
-abstract Future<T>((T->Void)->(Void->Bool)) {
+import tink.core.types.Callback;
 
-	public inline function new(f:(T->Void)->(Void->Bool)) this = f;	
+abstract Future<T>((T->Void)->CallbackLink) {
+
+	public inline function new(f:(T->Void)->CallbackLink) this = f;	
 	
 	public function get(handler) {
 		return asFunction(this)(handler);
@@ -22,7 +24,7 @@ abstract Future<T>((T->Void)->(Void->Bool)) {
 			return ret;
 		});
 	}
-	public inline function asFunction():(T->Void)->(Void->Bool) return this;
+	public inline function asFunction():(T->Void)->CallbackLink return this;
 	
 	static function uncancelable():Bool return false;
 	
@@ -43,13 +45,13 @@ abstract Future<T>((T->Void)->(Void->Bool)) {
 		return new Future(function (handler) { handler(v); return uncancelable; } );
 		
 	@:noUsing static public function ofAsyncCall<A>(f:(A->Void)->Void):Future<A> {
-		var state = Pending([]);
+		var state = Pending(new CallbackList());
 		f(function (result) {
 			var old = state;
 			state = Done(result);
 			switch (old) {
 				case Pending(handlers): 
-					for (h in handlers.splice(0, handlers.length)) h.f(result);
+					handlers.invoke(result);
 				case Done(_):
 					//TODO: do something meaningful here. In the worst case panic and throw an exception. ERMERGHERD!
 			}
@@ -60,9 +62,7 @@ abstract Future<T>((T->Void)->(Void->Bool)) {
 					return 
 						switch (state) {
 							case Pending(handlers):
-								var boxed = { f: handler };
-								handlers.push(boxed);
-								function () return handlers.remove(boxed);
+								handlers.add(handler);
 							case Done(result): 
 								handler(result);
 								uncancelable;
@@ -74,6 +74,6 @@ abstract Future<T>((T->Void)->(Void->Bool)) {
 }
 
 private enum State<T> {
-	Pending(handlers:Array<{ f: T->Void }>);//TODO: at some point this should maybe become a double linked list instead as it should be faster and smaller. Do some profiling concerning that.
+	Pending(handlers:CallbackList<T>);
 	Done(result:T);
 }
