@@ -10,6 +10,7 @@ class Pipelining {
 	static public function shortBind(e:Expr) {
 		return
 			if (e == null) null;
+			else if (e.expr == null) e;
 			else switch (e.expr) {
 				case ECall(callee, args):
 					var hasWildcard = false;
