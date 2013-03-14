@@ -6,8 +6,6 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class SignalSugar {
-	static var WHEN_NAMED = macro @when(NAME__data = EXPR__target) EXPR__handle;
-	static var WHEN = macro @when(EXPR__target) EXPR__handle;
 	static var WITH = macro @with(EXPR__target) EXPR__statements;
 	static var ON = macro @on(EXPR__signal) EXPR__handle;
 	
@@ -82,29 +80,6 @@ class SignalSugar {
 					statements.push('tmp'.resolve(target.pos));
 					return statements.toBlock().finalize(e.pos);
 				default: e;
-			}		
-	
-	
-	static public function when(e:Expr) {
-		for (pattern in [WHEN_NAMED, WHEN])
-			switch (e.match(pattern)) {
-				case Success(match):
-					return getFuture(match.exprs.target, match.exprs.handle, match.names.data, e.pos);
-				default:
-			}
-		switch (e.expr) {
-			//case EMeta( { name: 'when', params: [] }, { expr: ESwitch(over, cases, edef) } ):
-			case ESwitch({ expr: EMeta( { name: 'when', params: [] }, over)}, cases, edef):
-				var arg = String.tempName();
-				return getFuture(
-					over, 
-					ESwitch(arg.resolve(over.pos), cases, edef).at(e.pos), 
-					arg, 
-					e.pos
-				);
-			default:
-		}
-		return e;
-	}
+			}			
 	
 }
