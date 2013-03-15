@@ -1,12 +1,10 @@
 package markup;
+
 import haxe.unit.TestCase;
 import tink.util.Embed;
+
 using StringTools;
 using Lambda;
-/**
- * ...
- * @author back2dos
- */
 
 class MarkupTestBase extends TestCase {
 	function notWhite(x:Xml) {
@@ -53,10 +51,6 @@ class MarkupTestBase extends TestCase {
 					assertEquals(x1.get(a), x2.get(a));
 				var c1 = x1.filter(notWhite).array(),
 					c2 = x2.filter(notWhite).array();
-				if (c1.length != c2.length) {
-					trace('expected children:\n'+c1.join('\n'));
-					trace('found children:\n'+c2.join('\n'));
-				}
 				assertEquals(c1.length, c2.length);
 				for (c in c1)
 					compare(c, c2.shift());

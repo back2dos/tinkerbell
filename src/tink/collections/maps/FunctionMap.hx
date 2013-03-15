@@ -1,14 +1,20 @@
 package tink.collections.maps;
 
-#if (flash9 || php || js)
-	class FunctionMap < K, V > extends ObjectMap < K, V > { 
-		#if js
-			static function __init__() {
-				tink.native.JS.patchBind();
-			}
-		#end
+#if flash9
+	abstract FunctionMap<K, V>(ObjectMap<Dynamic, V>) { 
+		public inline function new() this = new ObjectMap();
+		public inline function get(k:K):Null<V> return this.get(k);
+		public inline function set(k:K, v:V):Void this.set(k, v);
+		public inline function exists(k:K):Bool return this.exists(k);
+		public inline function remove(k:K):Bool return this.remove(k);
+		public inline function keys():Iterator<K> return this.keys();
+		public inline function iterator():Iterator<V> return this.iterator();
+		public inline function toString():String return this.toString();
+		
+		@:to public inline function toMap():Map<K, V> return this;
+		@:to public inline function toIterable():Iterable<V> return this;
 	}
-#elseif (flash)
+#elseif (flash || js)
 	class FunctionMap < K, V > extends tink.collections.maps.base.StringIDMap < K, V > { 
 		static var idCounter = 0;
 		function objID(o:Dynamic):String untyped {			

@@ -38,7 +38,7 @@ class TweenTicker {
 			var beacon = root.createEmptyMovieClip('tink_tween_beacon_' + depth, depth);
 			
 			group.hookTo(function (update) {
-				beacon.onEnterFrame = cast callback(update, Math.NaN);
+				beacon.onEnterFrame = cast update.bind(Math.NaN);
 				update(0);
 				return function () {
 					beacon.onEnterFrame = null;

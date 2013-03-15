@@ -80,7 +80,7 @@ class TypeTools {
 								field.type = 
 									switch (member.typeof()) {
 										case Success(t): t;
-										default:
+										case Failure(f):
 											switch (reduce(field.type)) {
 												case TFun(args, _):
 													var fArgs = [],
@@ -90,8 +90,10 @@ class TypeTools {
 													var f = (macro null).func(fArgs, false); 
 													f.expr = EReturn(member.call(f.getArgIdents(), e.pos)).at(e.pos);
 													f.asExpr(e.pos).typeof().sure();
-												default: 
-													throw 'assert';
+												default:
+													f.throwSelf();
+													//trace(reduce(field.type) + ':' + field.name);
+													//throw 'assert';
 											}
 									}	
 							}

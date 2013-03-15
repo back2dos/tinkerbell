@@ -1,28 +1,23 @@
 package tink.collections.maps.base;
 
-/**
-* ...
-* @author back2dos
-*/
-
-class KVPairMap < K, V > implements Map < K, V > {
+class KVPairMap<K, V>  {
 	var keyList:Array<K>;
 	var valList:Array<V>;
 	public function new() {
 		this.keyList = [];
 		this.valList = [];
 	}
-	function equals(k1:K, k2:K):Bool {
+	function equals(k1:K, k2:K):Bool 
 		return throw 'base';
-	}
+	
 	function indexOf(k:K):Int {
 		for (i in 0...keyList.length)
 			if (equals(k, keyList[i])) return i;
 		return -1;
 	}
-	public function get(k:K):Null<V> {
+	public function get(k:K):Null<V> 
 		return valList[indexOf(k)];
-	}
+	
 	public function set(k:K, v:V):V {
 		var i = indexOf(k);
 		if (i == -1) {
@@ -35,9 +30,9 @@ class KVPairMap < K, V > implements Map < K, V > {
 		}
 		return v;
 	}
-	public function exists(k:K):Bool {
+	public function exists(k:K):Bool 
 		return indexOf(k) != -1;
-	}
+	
 	public function remove(k:K):Bool {
 		var i = indexOf(k);
 		return
@@ -48,10 +43,14 @@ class KVPairMap < K, V > implements Map < K, V > {
 				true;
 			}
 	}
-	public inline function keys():Iterator<K> {
+	public inline function keys():Iterator<K> 
 		return keyList.iterator();
-	}
-	public inline function iterator():Iterator<V> {
+	
+	public inline function iterator():Iterator<V> 
 		return valList.iterator();
+	
+	public function toString() {
+		return [for (i in 0...keyList.length) Std.string(keyList[i]) => valList[i]].toString();
 	}
+	
 }

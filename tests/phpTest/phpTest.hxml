@@ -1,8 +1,7 @@
 -cp src
 -cp ../src
 -cp ../../src
--lib erazor
 -php bin
--D tink_reactive
+-D 
 -main Main
 --remap neko:php

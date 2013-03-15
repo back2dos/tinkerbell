@@ -240,7 +240,7 @@ class Base {
 	}
 }
 
-class Child extends Base, implements Cls {
+class Child extends Base implements Cls {
 	public var b:Int = _;
 	public var c = (3);
 	public var d:Int = b;

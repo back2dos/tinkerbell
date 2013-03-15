@@ -1,11 +1,6 @@
 package tink.collections.maps;
 
-/**
- * ...
- * @author back2dos
- */
-
-class BoolMap<V> implements Map<Bool, V> {
+class BoolMap<V> {
 	var hasTrue:Bool;
 	var hasFalse:Bool;
 	var trueVal:Null<V>;
@@ -58,5 +53,8 @@ class BoolMap<V> implements Map<Bool, V> {
 		if (hasTrue) ret.push(trueVal);
 		if (hasFalse) ret.push(falseVal);
 		return ret.iterator();
+	}
+	public function toString():String {
+		return [for (b in keys()) Std.string(b) => this.get(b)].toString();
 	}
 }

@@ -1,20 +1,14 @@
 package tink.reactive.bindings;
 
 import haxe.Timer;
-import tink.collections.maps.AnyMap;
-import tink.collections.maps.BoolMap;
-import tink.collections.maps.FunctionMap;
-import tink.collections.maps.IntMap;
-import tink.collections.maps.ObjectMap;
-import tink.collections.maps.StringMap;
+import tink.collections.maps.*;
 import tink.lang.Cls;
 import tink.reactive.Source;
-import tink.collections.maps.Map;
 
 class Watch<T> extends Binding<T> implements Source<T> {
 	public var value(get_value, null):T;
 	#if (cpp || php) //works around haXe issue #699
-		override function get_value() return super.get_value()
+		override function get_value() return super.get_value();
 	#end
 	public function new(get) {
 		super(get);
@@ -23,7 +17,7 @@ class Watch<T> extends Binding<T> implements Source<T> {
 class Control<T> extends Binding<T> implements Editable<T> {
 	public var value(get_value, set_value):T;
 	#if (cpp || php) //works around haXe issue #699
-		override function get_value() return super.get_value()
+		override function get_value() return super.get_value();
 	#end
 	var set:T->T;
 	public function new(get, set) {
@@ -92,7 +86,7 @@ class Link<T> {
 	static public function by<A>(target:Dynamic, key:Dynamic):Link<A> {
 		var keyMap = targetMap.get(target);
 		if (keyMap == null)
-			keyMap = targetMap.set(target, new AnyMap());
+			targetMap.set(target, keyMap = new AnyMap());
 		var ret = keyMap.get(key);
 		if (ret == null)
 			ret = keyMap.set(key, new Link<A>());
@@ -156,12 +150,12 @@ private typedef BindingMap = Map<Int,Binding<Dynamic>>;
 #if !js
 @:generic 
 #end
-private class SingleSignaller<T, M:Map<T, BindingMap>> {
+private class SingleSignaller<T, M:Map.IMap<T, BindingMap>> {
 	var keyMap:M;
-	var revisions:Map<Int,Int>;
+	var revisions:IntMap<Int>;
 	public function new(keyMap) {
 		this.keyMap = keyMap;
-		this.revisions = new Map();
+		this.revisions = new IntMap();
 	}
 	public inline function bind<A>(key:T, ?ret:A) {
 		watch(key, Binding.current());

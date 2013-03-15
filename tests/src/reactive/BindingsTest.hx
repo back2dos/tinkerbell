@@ -6,11 +6,6 @@ import tink.reactive.bindings.BindableArray;
 import tink.reactive.bindings.BindableMap;
 import tink.reactive.bindings.Binding;
 
-/**
- * ...
- * @author back2dos
- */
-
 class BindingsTest extends TestCase {
 	function testBindings() {
 		var bs = new BindableArray();

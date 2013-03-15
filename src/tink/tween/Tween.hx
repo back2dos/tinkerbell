@@ -89,7 +89,7 @@ class Tween<T> {
 	static public function byTarget<A>(target:A):Iterable<Tween<A>> {//returning Iterable here because we don't want people to screw around with this
 		var ret = targetMap.get(target);
 		if (ret == null)
-			ret = targetMap.set(target, []);
+			targetMap.set(target, ret = []);
 		return cast ret;
 	}
 	static function register(tween:Tween<Dynamic>, kill:String->Bool) {
@@ -113,7 +113,7 @@ private class CuePoint<T> {
 }
 private typedef Cue<T> = Array<CuePoint<T>>;
 class TweenParams<T> implements Cls {
-	var propMap = new Map<StringBool>();
+	var propMap = new Map<String, Bool>();
 	var properties = new Array<String>();
 	var atoms = new Array<TweenAtom<T>>();
 	var cue = new Cue<T>();

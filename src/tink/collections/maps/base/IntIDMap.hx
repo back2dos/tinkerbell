@@ -1,8 +1,8 @@
 package tink.collections.maps.base;
 
-class IntIDMap<K, V> implements tink.collections.maps.Map<K, V> {
-	var keyMap:Map<Int,K>;
-	var valMap:Map<Int,V>;
+class IntIDMap<K, V> {
+	var keyMap:Map<Int, K>;
+	var valMap:Map<Int, V>;
 	public function new() {
 		this.keyMap = new Map();
 		this.valMap = new Map();

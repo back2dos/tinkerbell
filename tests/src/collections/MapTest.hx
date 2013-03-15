@@ -10,10 +10,6 @@ import tink.collections.maps.IntMap;
 import tink.collections.maps.StringMap;
 
 using tink.collections.maps.MapTools;
-/**
- * ...
- * @author back2dos
- */
 
 class MapTest extends TestCase {
 	function testObjectMap() {
@@ -75,6 +71,6 @@ class MapTest extends TestCase {
 		assertEquals(Type.getClass('foo,bar'.split(',').zip([])), StringMap);
 		assertEquals(Type.getClass([true, false].zip([])), AnyMap);
 		assertEquals(Type.getClass([2.0, 3.0].zip([])), AnyMap);
-		assertEquals(Type.getClass([function () {}].zip([])), cast FunctionMap);
+		//assertEquals(Type.getClass([function () {}].zip([])), cast FunctionMap); - this is no longer a class
 	}
 }
