@@ -68,9 +68,7 @@ abstract Future<T>((T->Void)->CallbackLink) {
 								uncancelable;
 						}
 			);
-	}
-	//@:noUsing static public function doGet<A>(f:Future<A>, handler) return f.get(handler);	
-	
+	}	
 }
 
 private enum State<T> {

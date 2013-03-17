@@ -17,7 +17,7 @@ class Pipelining {
 					args = [for (a in args) 
 								if (a.isWildcard()) {
 									hasWildcard = true;
-									a;
+										a;
 								}
 								else shortBind(a)
 							];
@@ -45,17 +45,18 @@ class Pipelining {
 					collectors.push(parseFields(pos, fields));
 					parse(rest, collectors);	
 				default: 
-					if (collectors.length == 0) e;
-					else {
-						generate({
-							collectors: collectors,
-							handler: e
-						});// .log();
-					}
+					{
+						collectors: collectors,
+						handler: e
+					};
 			}		
 	}
-	static public function transform(e:Expr) 
-		return parse(e, []);//TODO: this is uggly as hell
+	static public function transform(e:Expr) {
+		var data = parse(e, []);
+		return
+			if (data.collectors.length == 0) e;
+			else generate(data, e.pos);
+	}
 			
 	static function hasReturn(e:Expr) {
 		var ret = false;
@@ -68,8 +69,15 @@ class Pipelining {
 		search(e);
 		return ret;
 	}
-
-	static function generate(d:Data) {
+	static var FUTURE = macro tink.core.types.Future;
+	static var OUTCOME = macro tink.core.types.Outcome;
+	static var SURPRISE = macro tink.core.types.Surprise;	
+	static var OP = macro tink.lang.CollectorOp;
+	static function generate(d:Data, pos:Position) {
+		var tmp = String.tempName();
+		
+		d.collectors.push([{ param: tmp, operation: d.handler }]);
+		d.handler = tmp.resolve(d.handler.pos);
 		
 		var dType = d.handler.pos.makeBlankType();
 		var chainerName = String.tempName('__chain');
@@ -81,9 +89,9 @@ class Pipelining {
 		
 		var collectors = d.collectors.copy();
 		
-		var promoter = macro tink.core.types.Surprise.promote;
+		var promoter = macro $OP.promote;
 		
-		var body = macro @:pos(d.handler.pos) $yielder($promoter(${d.handler}));//yielderName.resolve(d.handler.pos).call([d.handler]);
+		var body = macro @:pos(d.handler.pos) $yielder($OUTCOME.Success(${d.handler}));
 		
 		while (collectors.length > 0) {
 			var top = collectors.pop();
@@ -100,41 +108,39 @@ class Pipelining {
 			for (p in top)
 				body = chainer.call([
 					p.param.resolve(p.operation.pos),
-					body.func([p.param.toArg()], false).asExpr()
-				]);
+					body.func([p.param.toArg()], false).asExpr(pos)
+				], pos);
 			body = macro { $vars; $body; }
 		}
 		//var ret = [
 			//,
 		var successType = d.handler.pos.makeBlankType();
-		var returnType = macro : tink.core.types.Surprise<$successType, $dType>;
+		//var returnType = macro : tink.core.types.Surprise<$successType, $dType>;
+		var returnType = macro : tink.core.types.Outcome<$successType, $dType>;
 		
 		var chainerDecl = 
 			(macro 
 				function <A>(
-					?dFault:tink.core.types.Surprise < A, $dType > , handler:A->Void
+					?dFault:tink.lang.CollectorOp<tink.core.types.Outcome< A, $dType >> , handler:A->Void
 				) 
 					$i{cancelerName} =
 						dFault.get(function (o) 
 							switch (o) {
 								case Success(d): handler(d);
 								case Failure(f): 
-									$yielder(tink.core.types.Surprise.fromOutcome(tink.core.types.Outcome.Failure(f)));
+									$yielder($OUTCOME.Failure(f));
 							})
-			).getFunction().sure().asExpr(chainerName);
+			).getFunction().sure().asExpr(chainerName, pos);
 					
 		var ret = (macro {
-			${cancelerName.define(macro null, macro : Void->Bool)};
+			${cancelerName.define(macro null, macro : tink.core.types.Callback.CallbackLink)};
 			$chainerDecl;
 			$body;
-			function () return $i{cancelerName}();
-		}).func([yielderName.toArg(TFunction([returnType], macro : Void))]).asExpr();
-		//].toBlock();
+			function () return $i{cancelerName}.cancel();
+		}).func([yielderName.toArg(TFunction([returnType], macro : Void))]).asExpr(pos);
 		
-		var t = d.handler.pos.makeBlankType();
-			
-		//return ECheckType(ret, macro : tink.core.types.Future<$t>).at();
-		return macro new tink.core.types.Future<tink.core.types.Future<tink.core.types.Outcome<$successType, $dType>>>(cast $ret).flatten();
+		return macro @:pos(pos) new tink.core.types.Future($ret);
+		//return macro @:pos(pos) Helper.make(new tink.core.types.Future($ret)).toFuture();
 	}
 }
 private typedef Collectors = Array<Array<{ param:String, operation: Expr }>>;
