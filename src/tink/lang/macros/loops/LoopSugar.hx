@@ -84,7 +84,21 @@ class LoopSugar {
 			}
 	}
 	static function transform(it:Expr, expr:Expr) {
-		return (macro null).finalize().outerTransform(function (_) return doTransform(it, expr));
+		#if display
+			var heads = parseHead(it),
+				ret = expr;
+			for (h in heads) {
+				var target:Expr = 
+					switch (h.target) {
+						case Any(e): e;
+						case Numeric(_, _, step, _): [step].toArray();
+					}
+				ret = target.iterate(ret, h.v.name);
+			}
+			return ret;
+		#else
+			return (macro null).finalize().outerTransform(function (_) return doTransform(it, expr));
+		#end
 	}
 	static function doTransform(it:Expr, expr:Expr) {
 		var loopFlag = temp('loop'),
@@ -210,7 +224,7 @@ class LoopSugar {
 		#if display
 			return standardIter(e);
 		#else
-			var ret = null;// FastLoops.iter(e);
+			var ret = FastLoops.iter(e);
 			return
 				if (ret == null) standardIter(e);
 				else ret;
@@ -348,6 +362,7 @@ class LoopSugar {
 			return yield(e, doYield);
 		return
 			if (e == null) null;
+			else if (e.expr == null) e;
 			else 
 				switch (e.expr) {
 					case EIf(econd, eif, eelse), ETernary(econd, eif, eelse):
