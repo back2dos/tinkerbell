@@ -101,7 +101,7 @@ class BindableProperties {
 							
 							var cacheName = '__tink_reactive_cache__' + name,
 								bindingType = 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]);
-							ctx.add(Member.plain(cacheName, bindingType, tag.pos));
+							ctx.add(Member.plain(cacheName, bindingType, tag.pos)).addMeta(':noCompletion');
 							var expr = 
 								switch (tag.params.length) {
 									case 1: tag.params[0];
@@ -116,7 +116,7 @@ class BindableProperties {
 								bindingType
 							);
 							var cache = cacheName.resolve(tag.pos);
-							ctx.add(Member.getter(name, tag.pos, macro $cache.value, t));
+							ctx.add(Member.getter(name, tag.pos, macro $cache.value, t)).addMeta(':noCompletion');
 							member.kind = FProp('get_' + name, 'null', t);
 						default: 
 							member.pos.error('cache only works on variables');

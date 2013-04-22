@@ -23,6 +23,7 @@ class PropBuilder {
 			addField(gen);
 			gen.isStatic = m.isStatic;
 			gen.isBound = m.isBound;
+			gen.addMeta(':noCompletion');
 		}
 		if (!hasField(get))	
 			mk(Member.getter(m.name, getter, t));
