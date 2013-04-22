@@ -20,13 +20,9 @@ class Benchmark {
 	function defaultLog(msg:String, duration:Float, pos:PosInfos) {
 		Log.trace(this.msg + ' took ' + duration, pos);
 	}
-	inline function stamp() {
+	function stamp() {
 		return
-			#if sys
-				Sys.cpuTime();
-			#else
-				haxe.Timer.stamp();
-			#end
+			haxe.Timer.stamp();
 	}
 	public function next(?msg:String, ?pos:PosInfos) {
 		var now = stamp();
@@ -39,11 +35,10 @@ class Benchmark {
 		next(pos);
 		return value;
 	}
-	macro static public function measure(msg:String, e:Expr, ?times:Expr):Expr {
+	macro static public function measure(msg:ExprOf<String>, e:Expr, ?times:Expr):Expr {
 		if (times.getIdent().equals('null')) times = 1.toExpr();
-		var msg = msg.toExpr();
 		return macro {
-			var __tink__b = new Benchmark($msg),
+			var __tink__b = new tink.devtools.Benchmark($msg),
 				__tink__times = $times;
 			for (__tink__i in 0...__tink__times - 1) $e;
 			__tink__b.finish($e);
