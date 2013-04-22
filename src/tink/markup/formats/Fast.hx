@@ -76,6 +76,7 @@ package tink.markup.formats;
 			return wrap(target);
 		}
 		function wrap(target:Expr) {
+			target = target.withPrivateAccess();
 			var f = target.func([tmp.toArg()], false).asExpr();
 			return (macro new tink.markup.formats.Fast($f)).finalize(target.pos);			
 		}

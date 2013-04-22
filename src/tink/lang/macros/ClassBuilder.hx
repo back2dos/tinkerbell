@@ -68,6 +68,7 @@ class ClassBuilder {
 			#end
 			syntax(Pipelining.shortBind),
 			simpleSugar(Pipelining.transform, true),
+			simpleSugar(tink.markup.formats.Fast.build),
 			PartialImpl.process,
 			#if (tink_reactive || !tink_core)
 				simpleSugar(tink.reactive.signals.macros.SignalSugar.with),
