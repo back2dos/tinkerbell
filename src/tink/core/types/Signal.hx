@@ -2,15 +2,22 @@ package tink.core.types;
 
 import tink.core.types.Callback;
 
-abstract Signal<T>((T->Void)->CallbackLink) {
+enum Noise { Noise; }
 
-	public inline function new(f:(T->Void)->CallbackLink) this = f;	
-	
+abstract Signal<T>(Callback<T>->CallbackLink) {
+	public inline function new(f:Callback<T>->CallbackLink) this = f;	
 	public function watch(handler:Callback<T>):CallbackLink 
-		return asFunction(this)(handler);
-		
+		return (this)(handler);
 	public function map<A>(f:T->A):Signal<A> 
-		return new Signal(function (handler) return asFunction(this)(function (result) handler(f(result))));
-	
-	inline function asFunction():(T->Void)->CallbackLink return this;	
+		return new Signal(function (cb) return (this)(function (result) cb.invoke(f(result))));
+	public function next():Future<T> 
+		return Future.ofAsyncCall(watch.bind(this));
+	public function noise():Signal<Noise>
+		return map(this, function (_) return Noise);
+		
+	public function dike():Signal<T> {
+		var ret = new CallbackList<T>();
+		watch(this, ret.invoke);
+		return ret;
+	}
 }
