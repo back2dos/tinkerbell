@@ -32,19 +32,23 @@ class FastLoops {
 					ret;
 				default: throw 'should be anon';
 			}
-		for (f in Context.getType(typeName).reduce().getFields(false).sure()) 
-			if (fields.exists(f.name)) {
-				if (fields.get(f.name).meta != null)
-					for (m in fields.get(f.name).meta) {
-						if (f.meta.has(m.name))
-							f.meta.remove(m.name);
-						f.meta.add(m.name, m.params, m.pos);
+		switch (Context.getType(typeName).reduce()) {
+			case TAbstract(_, _):
+			default:
+				for (f in Context.getType(typeName).reduce().getFields(false).sure()) 
+					if (fields.exists(f.name)) {
+						if (fields.get(f.name).meta != null)
+							for (m in fields.get(f.name).meta) {
+								if (f.meta.has(m.name))
+									f.meta.remove(m.name);
+								f.meta.add(m.name, m.params, m.pos);
+							}
+						fields.remove(f.name);
 					}
-				fields.remove(f.name);
-			}
-			
-		for (f in fields)
-			f.pos.error(typeName + ' has no field ' + f.name);
+					
+				for (f in fields)
+					f.pos.error(typeName + ' has no field ' + f.name);
+		}
 	}
 	
 	static function nativeRules() {
