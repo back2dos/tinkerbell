@@ -1,6 +1,6 @@
 package tink.collections.maps;
 
-class BoolMap<V> {
+class BoolMap<V> implements Map.IMap<Bool, V> {
 	var hasTrue:Bool;
 	var hasFalse:Bool;
 	var trueVal:Null<V>;
@@ -11,7 +11,7 @@ class BoolMap<V> {
 	public inline function get(k:Bool):Null<V> {
 		return k ? trueVal : falseVal;
 	}
-	public inline function set(k:Bool, v:V):V {
+	public inline function set(k:Bool, v:V) 
 		if (k) {
 			hasTrue = true;
 			trueVal = v;
@@ -20,8 +20,7 @@ class BoolMap<V> {
 			hasFalse = true;
 			falseVal = v;
 		}
-		return v;
-	}
+
 	public inline function exists(k:Bool):Bool {
 		return k ? hasTrue : hasFalse;
 	}
