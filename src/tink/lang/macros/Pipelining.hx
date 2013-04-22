@@ -8,6 +8,7 @@ using haxe.macro.ExprTools;
 
 class Pipelining {
 	static public function shortBind(e:Expr) {
+		//TODO: this should be elsewhere
 		return
 			if (e == null) null;
 			else if (e.expr == null) e;
@@ -34,7 +35,7 @@ class Pipelining {
 	static function parseFields(pos:Position, fields:Array<{ field : String, expr : Expr }>) 
 		return 
 			if (fields.length == 0) 
-				pos.error('pleace specify at least one variable');
+				pos.error('please specify at least one variable');
 			else
 				[for (f in fields) { param : f.field, operation: f.expr } ];
 	
@@ -58,25 +59,18 @@ class Pipelining {
 			else generate(data, e.pos);
 	}
 			
-	static function hasReturn(e:Expr) {
-		var ret = false;
-		function search(e:Expr)
-			switch (e.expr) {
-				case EFunction(_, _):
-				case EReturn(_): ret = true;
-				default: e.iter(search);
-			}
-		search(e);
-		return ret;
-	}
 	static var FUTURE = macro tink.core.types.Future;
 	static var OUTCOME = macro tink.core.types.Outcome;
 	static var SURPRISE = macro tink.core.types.Surprise;	
 	static var OP = macro tink.lang.CollectorOp;
+	
 	static function generate(d:Data, pos:Position) {
+		//TODO: this chould be worse. But it could be a lot better. As in readable.
 		var tmp = String.tempName();
 		
-		d.collectors.push([{ param: tmp, operation: d.handler }]);
+		var normalized = d.handler.yield(function (e:Expr) return macro @:pos(e.pos) $OP.promote($e));
+		
+		d.collectors.push([{ param: tmp, operation: normalized }]);
 		d.handler = tmp.resolve(d.handler.pos);
 		
 		var dType = d.handler.pos.makeBlankType();
@@ -85,7 +79,7 @@ class Pipelining {
 		
 		var yielderName = String.tempName('__yield');
 		var yielder = yielderName.resolve(d.handler.pos);
-		var cancelerName = String.tempName('__cancel');
+		var dissolverName = String.tempName('__dissolve');
 		
 		var collectors = d.collectors.copy();
 		
@@ -112,10 +106,8 @@ class Pipelining {
 				], pos);
 			body = macro { $vars; $body; }
 		}
-		//var ret = [
-			//,
+		
 		var successType = d.handler.pos.makeBlankType();
-		//var returnType = macro : tink.core.types.Surprise<$successType, $dType>;
 		var returnType = macro : tink.core.types.Outcome<$successType, $dType>;
 		
 		var chainerDecl = 
@@ -123,8 +115,8 @@ class Pipelining {
 				function <A>(
 					?dFault:tink.lang.CollectorOp<tink.core.types.Outcome< A, $dType >> , handler:A->Void
 				) 
-					$i{cancelerName} =
-						dFault.get(function (o) 
+					$i{dissolverName} =
+						dFault.get(function (o:tink.core.types.Outcome< A, $dType >) 
 							switch (o) {
 								case Success(d): handler(d);
 								case Failure(f): 
@@ -133,14 +125,13 @@ class Pipelining {
 			).getFunction().sure().asExpr(chainerName, pos);
 					
 		var ret = (macro {
-			${cancelerName.define(macro null, macro : tink.core.types.Callback.CallbackLink)};
+			${dissolverName.define(macro null, macro : tink.core.types.Callback.CallbackLink)};
 			$chainerDecl;
 			$body;
-			function () return $i{cancelerName}.cancel();
+			function () return $i{dissolverName}.dissolve();
 		}).func([yielderName.toArg(TFunction([returnType], macro : Void))]).asExpr(pos);
 		
-		return macro @:pos(pos) new tink.core.types.Future($ret);
-		//return macro @:pos(pos) Helper.make(new tink.core.types.Future($ret)).toFuture();
+		return macro @:pos(pos) $OP.demote($promoter($FUTURE.ofAsyncCall($ret))).toFuture();
 	}
 }
 private typedef Collectors = Array<Array<{ param:String, operation: Expr }>>;
