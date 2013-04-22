@@ -99,39 +99,7 @@ class ExprTools {
 			);
 	}
 	static public function getPrivate(e:Expr, field:String, ?pos) {
-		if (pos == null) 
-			pos = e.pos;
-		return 
-			Bouncer.outerTransform((macro null), function (_) {//TODO: bouncing should be avoided if not necessary
-				var ret = e.field(field, pos);
-				switch (e.typeof()) {
-					case Success(t):
-						switch (ret.typeof()) {
-							case Failure(f):
-								if (f.data == 'Cannot access private field ' + field) //TODO: ask for error codes or typed errors
-									for (f in t.getFields(false).sure())
-										if (f.name == field) {
-											var kind =
-												switch (f.kind) {
-													case FVar(read, write):
-														FProp(read.accessToName(), write.accessToName(), pos.makeBlankType());
-													default: 
-														FProp('default', 'null', pos.makeBlankType());
-												}
-											var type = ComplexType.TAnonymous([ { 
-												name: field,
-												access: [APrivate],
-												kind: kind,
-												pos: pos
-											}]);
-											return ECheckType(e, type).at(pos).field(field, pos);							
-										}								
-							default: 
-						}
-					default: 
-				}
-				return ret;
-			});
+		return EMeta( { name: ':privateAccess', params: [], pos: pos }, e.field(field, pos)).at(pos);
 	}
 	static public function partial<D>(c:ComplexType, data:D, ?pos) 
 		return ECheckType(macro null, c).at(pos).tag(data);
@@ -190,6 +158,39 @@ class ExprTools {
 				t;
 			}).finalize(target.pos).typeof();
 	
+	static public function yield(e:Expr, yielder:Expr->Expr):Expr {
+		inline function rec(e) 
+			return yield(e, yielder);
+		return
+			if (e == null || e.expr == null) e;
+			else switch (e.expr) {
+				case EVars(_):
+					(macro @:pos(e.pos) var x = { var x = 5; } ).typeof().sure();
+					throw 'unreachable';
+				case EParenthesis(e):
+					EParenthesis(rec(e)).at(e.pos);
+				case EBlock(exprs) if (exprs.length > 0): 
+					exprs = exprs.copy();
+					exprs.push(rec(exprs.pop()));
+					EBlock(exprs).at(e.pos);
+				case EIf(econd, eif, eelse)
+					,ETernary(econd, eif, eelse):
+					EIf(econd, rec(eif), rec(eelse)).at(e.pos);
+				case ESwitch(e, cases, edef):
+					cases = cases.copy();
+					for (c in cases)
+						c.expr = rec(Reflect.copy(c.expr));
+					ESwitch(e, cases, rec(edef)).at(e.pos);
+				case ECheckType(e, t):
+					ECheckType(rec(e), t).at(e.pos);
+				case EMeta(s, e):
+					EMeta(s, rec(e)).at(e.pos);
+				case EUntyped(e):
+					EUntyped(rec(e)).at(e.pos);
+				default: yielder(e);
+			}
+	}
+			
 	static function crawl(target:Dynamic, transformer:Expr->Expr, retyper:ComplexType->ComplexType, pos:Position):Dynamic {
 		return
 			if (Std.is(target, Array)) 
@@ -215,7 +216,6 @@ class ExprTools {
 	}
 
 	static public function map(source:Expr, f:Expr->Array<VarDecl>->Expr, ctx:Array<VarDecl>, ?pos:Position):Expr {
-		//trace(pos);
 		if (ctx == null) 
 			if (context == null) ctx = [];
 			else ctx = context;
@@ -223,7 +223,6 @@ class ExprTools {
 		function rec(e, ?inner)
 			return map(e, f, inner == null ? ctx : inner, pos);
 		if (source == null || source.expr == null) return source;
-		//if (pos == null) pos = source.pos;
 		var mappedSource = f(source, ctx);
 		if (mappedSource != source) return mappedSource;
 		
@@ -442,7 +441,7 @@ class ExprTools {
 		
 	static var contexts = new List();
 	static var context = null;
-	static public function inContext<A>(f:Void->A, locals) {
+	static public function inContext<A>(f:Void->A, locals) {//TODO: I think this is obsolete
 		contexts.push(context);
 		context = locals;
 		var ret = f();
