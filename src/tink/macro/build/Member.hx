@@ -40,12 +40,12 @@ class Member {
 		if (isPublic == null) 
 			isPublic = true;
 	}
-	public function addMeta(name, pos, ?params) {
+	public function addMeta(name, ?pos, ?params) {
 		if (!meta.exists(name))
 			meta.set(name, []);
 		meta.get(name).push({
 			name: name,
-			pos: pos,
+			pos: if (pos == null) this.pos else pos,
 			params: if (params == null) [] else params
 		});
 	}
