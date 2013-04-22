@@ -10,9 +10,37 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class SignalBuilder {
+	static inline var SIGNAL2 = 'signal';
+	
 	static inline var SIGNAL = ':signal';
 	static public function make(ctx:ClassBuildContext) {
-		for (member in ctx.members) 
+		for (member in ctx.members) {
+			switch (member.extractMeta(SIGNAL2)) {
+				case Success(tag):
+					switch (member.kind) {
+						case FVar(t, e):
+							if (t == null && e == null) 
+								t = macro : tink.core.types.Signal.Noise;
+							member.publish();
+							if (e == null) {	
+								var own = '_' + member.name;
+								ctx.add(
+									Member.plain(
+										own, 
+										macro : tink.core.types.Callback.CallbackList<$t>, 
+										tag.pos, 
+										macro new tink.core.types.Callback.CallbackList()
+									), 
+									true
+								).isPublic = false;	
+								e = macro $i{own}.toSignal();
+							}
+							member.kind = FProp('default', 'null', macro : tink.core.types.Signal<$t>, e);
+						default:
+							member.pos.error('can only declare signals on variables');
+					}
+				default:
+			}
 			switch (member.extractMeta(SIGNAL)) {
 				case Success(tag):
 					switch (member.kind) {
@@ -60,5 +88,6 @@ class SignalBuilder {
 					}
 				default:
 			}
+		}
 	}
 }
