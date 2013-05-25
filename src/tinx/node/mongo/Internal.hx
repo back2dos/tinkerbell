@@ -22,7 +22,7 @@ private typedef NativeCursor<T> = {
 	function toArray(h:Handler<Array<T>>):Void;
 }
 private typedef NativeCollection<T> = {
-	function remove(query:Dynamic, justOne:Bool, handler:Handler<tink.core.types.Signal.Noise>):Void;
+	function remove(query:Dynamic, options: { single:Bool }, handler:Handler<tink.core.types.Signal.Noise>):Void;
 	function aggregate(pipeline:Array<Dynamic>, handler:Handler<Dynamic>):Void;
 	function findOne(match:Dynamic, project:Dynamic, handler:Handler<Dynamic>):Void;
 	function find(match:Dynamic, project:Dynamic, handler:Handler<NativeCursor<Dynamic>>):Void;
@@ -57,7 +57,7 @@ class CollectionBase<T> implements Cls {
 			
 	function _remove(match:Dynamic, justOne:Bool)
 		return 
-			{ collection : native } => collection.remove(match, justOne, _);
+			{ collection : native } => collection.remove(match, { single: justOne }, _);
 				
 	function _update(match:Dynamic, update:Dynamic, options:Dynamic)
 		return 
