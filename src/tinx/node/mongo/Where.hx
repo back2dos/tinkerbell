@@ -18,12 +18,10 @@ class Where<T> extends CollectionBase<T> {
 			super(c.native);
 			this.match = match;
 		}
-		public function remove() {
-			
-		}
-		public function removeAll() {
-			
-		}
+		public function remove() 
+			return _remove(match, true);
+		public function removeAll() 
+			return _remove(match, false);
 	#else
 		static function find(ethis:Expr, func:String, projection:Array<Expr>) {
 			ethis = macro @:privateAccess $ethis;
@@ -36,15 +34,6 @@ class Where<T> extends CollectionBase<T> {
 				@:privateAccess tmp.$func($proto, tmp.match, ${projection.expr});
 			}
 		}		
-		//static function update(ethis:Expr, updates:Array<Expr>, options:Expr) {
-			//ethis = macro @:privateAccess $ethis;
-			//var info = ethis.getInfo();
-			//var update = Update.compile(updates, info);
-			//return (macro {
-				//var tmp = $ethis;
-				//@:privateAccess tmp._update(tmp.match, ${update.expr}, $options);
-			//});
-		//}		
 		
 		static function update(ethis:Expr, updates:Array<Expr>, options:Expr) {
 			ethis = macro @:privateAccess $ethis;

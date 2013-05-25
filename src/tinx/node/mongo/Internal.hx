@@ -22,12 +22,13 @@ private typedef NativeCursor<T> = {
 	function toArray(h:Handler<Array<T>>):Void;
 }
 private typedef NativeCollection<T> = {
+	function remove(query:Dynamic, justOne:Bool, handler:Handler<tink.core.types.Signal.Noise>):Void;
 	function aggregate(pipeline:Array<Dynamic>, handler:Handler<Dynamic>):Void;
 	function findOne(match:Dynamic, project:Dynamic, handler:Handler<Dynamic>):Void;
 	function find(match:Dynamic, project:Dynamic, handler:Handler<NativeCursor<Dynamic>>):Void;
 	function insert(docs:Array<T>, options:Dynamic, handler:Handler<Array<T>>):Void;
 	function update(match:Dynamic, update:Dynamic, options:Dynamic, handler:Handler<Array<T>>):Void;//TODO: it seems that the result is not actually fetched
-	function findAndModify(match:Dynamic, update:Dynamic, options:Dynamic, handler:Handler<Dynamic>):Void;
+	function findAndModify(match:Dynamic, sort:Array<Dynamic>, update:Dynamic, options:Dynamic, handler:Handler<Dynamic>):Void;
 }
 class Cursor<T> implements Cls {
 	var native:Unsafe<NativeCursor<T>> = _;
@@ -52,7 +53,11 @@ class CollectionBase<T> implements Cls {
 			
 	function _find<A>(proto:A, match:Dynamic, project:Dynamic):Cursor<A>
 		return 
-			new Cursor({ collection : native } => collection.find(match, project, _));
+			new Cursor( { collection : native } => collection.find(match, project, _));
+			
+	function _remove(match:Dynamic, justOne:Bool)
+		return 
+			{ collection : native } => collection.remove(match, justOne, _);
 				
 	function _update(match:Dynamic, update:Dynamic, options:Dynamic)
 		return 
@@ -60,7 +65,7 @@ class CollectionBase<T> implements Cls {
 			
 	function _findAndModify<A>(proto:A, match:Dynamic, update:Dynamic, options:Dynamic):Unsafe<A>
 		return 
-			{ collection : native } => collection.findAndModify(match, update, options, _);
+			{ collection : native } => collection.findAndModify(match, [], update, options, _);
 }
 class DbBase implements Cls {
 	var native:Unsafe<NativeDb>;
