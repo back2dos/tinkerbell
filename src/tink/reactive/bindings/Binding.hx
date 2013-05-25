@@ -125,6 +125,7 @@ class Binding<T> implements Cls {
 		if (busy) 
 			throw 'cyclic binding occured';
 		stack.push(this);
+		stack.length;
 		busy = true;
 		revision += 1;
 		cache = calc();

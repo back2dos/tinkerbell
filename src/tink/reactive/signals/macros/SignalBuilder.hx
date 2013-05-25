@@ -10,84 +10,47 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class SignalBuilder {
-	static inline var SIGNAL2 = 'signal';
-	
-	static inline var SIGNAL = ':signal';
+	static var types = [
+		':signal' => {
+			published: function (t) return macro : tink.core.types.Signal<$t>,
+			internal: function (pos, t) return macro @:pos(pos) new tink.core.types.Callback.CallbackList<$t>()
+		},
+		':future' => {
+			published: function (t) return macro : tink.core.types.Future<$t>,
+			internal: function (pos, t) return macro @:pos(pos) tink.core.types.Future.create()
+		}
+	];
 	static public function make(ctx:ClassBuildContext) {
-		for (member in ctx.members) {
-			switch (member.extractMeta(SIGNAL2)) {
-				case Success(tag):
-					switch (member.kind) {
-						case FVar(t, e):
-							if (t == null && e == null) 
-								t = macro : tink.core.types.Signal.Noise;
-							member.publish();
-							if (e == null) {	
-								var own = '_' + member.name;
-								ctx.add(
-									Member.plain(
-										own, 
-										macro : tink.core.types.Callback.CallbackList<$t>, 
-										tag.pos, 
-										macro new tink.core.types.Callback.CallbackList()
-									), 
-									true
-								).isPublic = false;	
-								e = macro $i{own}.toSignal();
-							}
-							member.kind = FProp('default', 'null', macro : tink.core.types.Signal<$t>, e);
-						default:
-							member.pos.error('can only declare signals on variables');
-					}
-				default:
-			}
-			switch (member.extractMeta(SIGNAL)) {
-				case Success(tag):
-					switch (member.kind) {
-						case FVar(t, e):
-							if (t == null) 
-								t = macro : Void;
-							var name = 
-								switch (tag.params.length) {
-									case 0: member.name;
-									case 1: tag.params[0].getIdent().sure();
-									default: tag.pos.error('too many arguments');
+		for (type in types.keys()) {
+			var make = types.get(type);
+			for (member in ctx.members) 	
+				switch (member.extractMeta(type)) {
+					case Success(tag):
+						switch (member.kind) {
+							case FVar(t, e):
+								if (t == null)
+									t = if (e == null) macro : tink.core.types.Signal.Noise;
+										else e.pos.makeBlankType();
+								member.publish();
+								if (e == null) {	
+									var own = '_' + member.name;
+									ctx.add(
+										Member.plain(
+											own, 
+											null,
+											tag.pos, 
+											make.internal(tag.pos, t)
+										), 
+										true
+									).isPublic = false;	
+									e = macro $i{own};
 								}
-							var types = 
-								switch (t) {
-									case TPath({ name: 'Void' }):
-										{ 
-											cls : 'tink.reactive.signals.Signal.SimpleVoidSignal',
-											own : macro : tink.reactive.signals.Signal.SimpleVoidSignal,
-											published : macro : tink.reactive.signals.Signal.VoidSignal,
-										}
-									default:
-										{ 
-											cls : 'tink.reactive.signals.Signal.SimpleSignal',
-											own : macro : tink.reactive.signals.Signal.SimpleSignal<$t>,
-											published : 
-												'tink.reactive.signals.Signal.Named'.asComplexType([
-													TPExpr(name.toExpr()),
-													TPType(macro : tink.reactive.signals.Signal<$t>)
-												])
-										}
-								}
-							if (e == null) {
-								var own = '_' + member.name;
-								
-								member.kind = FVar(types.published);
-								member.addMeta(PropBuilder.READ, tag.pos, [own.resolve(tag.pos)]);
-								ctx.add(Member.plain(own, types.own, tag.pos, types.cls.instantiate(tag.pos)), true).isPublic = false;								
-							}
-							else {
-								member.addMeta(PropBuilder.READ, tag.pos);
-								member.kind = FVar(types.published, e);								
-							}
-						default: 
-							member.pos.error('can only declare signals on variables');
-					}
-				default:
-			}
+								member.kind = FProp('default', 'null', make.published(t), e);
+							default:
+								member.pos.error('can only declare signals on variables');
+						}
+					default:
+				}
 		}
 	}
 }

@@ -31,13 +31,13 @@ class TypeTools {
 				default: null;
 			}
 	}
-	static public function accessToName(v:VarAccess) {
+	static public function accessToName(v:VarAccess, ?read = true) {
 		return
 			switch (v) {
 				case AccNormal, AccInline: 'default';
 				case AccNo: 'null';
 				case AccNever: 'never';
-				case AccCall(m): m;
+				case AccCall: if (read) 'get' else 'set';
 				default:
 					throw 'not implemented';
 			}		
@@ -101,7 +101,7 @@ class TypeTools {
 								var kind = 
 									switch (field.kind) {
 										case FVar(read, write): 
-											FProp(accessToName(read), accessToName(write), field.pos.makeBlankType());
+											FProp(accessToName(read), accessToName(write, true), field.pos.makeBlankType());
 										default: 
 											switch (reduce(field.type)) {
 												case TFun(args, _):

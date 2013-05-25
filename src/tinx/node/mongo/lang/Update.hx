@@ -1,6 +1,7 @@
 package tinx.node.mongo.lang;
 
 using Type;
+import haxe.ds.StringMap;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
@@ -68,9 +69,9 @@ private class Parser {
 			}
 }
 private class Generator {
-	var ops:Map<StringMap<StringExpr>>;
+	var ops:StringMap<StringMap<Expr>>;
 	public function new(d:DocUpdate) {
-		ops = new Map();
+		ops = new StringMap();
 		for (f in d)
 			switch (f.op) {
 				case Pop(shift):
@@ -97,7 +98,7 @@ private class Generator {
 	function fieldOp(opName:String, path:Path, expr) {
 		opName = opName.charAt(0).toLowerCase() + opName.substr(1);
 		if (!ops.exists(opName)) 
-			ops.set(opName, new Map());
+			ops.set(opName, new StringMap());
 		var op = ops.get(opName);
 		var name = path.join('.');
 		if (op.exists(name))
@@ -110,7 +111,7 @@ private class Generator {
 			expr: expr
 		}
 		
-	function genOp(op:Map<StringExpr>) 
+	function genOp(op:StringMap<Expr>) 
 		return 
 			EObjectDecl([
 				for (name in op.keys()) 

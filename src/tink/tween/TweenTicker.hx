@@ -46,6 +46,24 @@ class TweenTicker {
 				}
 			});
 		}
+	#elseif js
+		static public function framewise(group:TweenGroup) {
+			if (Reflect.field(js.Browser.window, 'requestAnimationFrame')) {
+				//TODO: cannot actually perceive an improvement. Also, frames should only be requested when tweens are available
+				group.hookTo(function (update) {
+					update(0);
+					var id = 0;
+					function next(_) {
+						id = js.Browser.window.requestAnimationFrame(next);
+						update(Math.NaN);
+						return true;
+					}
+					next(0);
+					return function () js.Browser.window.cancelAnimationFrame(id);
+				});
+			}
+			else periodic(group, 16);
+		}
 	#end
 	static public function periodic(group:TweenGroup, ?time_ms:Int = 20) {
 		var t = new haxe.Timer(time_ms);

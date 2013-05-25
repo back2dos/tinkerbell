@@ -6,11 +6,10 @@ import tink.core.types.Outcome;
 abstract Future<T>(Callback<T>->CallbackLink) {
 
 	public inline function new(f:Callback<T>->CallbackLink) this = f;	
-	
-	public function get(callback:Callback<T>):CallbackLink {
+	public function get(callback:Callback<T>):CallbackLink 
 		return (this)(callback);
-	}
-	static public function done<D, F>(s:Surprise<D, F>, callback:Callback<D>):Void {
+	public function when(cb) return get(cb);	
+	/*static public function done<D, F>(s:Surprise<D, F>, callback:Callback<D>):Void {
 		s.get(function (o) switch o {
 			case Success(d): callback.invoke(d);
 			default:
@@ -27,12 +26,14 @@ abstract Future<T>(Callback<T>->CallbackLink) {
 			case Success(d): Success(f(d));
 			case Failure(f): Failure(f);
 		});
-	}
+	}*/
+	
+	//@:to function toFunction():Callback<T>->CallbackLink return this;
 	public function map<A>(f:T->A):Future<A> {
 		return new Future(function (callback) return (this)(function (result) callback.invoke(f(result))));
 	}
 	public function flatMap<A>(next:T->Future<A>):Future<A> {
-		return flatten(map(this, next));
+		return flatten(map(next));
 	}
 	static public function flatten<A>(f:Future<Future<A>>):Future<A> {
 		return new Future(function (callback) {
@@ -43,7 +44,9 @@ abstract Future<T>(Callback<T>->CallbackLink) {
 			return ret;
 		});
 	}
-	
+	@:from static inline function fromOp<A>(op:FutureOp<A>):Future<A> {
+		return op.asFuture();
+	}
 	@:from static function fromMany<A>(futures:Array<Future<A>>):Future<Array<A>> {
 		var ret = ofConstant([]);
 		for (f in futures)
@@ -61,33 +64,46 @@ abstract Future<T>(Callback<T>->CallbackLink) {
 		return new Future(function (callback) { callback.invoke(v); return null; } );
 		
 	@:noUsing static public function ofAsyncCall<A>(f:(A->Void)->Void):Future<A> {
-		var state = Pending(new CallbackList());
-		f(function (result) {
-			var old = state;
-			state = Done(result);
-			switch (old) {
-				case Pending(callbacks): 
-					callbacks.invoke(result);
-					callbacks.clear();
-				case Done(_):
-					//TODO: do something meaningful here. In the worst case panic and throw an exception. ERMERGHERD!
-			}
-		});
-		return 
-			new Future(
-				function (callback)
-					return 
-						switch (state) {
-							case Pending(callbacks):
-								callbacks.add(callback);
-							case Done(result): 
-								callback.invoke(result);
-								null;
-						}
-			);
-	}	
+		var op = create();
+		f(op.invoke);
+		return op;
+	}
+	@:noUsing static public inline function create<A>():FutureOp<A> {
+		return new FutureOp();
+	}
 }
 
+class FutureOp<T> {
+	var state:State<T>;
+	var future:Future<T>;
+	public function new() {
+		state = Pending(new CallbackList());
+		future = new Future(
+			function (callback)
+				return 
+					switch (state) {
+						case Pending(callbacks):
+							callbacks.add(callback);
+						case Done(result): 
+							callback.invoke(result);
+							null;
+					}
+		);
+	}
+	public inline function asFuture() return future;
+	public function invoke(result:T):Bool {
+		return
+			switch (state) {
+				case Pending(callbacks):
+					state = Done(result);
+					callbacks.invoke(result);
+					callbacks.clear();
+					true;
+				case Done(_):
+					false;
+			}
+	}
+}
 private enum State<T> {
 	Pending(callbacks:CallbackList<T>);
 	Done(result:T);

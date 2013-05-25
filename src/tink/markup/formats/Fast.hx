@@ -76,17 +76,16 @@ package tink.markup.formats;
 			return wrap(target);
 		}
 		function wrap(target:Expr) {
-			target = target.withPrivateAccess();
+			//target = target.withPrivateAccess();
 			var f = target.func([tmp.toArg()], false).asExpr();
 			return (macro new tink.markup.formats.Fast($f)).finalize(target.pos);			
 		}
 		public function postprocess(e:Expr):Expr 
 			return 
-				#if display 
-					wrap(e);
-				#else 
+				//if (Context.defined('display'))
+					//wrap(e);
+				//else 
 					e.outerTransform(optimize);
-				#end
 		
 		function sOut(s:String):Expr {
 			return out(s.toExpr(here));
@@ -131,6 +130,9 @@ package tink.markup.formats;
 			return
 				switch (e.expr) {
 					case EMeta( { name : 'html', params: [] }, e):
+						//if (Context.defined('display')) {
+							//sys.io.File.saveContent('log.txt', e.toString());
+						//}
 						e = TreeCrawler.build(e, new Tags(new Fast()));
 						macro $e.toString();
 					default: e;

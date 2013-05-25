@@ -1,5 +1,6 @@
 package tinx.node.mongo.lang;
 
+import haxe.ds.StringMap;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -10,7 +11,7 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 using Lambda;
 
-private typedef Node = Map<String{ pos: Position, op:Op }>;
+private typedef Node = StringMap<{ pos: Position, op:Op }>;
 
 private enum Op {
 	Plain;

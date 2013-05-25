@@ -7,12 +7,16 @@ using tink.core.types.Outcome;
 using haxe.macro.ExprTools;
 
 class Pipelining {
-	static public function shortBind(e:Expr) {
+	static public function shortBind(e:Expr):Expr {
 		//TODO: this should be elsewhere
 		return
 			if (e == null) null;
 			else if (e.expr == null) e;
 			else switch (e.expr) {
+				case ECall(macro $x.bind, args):
+					x = shortBind(x);
+					args = args.map(shortBind);
+					macro $x.bind($a{args});
 				case ECall(callee, args):
 					var hasWildcard = false;
 					args = [for (a in args) 
@@ -62,7 +66,7 @@ class Pipelining {
 	static var FUTURE = macro tink.core.types.Future;
 	static var OUTCOME = macro tink.core.types.Outcome;
 	static var SURPRISE = macro tink.core.types.Surprise;	
-	static var OP = macro tink.lang.CollectorOp;
+	static var OP = macro tink.lang.helpers.CollectorOp;
 	
 	static function generate(d:Data, pos:Position) {
 		//TODO: this chould be worse. But it could be a lot better. As in readable.
@@ -92,7 +96,7 @@ class Pipelining {
 			var vars = EVars([
 				for (p in top) { 
 					name : p.param, 
-					expr: macro $promoter(${p.operation}), 
+					expr: p.operation.yield(function (e) return macro @:pos(e.pos) $promoter($e)), 
 					type: null 
 				}
 			]).at();
@@ -113,12 +117,12 @@ class Pipelining {
 		var chainerDecl = 
 			(macro 
 				function <A>(
-					?dFault:tink.lang.CollectorOp<tink.core.types.Outcome< A, $dType >> , handler:A->Void
+					?dFault:tink.lang.helpers.CollectorOp<tink.core.types.Outcome< A, $dType >> , _handler:A->Void
 				) 
 					$i{dissolverName} =
 						dFault.get(function (o:tink.core.types.Outcome< A, $dType >) 
 							switch (o) {
-								case Success(d): handler(d);
+								case Success(d): _handler(d);
 								case Failure(f): 
 									$yielder($OUTCOME.Failure(f));
 							})
@@ -130,8 +134,10 @@ class Pipelining {
 			$body;
 			function () return $i{dissolverName}.dissolve();
 		}).func([yielderName.toArg(TFunction([returnType], macro : Void))]).asExpr(pos);
-		
+		//if (Std.string(pos).indexOf('Haxe.hx') == -1)
 		return macro @:pos(pos) $OP.demote($promoter($FUTURE.ofAsyncCall($ret))).toFuture();
+		//else
+		//return (macro @:pos(pos) $OP.demote($promoter($FUTURE.ofAsyncCall($ret))).toFuture()).log();
 	}
 }
 private typedef Collectors = Array<Array<{ param:String, operation: Expr }>>;

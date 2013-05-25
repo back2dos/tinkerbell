@@ -22,7 +22,7 @@ class BinopTools {
 		return
 			switch (e.expr) {
 				case EBinop(op, e1, e2):
-					{ e1: e1, e2:e2, op:op, pos:e.pos } .asSuccess();
+					{ e1: e1, e2:e2, op:op, pos:e.pos }.asSuccess();
 				default:
 					e.pos.makeFailure('expected binary operation but found ' + Type.enumConstructor(e.expr));					
 			}

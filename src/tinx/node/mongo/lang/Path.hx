@@ -4,6 +4,7 @@ package tinx.node.mongo.lang;
 
 using StringTools;
 
+import haxe.ds.StringMap;
 import haxe.macro.Expr;
 
 using tink.core.types.Outcome;
@@ -61,7 +62,7 @@ class StringAt {
 		this.s = s;
 		this.pos = pos;
 	}
-	public function getFrom<A>(h:Map<StringA>, ?key:String = 'field')
+	public function getFrom<A>(h:StringMap<A>, ?key:String = 'field')
 		return 
 			if (h.exists(s)) h.get(s);
 			else pos.error('unknown $key $s');

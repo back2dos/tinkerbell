@@ -7,17 +7,26 @@ abstract Callback<T>(T->Void) from (T->Void) {
 		(this)(data);
 	@:from static inline function fromNiladic<A>(f:Void->Void):Callback<A> 
 		return new Callback(function (r) f());
+	@:from static function fromMany<A>(callbacks:Array<Callback<A>>):Callback<A> 
+		return
+			function (v:A) 
+				for (callback in callbacks)
+					callback.invoke(v);
+					
+	@:noCompletion static public function target<A>(f:Callback<A>->CallbackLink) return f;
 }
 
 abstract CallbackLink(Void->Void) {
 	inline function new(link:Void->Void) 
 		this = link;
 	public function dissolve():Void 
-		if (this != null) asFunction(this)();
-	inline function asFunction():Void->Void 
-		return this;	
+		if (this != null) (this)();
+	@:to function toCallback<A>():Callback<A> 
+		return this;
 	@:from static inline function fromFunction(f:Void->Void) 
 		return new CallbackLink(f);
+	@:from static function fromMany(callbacks:Array<CallbackLink>)
+		return fromFunction(function () for (cb in callbacks) cb.dissolve());
 }
 
 private class Cell<T> {
@@ -51,7 +60,7 @@ abstract CallbackList<T>(Array<Cell<T>>) {
 		}
 	}
 	@:to public function toSignal():Signal<T> 
-		return new Signal(add.bind(this));
+		return new Signal(add);
 		
 	public function invoke(data:T) 
 		for (cell in this.copy()) 

@@ -205,7 +205,10 @@ class Printer {
 					case ESwitch(e, cases, edef):
 						var ret = [];
 						for (c in cases)
-							ret.push('case ' + printExprList(indent, c.values, ['','']) + ': ' + printExpr(indent + '\t', c.expr));
+							ret.push(
+								'case ' + printExprList(indent, c.values, ['', '']) 
+								+ (if (c.guard == null) '' else ' if '+rec(c.guard))
+								+ ': ' + printExpr(indent + '\t', c.expr));
 						if (edef != null) 
 							ret.push('default: ' + rec(edef));
 						'switch (' + rec(e) + ') {\n\t' + indent + ret.join('\n\t' + indent) + '\n' + indent + '}';

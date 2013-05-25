@@ -98,12 +98,12 @@ import tink.devtools.Benchmark;
 #end
 private class Store {
 	#if macro
-		static function accessor(v:VarAccess, meta:MetaAccess, write:Bool, pos) 
+		static function accessor(v:VarAccess, f:String, meta:MetaAccess, write:Bool, pos) 
 			switch(v) {
-				case AccCall(m):
+				case AccCall:
 					var name = write ? '__w' : '__r';
 					if (!meta.has(name))
-						meta.add(name, [Context.makeExpr(m, pos)], pos);
+						meta.add(name, [Context.makeExpr(write ? 'set_$f' : 'get_$f', pos)], pos);
 				default:
 			}
 		
@@ -116,8 +116,8 @@ private class Store {
 							for (field in cl.fields.get())
 								switch (field.kind) {
 									case FVar(read, write):
-										accessor(read, field.meta, false, field.pos);
-										accessor(write, field.meta, true, field.pos);
+										accessor(read, field.name, field.meta, false, field.pos);
+										accessor(write, field.name, field.meta, true, field.pos);
 									default:
 								}
 					default:

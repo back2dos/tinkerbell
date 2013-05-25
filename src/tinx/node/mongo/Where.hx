@@ -30,18 +30,39 @@ class Where<T> extends CollectionBase<T> {
 			var info = ethis.getInfo();
 			var projection = Projection.compile(projection, info);
 			var proto = projection.type;
-			return (macro {
+			func = '_$func';
+			return macro {
 				var tmp = $ethis;
-				@:privateAccess tmp.find($proto, tmp.match, ${projection.expr});
-			}).finalize({ find: '_' + func });
+				@:privateAccess tmp.$func($proto, tmp.match, ${projection.expr});
+			}
 		}		
+		//static function update(ethis:Expr, updates:Array<Expr>, options:Expr) {
+			//ethis = macro @:privateAccess $ethis;
+			//var info = ethis.getInfo();
+			//var update = Update.compile(updates, info);
+			//return (macro {
+				//var tmp = $ethis;
+				//@:privateAccess tmp._update(tmp.match, ${update.expr}, $options);
+			//});
+		//}		
+		
 		static function update(ethis:Expr, updates:Array<Expr>, options:Expr) {
 			ethis = macro @:privateAccess $ethis;
 			var info = ethis.getInfo();
-			var projection = Update.compile(updates, info);
+			var update = Update.compile(updates, info);
 			return (macro {
 				var tmp = $ethis;
-				@:privateAccess tmp._update(tmp.match, ${projection.expr}, $options);
+				@:privateAccess tmp._update(tmp.match, ${update.expr}, $options);
+			});
+		}		
+		static function findAndModify(ethis:Expr, updates:Array<Expr>, options:Expr) {
+			ethis = macro @:privateAccess $ethis;
+			var info = ethis.getInfo();
+			var update = Update.compile(updates, info),
+				proto = Projection.compile([], info).type;
+			return (macro {
+				var tmp = $ethis;
+				@:privateAccess tmp._findAndModify($proto, tmp.match, ${update.expr}, $options);
 			});
 		}
 	#end
@@ -50,7 +71,7 @@ class Where<T> extends CollectionBase<T> {
 		return find(ethis, 'findOne', projection);
 	
 	macro public function slice(ethis:Expr, skip:ExprOf<Int>, limit:ExprOf<Int>	, projection:Array<Expr>) 
-		return macro${find(ethis, 'find', projection)}.toArray();
+		return macro $ethis.cursor($a{projection}).skip($skip).limit($limit).toArray();// $ { find(ethis, 'find', projection) } .toArray();
 		
 	macro public function all(ethis:Expr, projection:Array<Expr>) 
 		return macro${find(ethis, 'find', projection)}.toArray();
@@ -63,5 +84,11 @@ class Where<T> extends CollectionBase<T> {
 	
 	macro public function updateAll(ethis:Expr, updates:Array<Expr>) 
 		return update(ethis, updates, macro { multi : true } );
+		
+	macro public function getAndUpdate(ethis:Expr, updates:Array<Expr>) 
+		return findAndModify(ethis, updates, macro { "new" : false } );
+		
+	macro public function updateAndGet(ethis:Expr, updates:Array<Expr>) 
+		return findAndModify(ethis, updates, macro { "new" : true } );
 	
 }

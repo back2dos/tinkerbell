@@ -1,18 +1,24 @@
 package tinx.node.http;
 
+import tink.core.types.Signal;
 import tink.lang.Cls;
-
 import tinx.node.Runtime;
-import tinx.node.events.*;
+
+using tinx.node.events.Emitter;
+
+private typedef Native = {>Emitter,
+	function listen(port:Int, host:String):Void;
+	function close():Void;
+}
 
 class Server implements Cls {
-	var native:Dynamic = Runtime.load('http').createServer(handleRequest);
+	var native:Native = Runtime.load('http').createServer(handleRequest);
 	
 	@:signal var request:Request;
-	@:signal var close = new VoidEmission(native, 'close');
+	@:future var closed:Noise = native.makeFutureNoise('close');
 		
 	function handleRequest(request, response) 
-		_request.fire(new Request(this, request, response));
+		_request.invoke(new Request(this, request, response));
 	
 	public function destroy() 
 		native.close();

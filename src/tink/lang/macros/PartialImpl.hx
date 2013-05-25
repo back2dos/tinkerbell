@@ -58,7 +58,7 @@ class PartialImpl {
 								ctx.add(Member.ofHaxe( {
 									name: f.name,
 									access: f.isPublic ? [APublic] : [APrivate],
-									kind: FProp(read.accessToName(), write.accessToName(), f.type.toComplex()),
+									kind: FProp(read.accessToName(), write.accessToName(true), f.type.toComplex()),
 									pos: f.pos
 								}));
 								var d = getDefault(f).substParams(paramMap);

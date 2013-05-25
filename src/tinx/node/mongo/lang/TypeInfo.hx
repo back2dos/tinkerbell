@@ -1,5 +1,6 @@
 package tinx.node.mongo.lang;
 
+import haxe.ds.StringMap;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
@@ -7,7 +8,7 @@ using tink.macro.tools.MacroTools;
 using tink.core.types.Outcome;
 
 class TypeInfo {
-	var fields:Map<StringTypeInfo>;
+	var fields:StringMap<TypeInfo>;
 	public var t(default, null):Type;
 	public var pos(default, null):Position;
 	var ct:ComplexType;
@@ -18,7 +19,7 @@ class TypeInfo {
 		function reject()
 			pos.error('type $t not supported by MongoDB');
 		
-		this.fields = new Map();
+		this.fields = new StringMap();
 		
 		switch (t.reduce()) {
 			case TAnonymous(_), TMono(_), TDynamic(_):
@@ -31,11 +32,13 @@ class TypeInfo {
 			case TAbstract(t, _) if (nonRoot):
 				switch (t.toString()) {
 					case 'Int', 'Float', 'Bool':
-					default: reject();
+					default: 
+					if (t.get().meta.has(':equiv')) {}
+					else reject();
 				}
 			case TInst(t, params) if (nonRoot):
 				switch (t.toString()) {
-					case 'Date', 'String':
+					case 'Date', 'String', 'tinx.node.mongo.ObjectID':
 					case 'Array': fields.set('[]', new TypeInfo(params[0], pos, true));
 					default: reject();
 				}
@@ -80,7 +83,6 @@ class TypeInfo {
 			ECheckType(value, resolve(path).blank(path.getPos(this.pos)).lazyType()).at(path.getPos(this.pos)).typeof().sure();
 	}
 	static public function getInfo(e:Expr) {
-		//trace(e.typeof());
 		return 
 			switch (e.typeof().sure().reduce()) {
 				case TInst(_, params): new TypeInfo(params[0], e.pos);

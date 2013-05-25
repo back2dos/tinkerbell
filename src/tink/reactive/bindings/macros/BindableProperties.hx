@@ -41,11 +41,58 @@ class BindableProperties {
 				}
 			).finalize(on.pos);
 	}
+	
+	static public function cache(ctx:ClassBuildContext) {		
+		for (member in ctx.members) 
+			switch (member.extractMeta(CACHE)) {
+				case Success(tag):
+					if (member.isPublic == null) 
+						member.publish();
+					member.addMeta(IS_BINDABLE, tag.pos);
+					var name = member.name;
+					switch (member.kind) {
+						case FVar(t, e):
+							if (t == null)
+								t = member.pos.makeBlankType();
+							var cacheName = '__tink_reactive_cache__' + name,
+								bindingType = 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]);
+							ctx.add(Member.plain(cacheName, bindingType, tag.pos)).addMeta(':noCompletion');
+							var expr = 
+								switch (tag.params.length) {
+									case 0: 
+										if (e == null) tag.pos.error('no implementation specified');
+										else e;
+									case 1: 
+										if (e == null) {
+											tag.params[0].pos.warning('syntax is deprecated');
+											tag.params[0];
+										}
+										else tag.params[0].reject('cannot define implementation through metadata and =');
+									default: tag.pos.error('too many arguments');
+								}
+							
+							ctx.getCtor().init(
+								cacheName, 
+								tag.pos, 
+								macro @:pos(tag.pos) new tink.reactive.bindings.Binding.Watch(function () return $expr), 
+								true,
+								bindingType
+							);
+							var cache = cacheName.resolve(tag.pos);
+							ctx.add(Member.getter(name, tag.pos, macro $cache.value, t)).addMeta(':noCompletion');
+							member.kind = FProp('get_' + name, 'null', t);
+						default: 
+							member.pos.error('cache only works on variables');
+					}
+				default:
+			}
+	}
+	
 	static var BINDINGS = null;
 	static public function make(ctx:ClassBuildContext) {
 		BINDINGS = 
 			switch (ctx.cls.kind) {
-				case KAbstractImpl(_): macro get_bindings(this);
+				case KAbstractImpl(_): macro get_bindings();
 				default: macro this.bindings;
 			}
 			
@@ -56,7 +103,7 @@ class BindableProperties {
 			}
 		var setters = new Map(),
 			getters = new Map();
-		for (member in ctx.members) {
+		for (member in ctx.members) 
 			switch (member.extractMeta(BINDABLE)) {
 				case Success(tag):
 					makeBindable(tag.pos);
@@ -88,42 +135,7 @@ class BindableProperties {
 					}
 				default:
 			}
-			switch (member.extractMeta(CACHE)) {
-				case Success(tag):
-					if (member.isPublic == null) 
-						member.publish();
-					member.addMeta(IS_BINDABLE, tag.pos);
-					var name = member.name;
-					switch (member.kind) {
-						case FVar(t, _):
-							if (t == null)
-								t = member.pos.makeBlankType();
-							
-							var cacheName = '__tink_reactive_cache__' + name,
-								bindingType = 'tink.reactive.bindings.Binding.Watch'.asComplexType([TPType(t)]);
-							ctx.add(Member.plain(cacheName, bindingType, tag.pos)).addMeta(':noCompletion');
-							var expr = 
-								switch (tag.params.length) {
-									case 1: tag.params[0];
-									default: tag.pos.error('tag requires 1 argument exactly');
-								}
-							
-							ctx.getCtor().init(
-								cacheName, 
-								tag.pos, 
-								macro new tink.reactive.bindings.Binding.Watch(function () return $expr), 
-								true,
-								bindingType
-							);
-							var cache = cacheName.resolve(tag.pos);
-							ctx.add(Member.getter(name, tag.pos, macro $cache.value, t)).addMeta(':noCompletion');
-							member.kind = FProp('get_' + name, 'null', t);
-						default: 
-							member.pos.error('cache only works on variables');
-					}
-				default:
-			}
-		}
+		
 		for (member in ctx.members) {
 			if (setters.exists(member.name)) {
 				var f = member.getFunction().sure();

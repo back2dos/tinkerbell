@@ -10,10 +10,10 @@ class Tweener {
 		static function init() {
 			var ret = new TweenGroup();
 			group = ret;
-			#if (flash || nme)
+			#if (flash || nme || js)
 				TweenTicker.framewise(ret);
-			#elseif js
-				TweenTicker.periodic(ret);
+			//#elseif js
+				//TweenTicker.periodic(ret);
 			#end
 			return ret;
 		}

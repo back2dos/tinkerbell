@@ -47,11 +47,15 @@ private class MatchTyper {
 				checkField(path, s, info);
 		}
 	}		
+	static var COMPARABLE = [
+		'Date' => true,
+		'tinx.node.mongo.ObjectID' => true,
+	];
 	static function checkField(path:Path, s:MatchField, info:TypeInfo) {
 		var e = info.resolve(path).blank(path.last.pos);
 		switch (s) {
 			case Eq(v), NotEq(v), Gt(v), Gte(v), Lt(v), Lte(v):
-				var op = if (e.typeof().sure().getID() == 'Date') OpEq else OpLt;
+				var op = if (COMPARABLE.get(e.typeof().sure().getID())) OpEq else OpLt;
 				op.make(e, v, v.pos).typeof().sure();
 			case Exists, ExistsNot:
 				info.check(path, null);

@@ -158,7 +158,7 @@ class Forward {
 	}
 	function isAccessible(a:VarAccess, read:Bool) {
 		return switch(a) {
-			case AccNormal, AccCall(_): true;
+			case AccNormal, AccCall: true;
 			case AccInline: read;
 			default: false;
 		}

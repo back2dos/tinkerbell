@@ -46,7 +46,7 @@ class Tags {
 				default:
 					switch (src.getString()) {
 						case Success(_): 
-							'Std.format'.resolve(src.pos).call([src], src.pos).asSuccess();
+							interpolate(src).fold(function (e1, e2) return macro $e1 + $e2, macro '').asSuccess();
 						default:
 							src.asFailure();
 					}
@@ -150,12 +150,14 @@ class Tags {
 	
 	public function transform(e:Expr, yield:Expr->Expr):Expr {
 		return
-			switch (e.typeof()) {
-				case Success(_): 
-					switch (e.getString()) {
-						case Success(s): plugin.addString(s, e.pos);
-						default: plugin.addChild(e);
-					}
+			//switch (e.typeof()) {
+				//case Success(_): 
+					//switch (e.getString()) {
+						//case Success(s): plugin.addString(s, e.pos);
+						//default: plugin.addChild(e);
+					//}
+			switch (e.getString()) {
+				case Success(s): plugin.addString(s, e.pos);
 				case Failure(_): 
 					switch (e.getBinop()) {
 						case Success(op):

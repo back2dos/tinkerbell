@@ -1,6 +1,7 @@
 package tinx.node.mongo;
 
 import haxe.macro.Context;
+import tink.lang.helpers.CollectorOp;
 import tinx.node.mongo.Internal;
 
 #if macro
@@ -16,13 +17,13 @@ import tinx.node.mongo.Internal;
 class Collection<T> extends CollectionBase<T> {
 	#if! macro
 		public function insertOne(doc:T):Unsafe<T>
-			return { result : insert([doc]) } => cast result[0];//the cast here is necessary because the compiler is unable to promote Collect.T to surprise
+			return { result : insert([doc]) } => CollectorOp.fromAny(result[0]);
 		
 		public function insert(docs:Array<T>):Unsafe<Array<T>>
 			return { collection : native } => collection.insert(docs, { safe: true }, _);
 	#end
 	macro public function where<T>(ethis:ExprOf<Collection<T>>, ?match:Expr):ExprOf<Where<T>> {
-		ethis = macro @:privateAccess $ethis;
+		ethis = macro @:pos(ethis.pos) @:privateAccess $ethis;
 		match = Match.compile(match, ethis.getInfo()).expr;
 		return macro @:pos(match.pos) new tinx.node.mongo.Where($ethis, $match);
 	}

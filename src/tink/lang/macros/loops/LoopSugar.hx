@@ -11,13 +11,6 @@ using StringTools;
 using Lambda;
 
 class LoopSugar {
-	/*static public function process(ctx:ClassBuildContext) 
-		for (member in ctx.members)//TODO: this should be a syntax plugin, not a class builder plugin
-			switch (member.getFunction()) {
-				case Success(f):
-					f.expr = f.expr.transform(transformLoop);
-				default:
-			}*/
 	
 	static function getVar(v:Expr):LoopVar 
 		return { name: v.getIdent().sure(), pos: v.pos }	
@@ -84,21 +77,55 @@ class LoopSugar {
 			}
 	}
 	static function transform(it:Expr, expr:Expr) {
-		#if display
-			var heads = parseHead(it),
-				ret = expr;
-			for (h in heads) {
-				var target:Expr = 
-					switch (h.target) {
-						case Any(e): e;
-						case Numeric(_, _, step, _): [step].toArray();
-					}
-				ret = target.iterate(ret, h.v.name);
+		var vars:Array<Var> = [];
+		var its = 
+			switch it {
+				case macro $a{many}: many;
+				case one: [one];
 			}
-			return ret;
-		#else
-			return (macro null).finalize().outerTransform(function (_) return doTransform(it, expr));
-		#end
+		var body = 
+			switch expr {
+				case macro $b{many}: many;
+				case one: [one];
+			}
+		//TODO: add support for key value iteration on arrays
+		its = 
+			[for (it in its) 
+				switch it {
+					case macro $i{key} => $i{value} in $target:
+						var tmp = String.tempName();
+						vars.push({ name: tmp, expr: target, type: null });
+						body.unshift(macro var $value = $i{tmp}.get($i{key}));
+						macro $i{key} in @:pos(target.pos) $i{tmp}.keys();
+					default: it;	
+				}
+			];
+			
+		it = its.toArray();	
+		expr = body.toBlock();
+		var ret = 
+			//if (Context.defined('display')) {
+				//var heads = parseHead(it),
+					//ret = expr;
+				//for (h in heads) {
+					//var target:Expr = 
+						//switch (h.target) {
+							//case Any(e): e;
+							//case Numeric(_, _, step, _): [step].toArray();
+						//}
+					//ret = target.iterate(ret, h.v.name);
+				//}
+				//ret;
+			//}
+			//else 
+			(macro null).finalize().outerTransform(function (_) return doTransform(it, expr));
+			
+		return 
+			if (vars.length > 0) {
+				var vars = EVars(vars).at();
+				macro { $vars; $ret; }
+			}
+			else ret;
 	}
 	static function doTransform(it:Expr, expr:Expr) {
 		var loopFlag = temp('loop'),
@@ -221,14 +248,10 @@ class LoopSugar {
 		}
 	}
 	static function getIterParts(e:Expr):CustomIter {
-		#if display
-			return standardIter(e);
-		#else
-			var ret = FastLoops.iter(e);
-			return
-				if (ret == null) standardIter(e);
-				else ret;
-		#end
+		var ret = FastLoops.iter(e);
+		return
+			if (ret == null) standardIter(e);
+			else ret;
 	}
 	static function compileHead(head:LoopHead, hasMandatory:Bool):CompiledHead {
 		inline function make(init:Array<Expr>, hasNext:Expr, next:Expr)
@@ -349,83 +372,51 @@ class LoopSugar {
 			condition: condition
 		}
 	}
-	static var COMPREHENSION_FOLD = macro for (NAME__result = EXPR__init) for (EXPR__it) EXPR__expr;
-	static var COMPREHENSION_FOLD_VAR = macro var NAME__result = EXPR__init = for (EXPR__it) EXPR__expr;
+	static var FOLD = macro @fold(NAME__result) for (EXPR__it) EXPR__expr;
 	static var COMPREHENSION = macro [for (EXPR__it) EXPR__expr];
 	static var COMPREHENSION_TO_CALL = macro EXPR__output(for (EXPR__it) EXPR__expr);
-	static var COMPREHENSION_INTO = macro [for (EXPR__it) EXPR__expr] in EXPR__output;
-	
-	static function yield(e:Expr, doYield:Expr->Expr) {
-		function reject(feature)
-			return e.reject(feature + ' not supported here');
-		function rec(e)
-			return yield(e, doYield);
-		return
-			if (e == null) null;
-			else if (e.expr == null) e;
-			else 
-				switch (e.expr) {
-					case EIf(econd, eif, eelse), ETernary(econd, eif, eelse):
-						econd.cond(rec(eif), rec(eelse), e.pos);
-					case EBreak, EContinue: 
-						reject('break and continue');
-					case EReturn(_):
-						reject('return');
-					case EBlock(exprs):
-						if (exprs.length == 0) e;
-						else
-							exprs.slice(0, -1).concat([rec(exprs[exprs.length - 1])]).toBlock(e.pos);
-					case EFor(it, expr):
-						EFor(it, rec(expr)).at(e.pos);
-					case EWhile(cond, body, normal):
-						EWhile(cond, rec(body), normal).at(e.pos);
-					case EFunction(_, _):
-						reject('function expressions');
-					case EVars(_):
-						reject('variable declarations');
-					case ESwitch(e, cases, edef):
-						cases = Reflect.copy(cases);
-						for (c in cases)
-							c.expr = rec(c.expr);
-						ESwitch(e, cases, rec(edef)).at(e.pos);
-					case ETry(unsafe, catches):
-						catches = Reflect.copy(catches);
-						for (c in catches) 
-							c.expr = rec(c.expr);
-						ETry(rec(unsafe), catches).at(e.pos);
-					default:
-						doYield(e);
-				}
-	}
+	static var COMPREHENSION_INTO = macro [for (EXPR__it) EXPR__expr] => EXPR__output;	
+
 	static var FIELD = (macro EXPR__owner.NAME__field);
+
+	static public function fold(e:Expr) 
+		return 
+			switch (e) {
+				case macro @fold($a{args}) for ($it) $body:
+					var cfg = 
+						switch args {
+							//case []: { name: '_', init: null };
+							//case [macro $i{name}]: { name: name, init: null };
+							case [macro $i{name} = $init]: { name: name, init: init };
+							case _: e.reject('bad fold syntax');
+						}
+					var realName = 
+						if (cfg.name == '_') String.tempName();
+						else cfg.name;
+					var postprocess = 
+						if (realName == cfg.name) function (e) return e;
+						else function (e:Expr) {
+							var x = { };
+							Reflect.setField(x, cfg.name, realName.resolve());
+							return e.substitute(x);
+						}
+					function yield(e:Expr) 
+						return 
+							macro $i{realName} = ${postprocess(e)};
+					
+					body = body.yield(yield);
+					return macro {
+						var $realName = ${cfg.init};
+						for ($it) $body;
+						$i{realName};
+					};
+				default: e;
+			}
+
 	static public function comprehension(e:Expr) {
 		function loop(it, body)
 			return EFor(it, body).at(e.pos);
 			
-		for (pattern in [COMPREHENSION_FOLD, COMPREHENSION_FOLD_VAR])
-			switch (e.match(pattern)) {
-				case Success(match): 
-					var it = match.exprs.it,
-						expr = match.exprs.expr,
-						init = match.exprs.init,
-						result = match.names.result;
-					var resultVar = result.resolve(match.pos);
-					
-					var ret = [
-						result.define(init, init.pos),
-						loop(
-							it, 
-							yield(expr, function (e:Expr) return resultVar.assign(e, e.pos))
-						),					
-						resultVar
-					].toBlock(e.pos);
-					return 
-						if (pattern == COMPREHENSION_FOLD_VAR)
-							result.define(ret, ret.pos);
-						else
-							ret;
-				default:
-			}
 		for (pattern in [COMPREHENSION, COMPREHENSION_TO_CALL, COMPREHENSION_INTO]) 
 			switch (e.match(pattern)) {
 				case Success(match):
@@ -437,7 +428,7 @@ class LoopSugar {
 					
 					switch (output.getIdent()) {
 						case Success(s): 
-							if (s.startsWith('$')) break;//RAPTORS: hack to make this doesn't break tink_markup
+							if (s.startsWith('$')) break;//RAPTORS: hack to make sure this doesn't break tink_markup
 						default:
 					}
 					var outputVarName = temp('output');
@@ -467,7 +458,7 @@ class LoopSugar {
 						outputVarName.define(output, output.pos),
 						loop(
 							it, 
-							yield(expr, doYield)
+							expr.yield(doYield)
 						),
 						returnOutput ? outputVar : [].toBlock()
 					].toBlock(e.pos);

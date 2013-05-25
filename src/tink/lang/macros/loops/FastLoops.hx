@@ -186,23 +186,27 @@ class FastLoops {
 			case ECall(callee, _):
 				switch (callee.expr) {
 					case EField(owner, fieldName):
-						for (field in owner.pos.getOutcome(owner.typeof().sure().getFields(false))) 
-							if (field.name == fieldName) {
-								var m = field.meta.get().getValues(':tink_for');
-								return
-									switch (m.length) {
-										case 0: null;
-										case 1: 
-											var m = m[0];
-											if (m.length != 3)
-												field.pos.error('@:tink_for must have 3 arguments exactly');
-											{
-												target: owner,
-												iter: processRule(m[0], m[1], m[2])
-											}
-										default: field.pos.error('can only declare one @:tink_for');
-									}								
-							}
+						switch owner.typeof().sure().getFields(false) {
+							case Success(fields):
+								for (field in fields) 
+									if (field.name == fieldName) {
+										var m = field.meta.get().getValues(':tink_for');
+										return
+											switch (m.length) {
+												case 0: null;
+												case 1: 
+													var m = m[0];
+													if (m.length != 3)
+														field.pos.error('@:tink_for must have 3 arguments exactly');
+													{
+														target: owner,
+														iter: processRule(m[0], m[1], m[2])
+													}
+												default: field.pos.error('can only declare one @:tink_for');
+											}								
+									}
+							case Failure(_):
+						}
 					default:
 				}
 			default:

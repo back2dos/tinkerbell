@@ -162,11 +162,12 @@ class ExprTools {
 		inline function rec(e) 
 			return yield(e, yielder);
 		return
-			if (e == null || e.expr == null) e;
+			if (e == null) null;
+			else if (e.expr == null) e;
 			else switch (e.expr) {
 				case EVars(_):
 					(macro @:pos(e.pos) var x = { var x = 5; } ).typeof().sure();
-					throw 'unreachable';
+					throw 'unreachable';//the above should cause an error
 				case EParenthesis(e):
 					EParenthesis(rec(e)).at(e.pos);
 				case EBlock(exprs) if (exprs.length > 0): 
@@ -177,16 +178,26 @@ class ExprTools {
 					,ETernary(econd, eif, eelse):
 					EIf(econd, rec(eif), rec(eelse)).at(e.pos);
 				case ESwitch(e, cases, edef):
-					cases = cases.copy();
+					cases = Reflect.copy(cases);//not exactly pretty, but does the job
 					for (c in cases)
-						c.expr = rec(Reflect.copy(c.expr));
+						c.expr = rec(c.expr);
 					ESwitch(e, cases, rec(edef)).at(e.pos);
+				case EFor(it, expr):
+					EFor(it, rec(expr)).at(e.pos);
+				case EWhile(cond, body, normal):
+					EWhile(cond, rec(body), normal).at(e.pos);
 				case ECheckType(e, t):
 					ECheckType(rec(e), t).at(e.pos);
 				case EMeta(s, e):
 					EMeta(s, rec(e)).at(e.pos);
 				case EUntyped(e):
 					EUntyped(rec(e)).at(e.pos);
+				case EBreak, EContinue: e;
+				case EBinop(OpArrow, value, jump) if (jump.expr == EContinue || jump.expr == EBreak):
+					macro @:pos(e.pos) {
+						${rec(value)};
+						$jump;
+					}
 				default: yielder(e);
 			}
 	}
@@ -198,7 +209,7 @@ class ExprTools {
 			else
 				switch (Inspect.typeof(target)) {
 					case TNull, TInt, TFloat, TBool, TFunction, TUnknown, TClass(_): target;
-				case TEnum(e): 
+					case TEnum(e): 
 						var ret:Dynamic = Inspect.createEnumIndex(e, Inspect.enumIndex(target), crawlArray(Inspect.enumParameters(target), transformer, retyper, pos));
 						return
 							if (Inspect.getEnum(ret) == ComplexType) retyper(ret);
@@ -382,6 +393,7 @@ class ExprTools {
 	
 	static public inline function toString(e:Expr):String 
 		return tink.macro.tools.Printer.printExpr('', e);
+		//return new haxe.macro.Printer().printExpr(e);
 		
 	static public inline function at(e:ExprDef, ?pos:Position) 
 		return {

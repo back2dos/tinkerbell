@@ -43,7 +43,7 @@ class SignalSugar {
 				(macro $signal.on($func));
 			}
 			else macro $signal.on(function () $handle);
-		return ret.finalize();
+		return ret;// .finalize();
 	}
 	static public function on(e:Expr) 
 		return
@@ -78,7 +78,7 @@ class SignalSugar {
 						}
 					statements.unshift('tmp'.define(target, target.pos));
 					statements.push('tmp'.resolve(target.pos));
-					return statements.toBlock().finalize(e.pos);
+					return statements.toBlock();// .finalize(e.pos);
 				default: e;
 			}			
 	

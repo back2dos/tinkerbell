@@ -19,8 +19,8 @@ class Lorem {
 }
 private class Randomness {
 	
-	function randInt(x:Int) return Std.int(randFloat() * x)
-	function randFloat():Float return Lorem.randFloat()
+	function randInt(x:Int) return Std.int(randFloat() * x);
+	function randFloat():Float return Lorem.randFloat();
 	
 	function rnd(from:Array<String>) {
 		return from[randInt(from.length)];
