@@ -9,3 +9,6 @@
 /tests/cppTest/bin/Main.lib
 /tests/cppTest/bin/vc100.pdb
 /tests/cppTest/bin/Main-debug.pdb
+*.dump
+*.obj
+*.h
