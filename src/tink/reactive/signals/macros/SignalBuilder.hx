@@ -43,7 +43,12 @@ class SignalBuilder {
 										), 
 										true
 									).isPublic = false;	
-									e = macro $i{own};
+									e = 
+										if (type == ':signal')
+											macro @:pos(tag.pos) $i{own}.toSignal();
+										else
+											macro @:pos(tag.pos) $i{own}.asFuture();
+									//TODO: it's probably better to expose the signal through a getter
 								}
 								member.kind = FProp('default', 'null', make.published(t), e);
 							default:
