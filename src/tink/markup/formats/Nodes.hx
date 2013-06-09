@@ -4,13 +4,7 @@ import haxe.macro.Expr;
 import haxe.macro.Format;
 
 using tink.macro.tools.MacroTools;
-//using tink.core.types.Outcome;
 using Lambda;
-//using tink.markup.formats.Helpers;
-/**
- * ...
- * @author back2dos
- */
 
 class Nodes {
 	var stack:List<String>;

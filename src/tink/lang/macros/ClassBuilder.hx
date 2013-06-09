@@ -105,6 +105,7 @@ class ClassBuilder {
 			}),
 			simpleSugar(Pipelining.transform, true),
 			simpleSugar(tink.markup.formats.Fast.build),
+			simpleSugar(tink.markup.formats.Dom.build),
 			simpleSugar(DevTools.log, true),
 			simpleSugar(DevTools.measure),
 			simpleSugar(DevTools.explain),

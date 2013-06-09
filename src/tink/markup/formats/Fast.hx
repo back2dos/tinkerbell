@@ -130,11 +130,8 @@ package tink.markup.formats;
 			return
 				switch (e.expr) {
 					case EMeta( { name : 'html', params: [] }, e):
-						//if (Context.defined('display')) {
-							//sys.io.File.saveContent('log.txt', e.toString());
-						//}
 						e = TreeCrawler.build(e, new Tags(new Fast()));
-						macro $e.toString();
+						macro @:pos(e.pos) $e.toString();
 					default: e;
 				}
 	}
