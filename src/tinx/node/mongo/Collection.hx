@@ -1,13 +1,13 @@
 package tinx.node.mongo;
 
-import haxe.macro.Context;
 import tink.lang.helpers.CollectorOp;
 import tinx.node.mongo.Internal;
 
 #if macro
+	import haxe.macro.Context;
 	import haxe.macro.Expr;
 	import tinx.node.mongo.lang.Match;
-	
+	using tink.macro.tools.MacroTools;
 	using tinx.node.mongo.lang.Compiler;
 	using tinx.node.mongo.lang.TypeInfo;
 #else
@@ -22,6 +22,14 @@ class Collection<T> extends CollectionBase<T> {
 		public function insert(docs:Array<T>):Unsafe<Array<T>>
 			return { collection : native } => collection.insert(docs, { safe: true }, _);
 	#end
+	macro public function first<T>(ethis:ExprOf<Collection<T>>, projection:Array<Expr>):ExprOf<T> {
+		ethis = macro @:privateAccess $ethis;
+		return macro @:pos(Context.currentPos()) $ethis.where().first($a { projection } );
+	}
+	macro public function all<T>(ethis:ExprOf<Collection<T>>, projection:Array<Expr>):ExprOf<T> {
+		ethis = macro @:privateAccess $ethis;
+		return macro @:pos(Context.currentPos()) $ethis.where().all($a { projection } );
+	}
 	macro public function where<T>(ethis:ExprOf<Collection<T>>, ?match:Expr):ExprOf<Where<T>> {
 		ethis = macro @:pos(ethis.pos) @:privateAccess $ethis;
 		match = Match.compile(match, ethis.getInfo()).expr;
