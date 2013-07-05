@@ -39,12 +39,12 @@ class FS implements Cls {
 	static public function rename(from:String, to:String) 
 		return {
 			ret: native.rename(from, to, _)
-		} => true;
+		} => to;
 		
 	static public function unlink(file) 
 		return {
 			ret: native.unlink(file, _)
-		} => true;
+		} => file;
 	
 	static public function read(path) 
 		return new InStream(native.createReadStream(path, { } ));
