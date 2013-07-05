@@ -13,7 +13,6 @@ abstract Callback<T>(T->Void) from (T->Void) {
 				for (callback in callbacks)
 					callback.invoke(v);
 					
-	@:noCompletion static public function target<A>(f:Callback<A>->CallbackLink) return f;
 }
 
 abstract CallbackLink(Void->Void) {
