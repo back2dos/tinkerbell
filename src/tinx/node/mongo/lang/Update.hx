@@ -7,6 +7,8 @@ import haxe.macro.Expr;
 
 using tink.macro.tools.MacroTools;
 using StringTools;
+using tink.core.types.Outcome;
+
 using Lambda;
 
 typedef DocUpdate = Array<FieldUpdate>;
@@ -135,7 +137,17 @@ private class Typer {
 				t.check(f.field, v);
 			case Unset:
 				t.check(f.field, null);
-			case Push(values), Pull(values), AddToSet(values):
+			case Pull(values):
+				var t = t.resolve(f.field);
+				if (!t.isArray())
+					f.field.last.pos.error('cannot perform an array operation on '+Context.toComplexType(t.t).toString());
+				var elt = t.get('[]', f.field.first.pos);
+				for (p in values) {
+					p.pos.getOutcome(
+						elt.t.isSubTypeOf(p.typeof().sure())
+					);
+				}
+			case Push(values), AddToSet(values):
 				var t = t.resolve(f.field);
 				if (!t.isArray())
 					f.field.last.pos.error('cannot perform an array operation on '+Context.toComplexType(t.t).toString());
