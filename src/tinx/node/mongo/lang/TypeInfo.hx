@@ -31,14 +31,15 @@ class TypeInfo {
 				}).orUse(null);
 			case TAbstract(t, _) if (nonRoot):
 				switch (t.toString()) {
-					case 'Int', 'Float', 'Bool':
+					case 'Int', 'Float', 'Bool', 'tinx.node.mongo.ObjectID':
 					default: 
-					if (t.get().meta.has(':equiv')) {}
-					else reject();
+						if (t.get().meta.has(':equiv')) {}
+						else reject();
 				}
+
 			case TInst(t, params) if (nonRoot):
 				switch (t.toString()) {
-					case 'Date', 'String', 'tinx.node.mongo.ObjectID':
+					case 'Date', 'String':
 					case 'Array': fields.set('[]', new TypeInfo(params[0], pos, true));
 					default: reject();
 				}
