@@ -1,6 +1,6 @@
 package tink.tween;
 
-import haxe.FastList;
+import haxe.ds.GenericStack in FastList;
 import haxe.Timer;
 import tink.collections.maps.ObjectMap;
 import tink.lang.Cls;
