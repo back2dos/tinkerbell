@@ -14,7 +14,7 @@ import tinx.node.mongo.Internal;
 class Where<T> extends CollectionBase<T> {
 	#if !macro
 		var match:Dynamic;
-		public function new(c:Collection<T>, match) {
+		public function new(c:Collection<T>, match:Dynamic) {
 			super(c.native);
 			this.match = match;
 		}
