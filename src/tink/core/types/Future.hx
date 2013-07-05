@@ -71,6 +71,9 @@ abstract Future<T>(Callback<T>->CallbackLink) {
 	@:noUsing static public inline function create<A>():FutureOp<A> {
 		return new FutureOp();
 	}
+	@:to public function toSurprise<F>():Surprise<T, F> {
+		return map(Success);
+	}
 }
 
 class FutureOp<T> {
