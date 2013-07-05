@@ -62,7 +62,6 @@ class ClassBuilder {
 		//TODO: it seems a little monolithic to yank all plugins here
 		static public var PLUGINS = [
 			simpleSugar(LoopSugar.fold),
-			//simpleSugar(LoopSugar.kv),
 			#if (tink_reactive || !tink_core) 
 				tink.reactive.signals.macros.SignalBuilder.make,
 				tink.reactive.bindings.macros.BindableProperties.cache,
