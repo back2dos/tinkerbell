@@ -4,6 +4,7 @@ package tinx.node.mongo;
 
 import haxe.ds.StringMap;
 import tink.core.types.*;
+import tink.core.types.Signal;
 
 import tink.lang.Cls;
 import tinx.node.Error;
@@ -27,7 +28,7 @@ private typedef NativeCollection<T> = {
 	function findOne(match:Dynamic, project:Dynamic, handler:Handler<Dynamic>):Void;
 	function find(match:Dynamic, project:Dynamic, handler:Handler<NativeCursor<Dynamic>>):Void;
 	function insert(docs:Array<T>, options:Dynamic, handler:Handler<Array<T>>):Void;
-	function update(match:Dynamic, update:Dynamic, options:Dynamic, handler:Handler<Array<T>>):Void;//TODO: it seems that the result is not actually fetched
+	function update(match:Dynamic, update:Dynamic, options:Dynamic, handler:Handler<Noise>):Void;//TODO: it seems that the result is not actually fetched
 	function findAndModify(match:Dynamic, sort:Array<Dynamic>, update:Dynamic, options:Dynamic, handler:Handler<Dynamic>):Void;
 }
 class Cursor<T> implements Cls {
@@ -67,12 +68,45 @@ class CollectionBase<T> implements Cls {
 		return 
 			{ collection : native } => collection.findAndModify(match, [], update, options, _);
 }
+
+private typedef DbParamObj = { 
+	?name: String, 
+	?host:String, 
+	?port:Int, 
+	?login: { user:String, password:String }
+}
+
+abstract DbParams(DbParamObj) from DbParamObj to DbParamObj {
+	static var wlogin = ~/mongodb:\/\/(.*?):(.*?)@(.*?):(.*?)\/(.*)/;
+	static var anon = ~/mongodb:\/\/(.*?):(.*?)\/(.*)/;
+	@:from static public function ofString(s:String) {
+		return 
+			if (wlogin.match(s)) {
+				host: wlogin.matched(3),
+				name: wlogin.matched(5),
+				port: Std.parseInt(wlogin.matched(4)),
+				login: {
+					user: wlogin.matched(1),
+					password: wlogin.matched(2),
+				}
+			}
+			else if (anon.match(s)) {
+				host: anon.matched(1),
+				name: anon.matched(3),
+				port: Std.parseInt(anon.matched(2)),
+			}
+			else throw 'invalid connector string $s';
+	}	
+}
 class DbBase implements Cls {
 	var native:Unsafe<NativeDb>;
 	var collections = new StringMap<Collection<Dynamic>>();
-	var prefix:String = ('');
-	public function new(_, ?params: { ?name: String, ?host:String, ?port:Int, ?login: { user:String, password:String }} ) {
+	var prefix:String = '';
+	public function new(?params:DbParams) {
+		
+		var params:DbParamObj = params;
 		if (params == null) params = { };
+		
 		var name = if (params.name == null) 'test' else params.name,
 			host = if (params.host == null) 'localhost' else params.host,
 			port = if (params.port == null) 27017 else params.port,
