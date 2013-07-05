@@ -6,8 +6,8 @@ import tinx.node.Runtime;
 
 using tinx.node.events.Emitter;
 
-private typedef Native = {>Emitter,
-	function listen(port:Int, host:String):Void;
+private typedef Native = { > Emitter,
+	function listen(port:Int, ?host:String):Void;
 	function close():Void;
 }
 
@@ -23,9 +23,12 @@ class Server implements Cls {
 	public function destroy() 
 		native.close();
 		
-	static public function bind(port:Int, ?host = 'localhost') {
+	static public function bind(port:Int, ?host:String) {
 		var ret = new Server();
-		ret.native.listen(port, host);
+		if (host != null) 
+			ret.native.listen(port, host);
+		else 
+			ret.native.listen(port);
 		return ret;
 	}	
 }
