@@ -74,12 +74,13 @@ class Tags {
 		while (src != null) 
 			switch (src.expr) {
 				case EField(e, f):
-					cls.push(f);
+					cls.push(f.replace('_', '-'));
 					src = e;
 				default:
 					switch (src.getIdent()) {
 						case Success(s):
 							//TODO: can call to plugin here directly
+							s = s.replace('_', '-');
 							if (s.charAt(0) == '$') {
 								var value = s.substr(1).toExpr(src.pos);
 								yield((macro id = $value).finalize(src.pos));
