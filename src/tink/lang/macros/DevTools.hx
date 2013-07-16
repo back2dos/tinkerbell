@@ -39,7 +39,6 @@ class DevTools {
 							count;
 						default: 1.toExpr();
 					}
-				count.log();
 				return (macro @:pos(e.pos) {
 					var start = haxe.Timer.stamp(),
 						name = $name,
@@ -49,7 +48,7 @@ class DevTools {
 						}
 					trace(name + ' took ' + Std.int(1000 * (haxe.Timer.stamp() - start)) + ' msecs');
 					value[0];
-				}).log();
+				});
 			default: e;	
 		}
 		
