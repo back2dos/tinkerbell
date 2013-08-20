@@ -22,6 +22,20 @@ class OutcomeTools {
 						throw failure;
 			}
 	}
+	static public function sureOfFailure < D, F > (outcome:Outcome < D, F > ):F {
+		return
+			switch (outcome) {
+				case Success(data): 
+					if (Std.is(data, ThrowableFailure)) {
+						var data:ThrowableFailure = cast data;//TODO: simplify this once haXe cast work correctly again
+						data.throwSelf();
+					}
+					else
+						throw data;
+				case Failure(failure): 
+					failure;
+			}
+	}
 	static public function toOption < D, F > (outcome:Outcome < D, F > ) {
 		return 
 			switch (outcome) {
