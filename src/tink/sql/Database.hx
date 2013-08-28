@@ -2,11 +2,6 @@ package tink.sql;
 
 import sys.db.Connection;
 
-/**
- * ...
- * @author back2dos
- */
-
 @:autoBuild(tink.sql.macros.DBBuild.build()) class Database {
 	public var cnx(default, null):Connection;
 	function new(cnx) {
