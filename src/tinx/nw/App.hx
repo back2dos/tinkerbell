@@ -17,7 +17,7 @@ class App {
 			return NativeUI.App.removeListener.bind('open', f);
 		}
 	);
-	static function browse() {
+	static public function browse() {
 		var e = Browser.document.createInputElement();
 		e.type = "file";
 		e.click();

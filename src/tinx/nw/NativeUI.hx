@@ -28,6 +28,11 @@ extern class NativeUI {
 		}):Void;
 	};
 	static var App:NativeApp;
+	static var Shell: {
+		function openExternal(url:String):Void;
+		function openItem(file:String):Void;
+		function showItemInFolder(file:String):Void;
+	};
 }
 
 @:events(
