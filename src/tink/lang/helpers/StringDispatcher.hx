@@ -34,12 +34,12 @@ abstract StringDispatcher<T:Minimal>(T) {
 			return new StringDispatcher({ //TODO: consider dealing with IE7- right here
 				add: function (event, handler:Dynamic) 
 					if (std)
-						e.addEventListener(event, handler)
+						e.addEventListener(event, handler, false)
 					else 
 						attach(e, event, handler),
 				remove: function (event, handler:Dynamic) 
 					if (std)
-						e.removeEventListener(event, handler)
+						e.removeEventListener(event, handler, false)
 					else
 						detach(e, event, handler),
 				addCapturing: function (event, handler:Dynamic) 
