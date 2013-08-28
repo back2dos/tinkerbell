@@ -32,7 +32,7 @@ abstract Values(Dynamic<String>) {
 				case Failure(_): [];
 			}
 	}
-	@:arrayAccess function get(key:String) {
+	@:arrayAccess function get(key:String):Outcome<String, Error> {
 		return 
 			if (Reflect.hasField(this, key)) Success(Reflect.field(this, key));
 			else Failure(Error.make('MISSING_PARAM', 'parameter $key not found', key));
@@ -43,9 +43,10 @@ abstract Values(Dynamic<String>) {
 			ret.set(f, Reflect.field(this, f));
 		return ret;
 	}	
-	@:from static function fromString(s:String) {
+	
+	@:from static function fromString(s:String) 
 		return new Values(Runtime.load('querystring').parse(s));
-	}
+	
 }
 abstract Path(Array<String>) {
 	public var length(get, never):Int;
