@@ -60,7 +60,7 @@ class Where<T> extends CollectionBase<T> {
 		return find(ethis, 'findOne', projection);
 	
 	macro public function slice(ethis:Expr, skip:ExprOf<Int>, limit:ExprOf<Int>	, projection:Array<Expr>) 
-		return macro $ethis.cursor($a{projection}).skip($skip).limit($limit).toArray();// $ { find(ethis, 'find', projection) } .toArray();
+		return macro @:privateAccess $ethis.cursor($a{projection}).skip($skip).limit($limit).toArray();// $ { find(ethis, 'find', projection) } .toArray();
 		
 	macro public function all(ethis:Expr, projection:Array<Expr>) 
 		return macro${find(ethis, 'find', projection)}.toArray();
