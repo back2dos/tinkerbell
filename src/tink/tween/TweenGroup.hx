@@ -12,8 +12,8 @@ class TweenGroup implements Cls {
 	public var speed = 1.0;
 	
 	var active:Tweens = new Tweens();
-	var before = new Handlers();
-	var after = new Handlers();
+	var before:Handlers = new Handlers();
+	var after:Handlers = new Handlers();
 	var last = Math.NaN;
 	var unhook:Void->Void;
 	
