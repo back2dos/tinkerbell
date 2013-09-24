@@ -6,9 +6,9 @@ import tink.core.types.Outcome;
 abstract Future<T>(Callback<T>->CallbackLink) {
 
 	public inline function new(f:Callback<T>->CallbackLink) this = f;	
-	public function get(callback:Callback<T>):CallbackLink 
+	public inline function get(callback:Callback<T>):CallbackLink 
 		return (this)(callback);
-	public function when(cb) return get(cb);	
+	public inline function when(cb:Callback<T>) return get(cb);	
 	/*static public function done<D, F>(s:Surprise<D, F>, callback:Callback<D>):Void {
 		s.get(function (o) switch o {
 			case Success(d): callback.invoke(d);
@@ -44,9 +44,9 @@ abstract Future<T>(Callback<T>->CallbackLink) {
 			return ret;
 		});
 	}
-	@:from static inline function fromOp<A>(op:FutureOp<A>):Future<A> {
-		return op.asFuture();
-	}
+	// @:from static function fromOp<A>(op:FutureOp<A>):Future<A> { //this appears to be called when clearly it shouldn't
+	// 	return op.asFuture();
+	// }
 	@:from static function fromMany<A>(futures:Array<Future<A>>):Future<Array<A>> {
 		var ret = ofConstant([]);
 		for (f in futures)
@@ -66,7 +66,7 @@ abstract Future<T>(Callback<T>->CallbackLink) {
 	@:noUsing static public function ofAsyncCall<A>(f:(A->Void)->Void):Future<A> {
 		var op = create();
 		f(op.invoke);
-		return op;
+		return op.asFuture();
 	}
 	@:noUsing static public inline function create<A>():FutureOp<A> {
 		return new FutureOp();
@@ -93,7 +93,7 @@ class FutureOp<T> {
 					}
 		);
 	}
-	public inline function asFuture() return future;
+	public function asFuture() return future;
 	public function invoke(result:T):Bool {
 		return
 			switch (state) {
