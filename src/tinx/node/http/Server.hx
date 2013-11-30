@@ -17,8 +17,18 @@ class Server implements Cls {
 	@:signal var request:Request;
 	@:future var closed:Noise = native.makeFutureNoise('close');
 		
-	function handleRequest(request, response) 
-		_request.invoke(new Request(this, request, response));
+	function handleRequest(request, response) {
+		var request = new Request(this, request, response);
+		if (Reflect.field(request.headers, 'content-type') == 'application/x-www-form-urlencoded') {
+			raw: request.getPostData()
+		} => {
+			@:privateAccess (request.params = raw);
+			_request.invoke(request);
+			true;
+		}
+		else 
+			_request.invoke(request);
+	}
 	
 	public function destroy() 
 		native.close();
