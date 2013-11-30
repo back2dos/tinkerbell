@@ -102,6 +102,7 @@ class DbBase implements Cls {
 	var native:Unsafe<NativeDb>;
 	var collections = new StringMap<Collection<Dynamic>>();
 	var prefix:String = '';
+	@:read var connector:String;
 	public function new(?params:DbParams) {
 		
 		var params:DbParamObj = params;
@@ -114,7 +115,7 @@ class DbBase implements Cls {
 				if (params.login == null) '' 
 				else (params.login.user + ':' + params.login.password) + '@';
 				
-		this.native = { db : NativeDb.connect('mongodb://$login$host:$port/$name', { safe: true }, _) } => db;
+		this.native = { db : NativeDb.connect(this.connector = 'mongodb://$login$host:$port/$name', { safe: true }, _) } => db;
 	}
 	public function close() 
 		{ db : native } => { db.close(); true; }
