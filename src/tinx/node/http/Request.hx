@@ -34,13 +34,13 @@ abstract Values(Dynamic<String>) {
 	}
 	@:arrayAccess function get(key:String):Outcome<String, Error> {
 		return 
-			if (Reflect.hasField(this, key)) Success(Reflect.field(this, key));
+			if (Reflect.hasField(this, key)) Success(Std.string(Reflect.field(this, key)));
 			else Failure(Error.make('MISSING_PARAM', 'parameter $key not found', key));
 	}
 	@:to function toMap():StringMap<String> {
 		var ret = new StringMap();
 		for (f in Reflect.fields(this))
-			ret.set(f, Reflect.field(this, f));
+			ret.set(f, Std.string(Reflect.field(this, f)));
 		return ret;
 	}	
 	
