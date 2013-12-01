@@ -31,7 +31,7 @@ enum MatchField {
 	Mod(div:ExprOf<Float>, rem:ExprOf<Float>);
 	
 	Not(s:MatchField);
-	
+	HasOne(sub:MatchDoc);
 	All(s:ExprOf<Array<Dynamic>>);
 	In(s:ExprOf<Array<Dynamic>>);
 	NotIn(s:ExprOf<Array<Dynamic>>);
@@ -52,7 +52,8 @@ private class MatchTyper {
 		'tinx.node.mongo.ObjectID' => true,
 	];
 	static function checkField(path:Path, s:MatchField, info:TypeInfo) {
-		var e = info.resolve(path).blank(path.last.pos);
+		var pInfo = info.resolve(path);
+		var e = pInfo.blank(path.last.pos);
 		switch (s) {
 			case Eq(v), NotEq(v), Gt(v), Gte(v), Lt(v), Lte(v):
 				var op = if (COMPARABLE.get(e.typeof().sure().getID())) OpEq else OpLt;
@@ -63,8 +64,10 @@ private class MatchTyper {
 				(macro $e % $div == $rem).finalize(path.last.pos).typeof().sure();
 			case Not(s):
 				checkField(path, s, info);
+			case HasOne(s):
+				check(s, pInfo.get('[]', path.last.pos));
 			case All(s):
-				(macro $e == $s).finalize(s.pos).typeof().sure();
+				// (macro $e == $s).finalize(s.pos).typeof().sure();
 			case In(s), NotIn(s):
 				(macro $e == $s[0]).finalize(s.pos).typeof().sure();
 		}
@@ -74,26 +77,36 @@ private class MatchTyper {
 private class Parser {
 	static public function parseDoc(e:Expr):MatchDoc  
 		return
-			switch (e.expr) {
-				case EParenthesis(e): 
+			switch e {
+				case macro ($e): 
 					parseDoc(e);
-				case EIn(path, { expr: EBinop(OpInterval, e1, e2) } ):
+				case macro $path in $e1...$e2:
 					var path = Path.of(path);
 					And([
 						Field(path, Gte(e1)),
 						Field(path, Lt(e2))
 					]);
-				case EDisplay(e, _):
+				case { expr: EDisplay(e, _) }:
 					parseDoc(e);
-				case EIn(e1, e2):
+				case macro $e1 in $e2:
 					Field(Path.of(e1), In(e2));
-				case EBinop(OpEq, { expr: EBinop(OpMod, path, div) }, rem):
+				case macro $path % $div == $rem:
 					Field(Path.of(path), Mod(div, rem));
-				case EBinop(OpNotEq, { expr: EBinop(OpMod, path, div) }, rem):
+				case macro $path % $div != $rem:
 					Field(Path.of(path), Not(Mod(div, rem)));				
-				case EUnop(OpNot, false, s):
+				case macro !$s:
 					negate(parseDoc(s), e.pos);
-				case EBinop(op, e1, e2): 
+				case macro $path.hasOne($sub):
+					Field(
+						Path.of(path),
+						HasOne(parseDoc(sub))
+					);					
+				// case macro $path.contains($a{args}):
+				// 	Field(
+				// 		Path.of(path),
+				// 		All(args.toArray())
+				// 	);					
+				case { expr: EBinop(op, e1, e2) }:
 					switch (op) {
 						case OpBoolAnd: 
 							And([parseDoc(e1), parseDoc(e2)]);
@@ -156,7 +169,8 @@ private class Generate {
 	static var map = {
 		NotEq: 'ne',
 		ExistNot: 'exists',
-		NotIn: 'nin'
+		NotIn: 'nin',
+		HasOne: 'elemMatch'
 	}
 	static function getMatch(e:EnumValue, v:Expr) {
 		var s = e.enumConstructor();
@@ -177,7 +191,7 @@ private class Generate {
 				
 				case Exists: make(macro true);
 				case ExistsNot: make(macro false);
-				
+				case HasOne(sub): make(doc(sub));
 				case Not(s): make(field(s));
 				case All(s), In(s), NotIn(s): make(s);
 			}
