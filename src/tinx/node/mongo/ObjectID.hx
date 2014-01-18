@@ -9,10 +9,10 @@ private extern class Native {
 	function new(?s:String);
 	function toString():String;
 }
-abstract ObjectID(Native) {
+abstract ObjectID<T:{}>(Native) {
 	public function new(?s:String) this = new Native(s); 
 	@:to public function toString():String return this.toString();
-	static public function parse(s:String):Outcome < ObjectID, Error > {
+	static public function parse<A:{}>(s:String):Outcome<ObjectID<A>, Error> {
 		try {
 			return Success(new ObjectID(s));
 		}
