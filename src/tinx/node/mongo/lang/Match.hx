@@ -56,8 +56,23 @@ private class MatchTyper {
 		var e = pInfo.blank(path.last.pos);
 		switch (s) {
 			case Eq(v), NotEq(v), Gt(v), Gte(v), Lt(v), Lte(v):
-				var op = if (COMPARABLE.get(e.typeof().sure().getID())) OpEq else OpLt;
+				var type = e.typeof().sure();
+				
+				function isComparable(b:BaseType)
+					return b.meta.has(':comparable');
+				
+				var comparable = 
+					switch type.reduce() {
+						case v if (COMPARABLE[v.getID()]): true;
+						case TInst(c, _): isComparable(c.get());
+						case TEnum(e, _): isComparable(e.get()); 
+						case TAbstract(a, _): isComparable(a.get()); 
+						default: false;
+					}
+				
+				var op = if (comparable) OpEq else OpLt;
 				op.make(e, v, v.pos).typeof().sure();
+				
 			case Exists, ExistsNot:
 				info.check(path, null);
 			case Mod(div, rem):
