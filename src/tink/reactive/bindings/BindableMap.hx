@@ -6,9 +6,11 @@ private class Entry<V> {
 	public var value(get_value, set_value):V;
 	var get_value:Void->V;
 	var set_value:V->V;
-	public function new(get_value, set_value) {
+	public var hasValue(default, null):Void->Bool;
+	public function new(has, get_value, set_value) {
 		this.get_value = get_value;
 		this.set_value = set_value;
+		this.hasValue = has;
 	}
 }
 class BindableMap<K, V> implements Cls {
@@ -22,7 +24,7 @@ class BindableMap<K, V> implements Cls {
 			else map;
 	}
 	public function entry(k:K): { var value(get_value, set_value):V; } {
-		return new Entry(get.bind(k), set.bind(k));
+		return new Entry(exists.bind(k), get.bind(k), set.bind(k));
 	}
 	@:bindable(k) public function get(k:K):Null<V> {
 		return map.get(k);
