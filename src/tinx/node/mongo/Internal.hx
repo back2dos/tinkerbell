@@ -5,6 +5,7 @@ package tinx.node.mongo;
 import haxe.ds.StringMap;
 import tink.core.types.*;
 import tink.core.types.Signal;
+import tink.core.types.Future;
 
 import tink.lang.Cls;
 import tinx.node.Error;
@@ -21,6 +22,7 @@ private typedef NativeCursor<T> = {
 	function skip(count:Int, h:Handler<NativeCursor<T>>):Void;
 	function limit(count:Int, h:Handler<NativeCursor<T>>):Void;
 	function toArray(h:Handler<Array<T>>):Void;
+	function each(h:Handler<T>):Void;
 }
 private typedef NativeCollection<T> = {
 	function remove(query:Dynamic, options: { single:Bool }, handler:Handler<tink.core.types.Signal.Noise>):Void;
@@ -43,7 +45,21 @@ class Cursor<T> implements Cls {
 		return new Cursor({ cursor : native } => cursor.limit(count, _));
 		
 	public function toArray() 
-		return { cursor : native } => cursor.toArray(_);		
+		return { cursor : native } => cursor.toArray(_);
+		
+	public function each(cb:Callback<T>, ?end:Callback<Outcome<Noise, Error>>)
+		{ 
+			cursor : native 
+		} => {
+			cursor.each(new LeftFailingHandler(function (error:Error, obj:T) {
+				if (end != null)
+					if (error != null) end.invoke(Failure(error));
+					else if (obj == null) end.invoke(Success(Noise));
+				if (obj != null)
+					cb.invoke(obj);
+			}));
+			true;
+		}
 }
 class CollectionBase<T> implements Cls {
 	var native:Unsafe<NativeCollection<T>> = _;
