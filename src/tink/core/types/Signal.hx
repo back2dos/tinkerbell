@@ -24,5 +24,25 @@ abstract Signal<T>(Callback<T>->CallbackLink) {
 		watch(ret.invoke);
 		return ret;
 	}
+	
+	public function filter(f:T->Bool, ?dike = true):Signal<T> {
+		var ret = new Signal(function (cb) return when(this, function (result) if (f(result)) cb.invoke(result)));
+		return
+			if (dike) ret.dike();
+			else ret;
+	}	
+	
+	public function join(other:Signal<T>, ?dike = true):Signal<T> {
+		var ret = new Signal(
+			function (cb:Callback<T>):CallbackLink 
+				return [
+					when(this, cb),
+					other.when(cb)
+				]
+		);
+		return
+			if (dike) ret.dike();
+			else ret;
+	}	
 	//@:to function toFunction():Callback<T>->CallbackLink return this;
 }
