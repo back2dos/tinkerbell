@@ -97,7 +97,7 @@ class Link<T> {
 private typedef Cb = Void->Void;
 class Binding<T> implements Cls {
 	public var valid(default, null):Bool;
-	static var stack = new List<Binding<Dynamic>>();
+	static var stack = new Array<Binding<Dynamic>>();
 	static var idCounter = 0;
 	public var id(default, null):Int = idCounter++;
 	var calc:Void->T;
@@ -141,7 +141,7 @@ class Binding<T> implements Cls {
 				doCalc();
 	}
 	static public inline function current() {
-		return stack.first();
+		return stack[stack.length - 1];
 	}
 }
 
