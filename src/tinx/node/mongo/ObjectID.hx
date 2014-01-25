@@ -19,6 +19,13 @@ abstract ObjectID<T:{}>(Native) {
 		catch (e:Dynamic) 
 			return Failure(e);
 	}
+	
+	@:op(a == b) static public function eq<A:{}>(a:ObjectID<A>, b:ObjectID<A>)
+		return a.toString() == b.toString();
+		
+	@:op(a != b) static public function neq<A:{}>(a:ObjectID<A>, b:ObjectID<A>)
+		return !(a == b);
+		
 	@:to public function toDate():Date {
 		return Date.fromTime((untyped parseInt)(this.toString().substr(0,8), 16)*1000);
 	}
