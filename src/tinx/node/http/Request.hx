@@ -66,6 +66,82 @@ abstract Path(Array<String>) {
 		return '/'+ this.join('/');//TODO: check whether the leading slash is really good
 	}
 }
+
+enum CookieChange {
+	Unset;
+	None;
+	Set(value:String, ?path:String, ?expires:Date);
+}
+
+abstract Cookies(Map<String, { value: String, change: CookieChange }>) {
+	inline function new(map) this = map;
+	
+	@:arrayAccess public function has(id:String) 
+		return this[id] != null && this[id].change != Unset;
+	
+	@:arrayAccess public function get(id:String)
+		return 
+			if (has(id)) Success(this[id].value);
+			else Failure(Error.make('COOKIE_NOT_SET', 'Cookie $id is not set'));
+
+	public function set(id:String, value:String, ?path:String, ?expires:Date) {
+		if (value == null)
+			remove(id);
+			
+		this[id] = {
+			change: Set(value, path, expires),
+			value: value,
+		}
+	}
+	
+	public function remove(id:String) 
+		return 
+			if (has(id)) false;
+			else {
+				this[id].change = Unset;
+				true;
+			}
+			
+	public function toHeaders() {
+		var ret = [];
+		function add(name:String, value:String, path:String, expires:Date) {
+			name = name.urlEncode();
+			value = value.urlEncode();
+			var s = '$name=$value';
+			if (path != null)
+				s += '; Path=$path';
+			if (expires != null)
+				s += '; Expires=$expires';
+			ret.push(['Set-Cookie', s]);
+		}
+		
+		for (k in this.keys())
+			switch this[k].change {
+				case None:
+				case Unset: 
+					add(k, 'none', null, new Date(0,0,0,0,0,0));
+				case Set(value, path, expires):
+					add(k, value, path, expires);
+			}
+			
+		return ret;
+	}
+	
+	@:from static public function parse(s:String) {
+		var ret = new Map();
+		if (s != null)
+			for (part in s.split(';')) {
+				var index = part.indexOf('=');
+				ret[part.substr(0, index).trim().urlDecode()] = { 
+					value: part.substr(index + 1).trim().urlDecode(),
+					change: None,
+				}
+			};
+		
+		return new Cookies(ret);
+	}
+}
+
 class Request extends InStream {
 	//static var urlParse = Runtime.load('url').parse;
 	@:read var server:Server = _;
@@ -73,15 +149,7 @@ class Request extends InStream {
 	var response:Dynamic = _;
 	@:read var params:Values;
 	@:read var path:Path;
-	public function getCookies():Map<String, String> {
-		var ret = new Map();
-		if (request.headers.cookie != null)
-			ret.set(for (part in request.headers.cookie.split(';')) {
-				var index = part.indexOf('=');
-				$(part.substr(0, index).trim(), part.substr(index + 1).trim());
-			});
-		return ret;
-	}
+	@:cache var cookies = Cookies.parse(request.headers.cookie);
 	function new() {
 		super(request);
 		var parsed:{ pathname:String, query:Dynamic<String> } = Runtime.load('url').parse(request.url, true);
@@ -103,7 +171,14 @@ class Request extends InStream {
 		}
 		
 	public function respond(?status = 200, ?reason:String, ?headers:Headers) {
-		response.writeHead(status, reason, headers);
+		var h = cookies.toHeaders();
+		
+		if (headers != null)
+			for (f in Reflect.fields(headers))
+				h.push([f, Reflect.field(headers, f)]);
+				
+		response.writeHead(status, reason, h);
+		
 		return new Response(response);
 	}
 }
