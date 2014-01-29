@@ -108,8 +108,11 @@ abstract Cookies(Map<String, { value: String, change: CookieChange }>) {
 			name = name.urlEncode();
 			value = value.urlEncode();
 			var s = '$name=$value';
-			if (path != null)
+			
+			if (path != null) {
+				path = path.split('?')[0].split('#')[0];
 				s += '; Path=$path';
+			}
 			if (expires != null)
 				s += '; Expires=$expires';
 			ret.push(['Set-Cookie', s]);
