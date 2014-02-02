@@ -22,7 +22,9 @@ class Server implements Cls {
 		if (Reflect.field(request.headers, 'content-type') == 'application/x-www-form-urlencoded') {
 			raw: request.getPostData()
 		} => {
-			@:privateAccess (request.params = raw);
+			var old = @:privateAccess request.params;
+			for (f in Reflect.fields(raw))
+				Reflect.setField(old, f, Reflect.field(raw, f));
 			_request.invoke(request);
 			true;
 		}

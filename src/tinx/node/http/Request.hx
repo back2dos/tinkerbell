@@ -165,6 +165,7 @@ class Request extends InStream {
 	public function setHeader(header:String, value:String) {
 		response.setHeader(header, value);
 	}
+	
 	public function getPostData() 
 		return {
 			raw: all()
