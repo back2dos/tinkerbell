@@ -23,6 +23,7 @@ abstract ObjectID<T:{}>(Native) {
 	@:op(a == b) static public function eq<A:{}>(a:ObjectID<A>, b:ObjectID<A>)
 		return 
 			if (a == null) b == null;
+			else if (b == null) false;
 			else a.toString() == b.toString();
 		
 	@:op(a != b) static public function neq<A:{}>(a:ObjectID<A>, b:ObjectID<A>)
