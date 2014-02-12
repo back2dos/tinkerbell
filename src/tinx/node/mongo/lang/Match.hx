@@ -49,6 +49,7 @@ private class MatchTyper {
 	}		
 	static var COMPARABLE = [
 		'Date' => true,
+		'Bool' => true,
 		'tinx.node.mongo.ObjectID' => true,
 	];
 	static function checkField(path:Path, s:MatchField, info:TypeInfo) {
