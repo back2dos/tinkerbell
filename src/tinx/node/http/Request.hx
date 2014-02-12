@@ -135,10 +135,12 @@ abstract Cookies(Map<String, { value: String, change: CookieChange }>) {
 		if (s != null)
 			for (part in s.split(';')) {
 				var index = part.indexOf('=');
-				ret[part.substr(0, index).trim().urlDecode()] = { 
-					value: part.substr(index + 1).trim().urlDecode(),
-					change: None,
-				}
+				try
+					ret[part.substr(0, index).trim().urlDecode()] = { 
+						value: part.substr(index + 1).trim().urlDecode(),
+						change: None,
+					}
+				catch (e:Dynamic) {}
 			};
 		
 		return new Cookies(ret);
@@ -152,7 +154,7 @@ class Request extends InStream {
 	var response:Dynamic = _;
 	@:read var params:Values;
 	@:read var path:Path;
-	@:cache var cookies = Cookies.parse(request.headers.cookie);
+	@:cache var cookies:Cookies = Cookies.parse(request.headers.cookie);
 	function new() {
 		super(request);
 		var parsed:{ pathname:String, query:Dynamic<String> } = Runtime.load('url').parse(request.url, true);
