@@ -27,11 +27,18 @@ abstract Values(Dynamic<String>) {
 		return 
 			switch get(key[0] + '[]') {
 				case Success(s): 
-					if (Std.is(s, String)) [s];
+					if (Std.is(s, String)) {
+						if (s.startsWith('['))
+							s = s.substr(1);
+						if (s.endsWith(']'))
+							s = s.substr(0, s.length - 1);
+						s.split(',');
+					}
 					else cast s;
 				case Failure(_): [];
 			}
 	}
+	
 	@:arrayAccess function get(key:String):Outcome<String, Error> {
 		return 
 			if (Reflect.hasField(this, key)) Success(Std.string(Reflect.field(this, key)));
