@@ -37,12 +37,21 @@ class TypeInfo {
 						else reject();
 				}
 
-			case TInst(t, params) if (nonRoot):
-				switch (t.toString()) {
-					case 'Date', 'String':
-					case 'Array': fields.set('[]', new TypeInfo(params[0], pos, true));
-					default: reject();
-				}
+			case TInst(t, params):
+				if (nonRoot)
+					switch (t.toString()) {
+						case 'Date', 'String':
+						case 'Array': fields.set('[]', new TypeInfo(params[0], pos, true));
+						default: reject();
+					}
+				else 
+					switch t.get().kind {
+						case KTypeParameter(constraints):
+							for (c in constraints)
+								for (f in pos.getOutcome(c.getFields())) 
+									this.fields.set(f.name, new TypeInfo(f.type, pos, true));
+						default:
+					}
 			case other: 
 				if (nonRoot) 
 					reject();
