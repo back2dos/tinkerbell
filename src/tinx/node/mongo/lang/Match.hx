@@ -50,6 +50,7 @@ private class MatchTyper {
 	static var COMPARABLE = [
 		'Date' => true,
 		'Bool' => true,
+		'String' => true,
 		'tinx.node.mongo.ObjectID' => true,
 	];
 	static function checkField(path:Path, s:MatchField, info:TypeInfo) {
@@ -196,12 +197,12 @@ private class Generate {
 			s = s.toLowerCase();
 		// return EObjectDecl([ { field: '$' + s, expr: v } ]).at(v.pos);
 		return 
-			macro @:pos(v.pos) {
-				var __v:Dynamic = {};
-				// Reflect.setField($v{'$' + s}, $v);
-				__v;
-			};
-			// EObjectDecl([ { field: '$' + s, expr: v } ]).at(v.pos);
+			// macro @:pos(v.pos) {
+			// 	var __v:Dynamic = {};
+			// 	Reflect.setField(__v, $v{'$' + s}, ${v});
+			// 	__v;
+			// };
+			EObjectDecl([ { field: "@$__hx__$" + s, expr: v } ]).at(v.pos);
 	}
 	static function field(f:MatchField) {
 		function make(e) 

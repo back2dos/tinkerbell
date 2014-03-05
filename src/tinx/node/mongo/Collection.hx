@@ -30,7 +30,8 @@ class Collection<T> extends CollectionBase<T> {
 		ethis = macro @:privateAccess $ethis;
 		return macro @:pos(Context.currentPos()) $ethis.where().all($a { projection } );
 	}
-	macro public function where<T>(ethis:ExprOf<Collection<T>>, ?match:Expr):ExprOf<Where<T>> {
+	// macro public function where<T>(ethis:ExprOf<Collection<T>>, ?match:Expr):ExprOf<Where<T>> {
+	macro public function where(ethis:Expr, ?match:Expr):Expr {
 		ethis = macro @:pos(ethis.pos) @:privateAccess $ethis;
 		match = Match.compile(match, ethis.getInfo()).expr;
 		return macro @:pos(match.pos) new tinx.node.mongo.Where($ethis, $match);

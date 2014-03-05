@@ -18,7 +18,8 @@ class FuncBindings {
 		var src = Helper.makeSource(arg);
 		return (macro { 
 			var tmpSrc = $src;
-			var tmpUpdate = function () $func(tmpSrc.value);
+			var tmpCall = $func;
+			var tmpUpdate = function () tmpCall(tmpSrc.value);
 			tmpSrc.watch(tmpUpdate);
 			tmpUpdate();
 			tmpSrc.value;//comes from cache so it should be cheap

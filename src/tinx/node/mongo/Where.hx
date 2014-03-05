@@ -23,8 +23,23 @@ class Where<T> extends CollectionBase<T> {
 		public function removeAll() 
 			return _remove(match, false);
 	#else
-		static function find(ethis:Expr, func:String, projection:Array<Expr>) {
+		static function escape(f:String)
+			return 
+				if (f.charAt(0) == '$')
+					"@$__hx__"+f;
+				else f;
+		static function restore(ethis:Expr) {
+			ethis = ethis.transform(function (e) return switch e.expr {
+				case EObjectDecl(fields):
+					EObjectDecl([for (f in fields) { field: escape(f.field), expr: f.expr }]).at(e.pos);
+				default: e;
+			});
 			ethis = macro @:privateAccess $ethis;
+			return ethis;			
+		}
+		static function find(ethis:Expr, func:String, projection:Array<Expr>) {
+			ethis = restore(ethis);
+			// throw ethis.toString();
 			var info = ethis.getInfo();
 			var projection = Projection.compile(projection, info);
 			var proto = projection.type;
@@ -36,7 +51,7 @@ class Where<T> extends CollectionBase<T> {
 		}		
 		
 		static function update(ethis:Expr, updates:Array<Expr>, options:Expr) {
-			ethis = macro @:privateAccess $ethis;
+			ethis = restore(ethis);
 			var info = ethis.getInfo();
 			var update = Update.compile(updates, info);
 			return (macro {
@@ -45,7 +60,7 @@ class Where<T> extends CollectionBase<T> {
 			});
 		}		
 		static function findAndModify(ethis:Expr, updates:Array<Expr>, options:Expr) {
-			ethis = macro @:privateAccess $ethis;
+			ethis = restore(ethis);
 			var info = ethis.getInfo();
 			var update = Update.compile(updates, info),
 				proto = Projection.compile([], info).type;
