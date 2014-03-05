@@ -68,9 +68,11 @@ class Printer {
 					printFields(indent, fields, p);
 			}
 	}
-	static public function printFields(indent:String, fields:Array<Field>, ?extend:TypePath) {
+	static public function printFields(indent:String, fields:Array<Field>, ?extend:Array<TypePath>) {
 		var ret = '{ ';
-		if (extend != null) ret += '> ' + printPath(indent, extend) + '; ';
+		if (extend != null) 
+			for (extend in extend)
+				ret += '> ' + printPath(indent, extend) + '; ';
 		var a = [];
 		for (field in fields)
 			a.push(printField('\t' + indent, field));

@@ -209,7 +209,7 @@ typedef Fwd2 = {
 	function bar2():Void;
 }
 class Forwarder implements Cls {
-	var fields:Hash<Dynamic> = new Hash<Dynamic>();
+	var fields = new Map<String, Dynamic>();
 	@:forward(!multiply) var target:FwdTarget;
 	@:forward function fwd2(x:Fwd2, x:Fwd1) {
 		get: fields.get($name),
