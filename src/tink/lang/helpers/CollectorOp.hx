@@ -8,9 +8,6 @@ import tink.core.types.Callback;
 private typedef Plain<T> = CollectorOp<T>;
 private typedef Unsafe<D, F> = CollectorOp<Outcome<D, F>>;
 
-//#if js
-@:native("$Op")
-//#end
 abstract CollectorOp<T>(Future<T>) {
 	public function get(handler:Callback<T>):CallbackLink
 		return this.get(handler);	

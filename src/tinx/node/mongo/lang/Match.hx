@@ -194,7 +194,14 @@ private class Generate {
 			s = Reflect.field(map, s);
 		else
 			s = s.toLowerCase();
-		return EObjectDecl([ { field: '$' + s, expr: v } ]).at(v.pos);
+		// return EObjectDecl([ { field: '$' + s, expr: v } ]).at(v.pos);
+		return 
+			macro @:pos(v.pos) {
+				var __v:Dynamic = {};
+				// Reflect.setField($v{'$' + s}, $v);
+				__v;
+			};
+			// EObjectDecl([ { field: '$' + s, expr: v } ]).at(v.pos);
 	}
 	static function field(f:MatchField) {
 		function make(e) 

@@ -124,7 +124,7 @@ private class Generator {
 		return EObjectDecl([
 			for (opName in ops.keys()) 
 				field(
-					'$'+opName, 
+					"@$__hx__$"+opName, 
 					genOp(ops.get(opName))
 				)
 		]).at();
