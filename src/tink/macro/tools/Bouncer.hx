@@ -1,8 +1,8 @@
 package tink.macro.tools;
 
 #if macro
-	import haxe.macro.Context;
 	import haxe.macro.Expr;
+	using haxe.macro.Context;
 	using tink.macro.tools.PosTools;
 	using tink.macro.tools.ExprTools;
 #end
@@ -22,7 +22,8 @@ class Bouncer {
 				pos = e.pos;
 			outerMap.set(id, transform);
 			return 'tink.macro.tools.Bouncer.makeOuter'.resolve(pos).call([e], pos).field('andBounce', pos).call([id.toExpr(pos)], pos);
-		}		
+		}
+		
 		static function doOuter(id:Int, e:Expr) {
 			return
 				if (outerMap.exists(id)) 
@@ -43,7 +44,7 @@ class Bouncer {
 	}
 	macro public function andBounce(ethis:Expr, id:Int) {
 		return
-			switch (ethis.expr) {
+			switch (ethis.typeExpr().getTypedExpr().expr) {
 				case ECall(_, params): doOuter(id, params[0]);
 				default: ethis.reject();
 			}

@@ -7,8 +7,33 @@ import tink.core.types.Outcome;
 using tink.macro.tools.PosTools;
 using tink.core.types.Outcome;
 
-class PosTools {
+abstract PosContext(Int) to Int {
+	static var stack = [];
+	static var idCounter = 0;
+	function new() this = idCounter++;
+	
+	static public function enter(pos:Position) {
+		var ctx = new PosContext();
+		stack.push({
+			pos: pos,
+			ctx: ctx
+		});
+		return ctx;
+	}
+	public function leave() {
+		stack = [for (item in stack) if (item.ctx != this) item];
+	}
+	static public function get() {
+		return
+			if (stack.length == 0)
+				Context.currentPos()
+			else 
+				stack[stack.length - 1].pos;
+	}
+}
 
+class PosTools {
+	
 	static public function getOutcome < D, F > (pos:Position, outcome:Outcome < D, F > ):D {
 		return 
 			switch (outcome) {
@@ -16,13 +41,19 @@ class PosTools {
 				case Failure(f): pos.error(f);
 			}
 	}
+	
+	static public function asCurrent(pos:Position) {
+		return PosContext.enter(pos);
+	}
+	
 	static public function makeBlankType(pos:Position):ComplexType {
 		return TypeTools.toComplex(Context.typeof(macro null));
-	}	
+	}
+	
 	static public inline function getPos(pos:Position) {
 		return 
 			if (pos == null) 
-				Context.currentPos();
+				PosContext.get();
 			else
 				pos;
 	}

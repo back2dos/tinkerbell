@@ -118,7 +118,7 @@ class LoopSugar {
 				//ret;
 			//}
 			//else 
-			(macro null).finalize().outerTransform(function (_) return doTransform(it, expr));
+			(macro null).finalize(it.pos).outerTransform(function (_) return doTransform(it, expr));
 			
 		return 
 			if (vars.length > 0) {

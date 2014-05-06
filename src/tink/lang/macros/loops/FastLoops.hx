@@ -155,12 +155,12 @@ class FastLoops {
 		var init = [tVar.define(e)];
 		
 		for (e in f.init) 
-			init.push(e.finalize(vars, true).withPrivateAccess());
+			init.push(e.finalize(e.pos, vars, true).withPrivateAccess());
 		
 		return {
 			init: init,
-			hasNext: f.hasNext.finalize(vars, true),
-			next: f.next.finalize(vars, true)
+			hasNext: f.hasNext.finalize(f.hasNext.pos, vars, true),
+			next: f.next.finalize(f.next.pos, vars, true)
 		}
 	}
 	

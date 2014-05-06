@@ -26,7 +26,7 @@ abstract Signal<T>(Callback<T>->CallbackLink) {
 	}
 	
 	public function filter(f:T->Bool, ?dike = true):Signal<T> {
-		var ret = new Signal<T>(function (cb) return when(this, function (result) if (f(result)) cb.invoke(result)));
+		var ret = new Signal<T>(function (cb) return when(function (result) if (f(result)) cb.invoke(result)));
 		return
 			if (dike) ret.dike();
 			else ret;
@@ -36,7 +36,7 @@ abstract Signal<T>(Callback<T>->CallbackLink) {
 		var ret = new Signal<T>(
 			function (cb:Callback<T>):CallbackLink 
 				return [
-					when(this, cb),
+					when(cb),
 					other.when(cb)
 				]
 		);

@@ -49,6 +49,6 @@ class MapTools {
 			for (key in keys)
 				map.set(key, vals.hasNext() ? vals.next() : null);
 			map;
-		}).finalize();
+		}).finalize(null);
 	}
 }

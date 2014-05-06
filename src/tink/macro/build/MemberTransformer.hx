@@ -87,7 +87,9 @@ class MemberTransformer {
 				macros.set(field.name, field)
 			else
 				addMember(fields, Member.ofHaxe(field));
-			
+		
+		var ctx = localClass.pos.asCurrent();
+		
 		var context = {
 			cls: localClass,
 			members: fields,
@@ -122,6 +124,9 @@ class MemberTransformer {
 		if (verbose) 
 			for (field in ret) 
 				Context.warning(new Printer().printField(field), field.pos);
+				
+		ctx.leave();
+		
 		return ret;
 	}
 	function getOwnMember(name:String) {

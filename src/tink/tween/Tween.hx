@@ -133,7 +133,7 @@ class TweenParams<T> implements Cls {
 			cue, 
 			properties, 
 			atoms, 
-			overwrite ? overwriteAll : propMap.exists, 
+			overwrite ? overwriteAll : function (key) return propMap.exists(key), 
 			duration, 
 			easing, 
 			onDone == null ? ignore : onDone.bind(ret),
@@ -145,12 +145,12 @@ class TweenParams<T> implements Cls {
 		if (cue.length == 0 || cue[cue.length-1].mark <= mark)
 			this.cue.push(new CuePoint(mark, handler));	
 		else {
-			for (i in 0...cue.length+1)
-				if (cue[i].mark > mark) {
-					cue.insert(i, new CuePoint(mark, handler));
-					break;
-				}
-			5;
+			//for (i in 0...cue.length+1)
+				//if (cue[i].mark > mark) {
+					//cue.insert(i, new CuePoint(mark, handler));
+					//break;
+				//}
+			//5;
 		}
 	}
 	public function addAtom(name:String, atom:TweenAtom<T>):Void {

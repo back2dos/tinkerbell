@@ -33,9 +33,8 @@ class ExprTools {
 		annotations.set(annotCounter, data);
 		return [(annotCounter++).toExpr(e.pos), e].toBlock(e.pos);
 	}
-	static public function finalize(e:Expr, ?nuPos:Position, ?rules:Dynamic<String>, ?skipFields = false, ?callPos:PosInfos) {
-		if (nuPos == null)
-			nuPos = Context.currentPos();
+	static public function finalize(e:Expr, nuPos:Position, ?rules:Dynamic<String>, ?skipFields = false, ?callPos:PosInfos) {
+		nuPos = nuPos.getPos();
 		if (rules == null)
 			rules = { };
 		function replace(s:String) 

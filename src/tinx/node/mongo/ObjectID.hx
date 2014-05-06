@@ -9,6 +9,7 @@ private extern class Native {
 	function new(?s:String);
 	function toString():String;
 }
+
 abstract ObjectID<T:{}>(Native) {
 	public function new(?s:String) this = new Native(s); 
 	@:to public function toString():String 
