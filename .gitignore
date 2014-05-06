@@ -12,3 +12,5 @@
 *.dump
 *.obj
 *.h
+
+/tests/jsTest/bin/jsTest.js
