@@ -9,7 +9,7 @@ package tink.reactive.bindings;
 #end
 class WatchHelper {
 	macro static public function watch(e:Expr) {
-		return (macro new tink.reactive.bindings.Binding.Watch(function () return $e)).finalize();
+		return (macro new tink.reactive.bindings.Binding.Watch(function () return $e)).finalize(null);
 	}
 }
 class FuncBindings {
@@ -23,7 +23,7 @@ class FuncBindings {
 			tmpSrc.watch(tmpUpdate);
 			tmpUpdate();
 			tmpSrc.value;//comes from cache so it should be cheap
-		}).finalize();
+		}).finalize(null);
 	}
 }
 class FieldBindings {
@@ -59,7 +59,7 @@ class FieldBindings {
 						function (tmpArg) return $target = tmpArg
 					);
 					$init;
-				}).finalize();
+				}).finalize(null);
 			}
 		return target;
 	}
