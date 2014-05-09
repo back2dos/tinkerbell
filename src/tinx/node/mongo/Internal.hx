@@ -97,7 +97,9 @@ abstract DbParams(DbParamObj) from DbParamObj to DbParamObj {
 	static var anon = ~/mongodb:\/\/(.*?):(.*?)\/(.*)/;
 	@:from static public function ofString(s:String) {
 		return 
-			if (wlogin.match(s)) {
+			if (s == null)
+				null;
+			else if (wlogin.match(s)) {
 				host: wlogin.matched(3),
 				name: wlogin.matched(5),
 				port: Std.parseInt(wlogin.matched(4)),
